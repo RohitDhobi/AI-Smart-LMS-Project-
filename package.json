@@ -1,0 +1,64 @@
+{
+  "name": "ai-smart-lms-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"src/**/*.test.js\"",
+    "electron:dev": "vite build && electron .",
+    "electron:build": "vite build && electron-builder",
+    "cap:init": "npx cap init 'AI Smart LMS' com.aismartlms.app --web-dir dist",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
+  },
+  "build": {
+    "appId": "com.aismartlms.app",
+    "productName": "AI Smart LMS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icons/icon-512.svg"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icons/icon-512.svg"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "public/icons/icon-512.svg"
+    }
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.33.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.2",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@vitejs/plugin-react": "^5.0.2",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "vite": "^7.1.3"
+  }
+}

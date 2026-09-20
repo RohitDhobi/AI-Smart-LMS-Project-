@@ -1,0 +1,4 @@
+package com.aismartlms.backend.entity;
+import javax.persistence.*;
+@Entity @Table(name="wishlists", uniqueConstraints=@UniqueConstraint(columnNames={"user_id","course_id"}))
+public class Wishlist { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user; @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="course_id",nullable=false) private Course course; public Long getId(){return id;} public User getUser(){return user;} public void setUser(User v){user=v;} public Course getCourse(){return course;} public void setCourse(Course v){course=v;} }

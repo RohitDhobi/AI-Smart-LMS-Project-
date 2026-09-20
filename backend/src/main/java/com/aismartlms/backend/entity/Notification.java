@@ -1,0 +1,4 @@
+package com.aismartlms.backend.entity;
+import javax.persistence.*; import java.time.LocalDateTime;
+@Entity @Table(name="notifications")
+public class Notification { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user; @Column(nullable=false) private String title; @Column(columnDefinition="TEXT") private String message; private Boolean readFlag=false; private LocalDateTime createdAt=LocalDateTime.now(); public Long getId(){return id;} public User getUser(){return user;} public void setUser(User v){user=v;} public String getTitle(){return title;} public void setTitle(String v){title=v;} public String getMessage(){return message;} public void setMessage(String v){message=v;} public Boolean getReadFlag(){return readFlag;} public void setReadFlag(Boolean v){readFlag=v;} public LocalDateTime getCreatedAt(){return createdAt;} }

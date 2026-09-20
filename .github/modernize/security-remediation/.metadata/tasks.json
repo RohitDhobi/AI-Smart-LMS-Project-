@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Security remediation tasks for AI-Smart-LMS. Organized by severity: mandatory (critical), potential (high), optional (medium-low). Each task addresses specific CWE vulnerabilities and CVEs identified in the security assessment.",
+  "tasks": [
+    {
+      "type": "security",
+      "id": "001-security-cve-dependency-upgrades",
+      "description": "Remediate critical CVE vulnerabilities in Spring Boot and MySQL dependencies",
+      "reason": "Three high-severity CVEs (CVE-2026-22733, CVE-2026-40972, CVE-2023-22102) require immediate patching to prevent authentication bypass, timing attacks, and connector takeover vulnerabilities.",
+      "requirements": "Upgrade org.springframework.boot:spring-boot-starter-actuator to 4.0.4 or later (from 2.7.18). Upgrade org.springframework.boot:spring-boot-devtools to 4.0.6 or later (from 2.7.18). Upgrade com.mysql:mysql-connector-j to 8.2.0 or later (from 8.0.33). Update pom.xml with new versions. Verify all project dependencies are compatible with upgraded versions. Run full build and unit tests to ensure no breaking changes.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "002-security-restrict-file-uploads",
+      "description": "Implement file upload validation and restrict dangerous file types",
+      "reason": "CWE-434: FileStorageService accepts any file extension without validation. Attackers can upload executable files (.exe, .sh, .bat, .jar) that may be automatically processed or executed.",
+      "requirements": "Add whitelist-based file type validation in FileStorageService.storeFile(). Restrict upload to safe extensions: .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .jpg, .jpeg, .png, .gif, .mp4, .avi, .mov. Reject dangerous types: .exe, .sh, .bat, .jar, .dll, .com, .scr, .msi, .app, .bin. Implement MIME type validation using Apache Tika or similar. Store uploaded files with randomized names (UUID-based). Validate file size limits. Add logging for rejected uploads.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-file-upload-validation",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "003-security-hardcoded-credentials",
+      "description": "Remove hard-coded passwords, cryptographic keys, and default credentials",
+      "reason": "CWE-259, CWE-321, CWE-798: Multiple hard-coded credentials found: (1) Database password 'Rocky.2004#' in application.properties; (2) JWT secret key in JwtService.java; (3) Default admin/instructor credentials in DataSeeder.java. This violates OWASP A02:2021 - Cryptographic Failures.",
+      "requirements": "Move database password from application.properties to environment variables or AWS Secrets Manager. Externalize JWT secret key to environment variables with minimum 32-character random value. Remove default credentials from DataSeeder.java; use environment-based initialization. Use Spring Cloud Config or HashiCorp Vault for secrets management in production. Update test configurations to use separate test credentials. Document credential management strategy. For all three areas: (1) database: read spring.datasource.password from env 'DB_PASSWORD'; (2) JWT: read from env 'JWT_SECRET_KEY'; (3) default accounts: read from env 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'TEACHER_PASSWORD'.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-hardcoded-credentials-removal",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "004-security-path-traversal-prevention",
+      "description": "Implement path traversal prevention in FileStorageService",
+      "reason": "CWE-22, CWE-23, CWE-36: FileStorageService.getFilePath() allows path traversal attacks using '../', absolute paths, or symbolic links. normalize() alone is insufficient.",
+      "requirements": "Implement strict path validation in getFilePath(): (1) Validate that resolved path starts with uploadDir base path using startsWith() check; (2) Reject paths containing '..', './../../', or any relative traversal sequences; (3) Reject absolute paths (starting with / or drive letters); (4) Use Files.isSymbolicLink() check to prevent symlink traversal; (5) Use canonical path comparison to detect bypasses; (6) Throw SecurityException on violation. Test with malicious inputs: '../../../etc/passwd', '/etc/passwd', 'file://etc/passwd', symlink paths. Add comprehensive unit tests for path traversal scenarios.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-path-traversal-prevention",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "005-security-xss-prevention",
+      "description": "Remediate Cross-Site Scripting (XSS) vulnerability in InstructorAITools component",
+      "reason": "CWE-79: InstructorAITools.jsx uses dangerouslySetInnerHTML with minimal sanitization. Unescaped AI response content can execute malicious JavaScript in user browsers.",
+      "requirements": "Remove dangerouslySetInnerHTML usage from line 119-124 in InstructorAITools.jsx. Implement proper HTML sanitization using DOMPurify library. Parse AI response safely: (1) use DOMPurify.sanitize() for markdown-generated HTML; (2) escape all untrusted content; (3) use React's built-in JSX escaping for text rendering. Convert markdown formatting (** bold **, __ italic __) to React components instead of HTML. Test with OWASP XSS payloads: <script>, <img onerror>, event handlers. Add CSP headers to prevent inline script execution.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-xss-prevention",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "006-security-enhanced-logging",
+      "description": "Implement comprehensive security logging for authentication and access control events",
+      "reason": "CWE-778: AuthService.login() does not log authentication failures. Missing logs prevent detection of brute force attacks, unauthorized access attempts, and forensic analysis of security incidents.",
+      "requirements": "Add logging to AuthService.login() method (lines 142-180): (1) Log successful login attempts with user email, timestamp, IP address; (2) Log failed authentication with reason (invalid email, wrong password, inactive account); (3) Log suspicious patterns (rapid login failures = brute force); (4) Include request metadata (User-Agent, IP). Implement log levels: WARN for failed attempts, INFO for success, ERROR for system failures. Use SLF4J/Logback. Configure separate security audit log file. Do NOT log passwords or sensitive data. Set log retention policy (90 days minimum). Test with failed login scenarios.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-enhanced-logging",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "007-security-resource-management",
+      "description": "Implement proper resource cleanup and lifecycle management",
+      "reason": "CWE-772, CWE-775: Window handles (window.open()) and DOM elements are created but never released. This causes resource leaks and memory bloat. Proper cleanup is essential for long-running browser sessions.",
+      "requirements": "In CertificateGenerator.jsx: (1) Window at line 154: Capture window reference, close on component unmount using useEffect cleanup; (2) DOM elements at lines 13, 145: Use React refs or controlled DOM lifecycle; (3) Implement proper cleanup in useEffect(() => { ... return () => { cleanup } }). For browser resources: use AbortController for fetch operations, properly close window handles. For DOM: avoid creating elements in useState, manage DOM node lifecycle with useRef. Test with React DevTools Profiler to verify cleanup on unmount. Verify no memory leaks in browser DevTools.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-resource-lifecycle-management",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "008-security-data-access-pattern",
+      "description": "Refactor localStorage access to use centralized data manager component",
+      "reason": "CWE-1057: Direct localStorage operations scattered across multiple files (gamification.js, LearningHeatmap.jsx, flashcards.js, StudentSidebar.jsx, AdminSidebar.jsx, AdminRoles.jsx). This violates centralized data management pattern and creates maintainability, consistency, and security issues.",
+      "requirements": "Create centralized DataManager component/service in src/services/DataManager.js with unified API: (1) getStoredData(key), setStoredData(key, value), removeStoredData(key), clearAllData(); (2) Implement data validation and sanitization at entry point; (3) Add encryption for sensitive data (JWT tokens); (4) Implement audit logging for data access. Replace all direct localStorage calls: gamification.js lines 34-47, LearningHeatmap.jsx lines 7,14, api.js line 12, flashcards.js line 17. Update StudentSidebar.jsx and AdminSidebar.jsx to use DataManager. Add data versioning/schema validation. Test data consistency across components.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-centralized-data-manager",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "009-security-numeric-type-validation",
+      "description": "Implement numeric type conversion validation and input bounds checking",
+      "reason": "CWE-681: Multiple instances of unsafe numeric type conversions from untrusted input without validation. Examples: api.js line 421 (count), AdminSemesters.jsx line 106 (semester ID), InstructorCourseCreate.jsx line 91 (course price). Invalid numeric values cause unexpected behaviors or security issues.",
+      "requirements": "Implement helper function for safe numeric conversion: (1) Validate input is numeric string; (2) Check range bounds (min/max values); (3) Handle overflow/underflow; (4) Throw clear error on invalid input. In api.js line 421: validate count is 0-1000, integer; In AdminSemesters.jsx line 106: validate semester ID is positive integer < 2^31; In InstructorCourseCreate.jsx line 91: validate price is 0-999999.99, two decimals. Add server-side validation for all numeric inputs. Use input validation library (e.g., validator.js). Test with edge cases: -1, 0, max int, float values, NaN, infinity.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-numeric-validation",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "010-security-comprehensive-testing",
+      "description": "Create comprehensive security testing suite and integrate into CI/CD pipeline",
+      "reason": "Ensure all security remediations are validated through automated testing. Prevent regression of security vulnerabilities and catch new issues early.",
+      "requirements": "Create security test suite: (1) Unit tests for path traversal scenarios; (2) Unit tests for file upload validation; (3) Integration tests for credential management; (4) XSS payload tests; (5) Brute force attack simulation; (6) Resource cleanup verification; (7) Data access pattern conformance tests. Use security testing libraries (OWASP ZAP for automated scanning). Integrate SAST tool (SonarQube) into build pipeline. Configure pre-commit hooks for security checks. Add security scanning to CI/CD workflow. Maintain minimum 90% code coverage for security-related code.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "security-comprehensive-testing",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "AI-Smart-LMS Security Remediation Plan",
+    "projectName": "AI-Smart-LMS-Level-1-to-9-Complete",
+    "language": "java",
+    "createdAt": "2026-09-01T12:15:00.000Z",
+    "version": "1.0"
+  }
+}

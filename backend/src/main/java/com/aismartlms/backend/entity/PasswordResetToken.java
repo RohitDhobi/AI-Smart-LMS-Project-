@@ -1,0 +1,4 @@
+package com.aismartlms.backend.entity;
+import javax.persistence.*; import java.time.LocalDateTime;
+@Entity @Table(name="password_reset_tokens")
+public class PasswordResetToken { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; @Column(nullable=false,unique=true) private String token; @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id",nullable=false) private User user; private LocalDateTime expiresAt; public Long getId(){return id;} public String getToken(){return token;} public void setToken(String v){token=v;} public User getUser(){return user;} public void setUser(User v){user=v;} public LocalDateTime getExpiresAt(){return expiresAt;} public void setExpiresAt(LocalDateTime v){expiresAt=v;} }

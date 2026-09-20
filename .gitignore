@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Vite cache
+.vite/
+
+# Headless-Chrome test profile (created by the CDP test scripts)
+.chrome-test-profile/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Sensitive files
+tokenra-key.txt
+opencode.json
+
+# Electron build cache
+.electron-cache/
+electron-cache/
+
+# Build release
+release/
+
+# Uploads
+uploads/
+
+# Scripts output
+# scripts/
+
+# Env files
+.env*
+
+# Backend build
+backend/target/
+
+# Tests output
+tests/

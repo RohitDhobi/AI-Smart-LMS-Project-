@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Smart LMS</title>
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="AI-powered Learning Management System — Learn Smarter, Grow Faster" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AI Smart LMS" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+    <script>
+      // Apply saved theme before first paint to avoid a flash
+      (function () {
+        try {
+          var t = localStorage.getItem("lms_theme");
+          if (!t) t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div class="app-splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg,#0f172a);color:var(--text,#e2e8f0);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">
+        <div class="app-splash-logo" style="font-size:40px">🤖</div>
+        <div class="app-splash-text" style="font-size:14px;opacity:.7">Loading AI Smart LMS…</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
