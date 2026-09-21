@@ -15395,6 +15395,8 @@ a.analytics-stat:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12.5px;
+  color: var(--text, #e2e8f0);
+  min-width: 0;
 }
 
 .qb-picker-marks {
