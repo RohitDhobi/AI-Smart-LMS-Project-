@@ -1324,20 +1324,7 @@ export default function InstructorAITools() {
               </div>
             )}
 
-            {response && (activeTool.id !== 'questions' || (questionType !== 'mcq' && questionType !== 'mixed')) && (
-              <div className="inst-ai-response">
-                <h4>AI Response</h4>
-                <div className="inst-ai-response-content">
-                  {response.split("\n").map((line, i) => (
-                    <p key={i} dangerouslySetInnerHTML={{
-                      __html: line
-                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                        .replace(/^(\d+)\./gm, "<br/>$1.")
-                    }} />
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* ===== QUESTION BANK ===== */}
             {activeTool.id === 'questions' && questionBank.length > 0 && (
