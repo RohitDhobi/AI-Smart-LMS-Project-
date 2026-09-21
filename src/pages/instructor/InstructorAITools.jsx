@@ -1166,7 +1166,13 @@ export default function InstructorAITools() {
                           <div className="paper-section-card-footer">
                             <span>{sectionQCount} questions = <strong>{sectionTotal} marks</strong></span>
                             <div className="paper-section-card-actions">
-                              <button className="qb-select-btn" onClick={() => setShowSectionPicker(idx)}>📋 Select Questions</button>
+                              <button className="qb-select-btn" onClick={() => {
+                                // Auto-filter picker by the section's first question group type
+                                const firstType = section.questionGroups[0]?.questionType || 'all';
+                                setPickerTypeFilter(firstType);
+                                setPickerSearch('');
+                                setShowSectionPicker(idx);
+                              }}>📋 Select Questions</button>
                               <button className="qb-add-btn" onClick={() => {
                                 const firstType = section.questionGroups[0]?.questionType || 'mcq';
                                 const defaultM = PAPER_SECTION_TYPES.find(t => t.id === firstType);
