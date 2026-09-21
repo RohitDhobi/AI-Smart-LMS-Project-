@@ -1488,26 +1488,59 @@ export default function InstructorAITools() {
             )}
 
             {/* ===== SECTION QUESTION PICKER MODAL ===== */}
-            {showSectionPicker !== null && (
-              <div className="qb-modal-overlay" onClick={() => setShowSectionPicker(null)}>
-                <div className="qb-modal qb-modal-wide" onClick={e => e.stopPropagation()}>
-                  <h3>Select Questions for {paperConfig.sections[showSectionPicker]?.name || 'Section'}</h3>
-                  <div className="qb-filters" style={{ marginBottom: 12 }}>
-                    <select value={pickerTypeFilter} onChange={e => setPickerTypeFilter(e.target.value)}>
-                      <option value="all">All Types</option>
-                      <option value="mcq">MCQ</option>
-                      <option value="1liner">1 Liner</option>
-                      <option value="2marker">2 Marker</option>
-                      <option value="3marker">3 Marker</option>
-                      <option value="5marker">5 Marker</option>
-                    </select>
-                    <input className="qb-search" placeholder="Search..." style={{ flex: 1 }} />
-                  </div>
-                  <div className="qb-picker-list">
-                    {questionBank
-                      .filter(q => pickerTypeFilter === 'all' || q.type === pickerTypeFilter)
-                      .map(q => {
-                        const assigned = sectionAssignments[showSectionPicker] || [];
+            {showSectionPicker !== null && (() => {
+              const sec = paperConfig.sections[showSectionPicker];
+              const secType = sec?.questionGroups[0]?.questionType || 'all';
+              const filteredQs = questionBank
+                .filter(q => pickerTypeFilter === 'all' || q.type === pickerTypeFilter)
+                .filter(q => !pickerSearch || (q.question || q.text || '').toLowerCase().includes(pickerSearch.toLowerCase()));
+              const assigned = sectionAssignments[showSectionPicker] || [];
+              const allFilteredIds = filteredQs.map(q => q.id);
+              const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => assigned.includes(id));
+              return (
+                <div className="qb-modal-overlay" onClick={() => setShowSectionPicker(null)}>
+                  <div className="qb-modal qb-modal-wide" onClick={e => e.stopPropagation()}>
+                    <h3>📋 Select Questions for {sec?.name || 'Section'}</h3>
+                    {secType !== 'all' && (
+                      <p style={{ margin: '0 0 8px', color: 'var(--text-secondary)', fontSize: 13 }}>
+                        Section type: <strong>{PAPER_SECTION_TYPES.find(t => t.id === secType)?.label || secType}</strong> — showing matching questions below
+                      </p>
+                    )}
+                    <div className="qb-filters" style={{ marginBottom: 12 }}>
+                      <select value={pickerTypeFilter} onChange={e => setPickerTypeFilter(e.target.value)}>
+                        <option value="all">All Types</option>
+                        <option value="mcq">MCQ</option>
+                        <option value="1liner">1 Liner</option>
+                        <option value="2marker">2 Marker</option>
+                        <option value="3marker">3 Marker</option>
+                        <option value="5marker">5 Marker</option>
+                      </select>
+                      <input className="qb-search" placeholder="Search questions..." style={{ flex: 1 }} value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{filteredQs.length} found, {assigned.length} selected</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                      <button className="qb-action-btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => {
+                        setSectionAssignments(prev => {
+                          const current = prev[showSectionPicker] || [];
+                          const toAdd = allFilteredIds.filter(id => !current.includes(id));
+                          return { ...prev, [showSectionPicker]: [...current, ...toAdd] };
+                        });
+                      }}>✅ Select All ({filteredQs.length})</button>
+                      <button className="qb-action-btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => {
+                        setSectionAssignments(prev => {
+                          const current = prev[showSectionPicker] || [];
+                          const removeSet = new Set(allFilteredIds);
+                          return { ...prev, [showSectionPicker]: current.filter(id => !removeSet.has(id)) };
+                        });
+                      }}>❌ Deselect All</button>
+                    </div>
+                    <div className="qb-picker-list">
+                      {filteredQs.length === 0 && (
+                        <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                          {questionBank.length === 0 ? 'No questions in the Question Bank yet. Generate questions using AI first.' : 'No questions match your filter.'}
+                        </div>
+                      )}
+                      {filteredQs.map(q => {
                         const isSelected = assigned.includes(q.id);
                         return (
                           <label key={q.id} className={`qb-picker-item ${isSelected ? 'selected' : ''}`}>
@@ -1527,13 +1560,14 @@ export default function InstructorAITools() {
                           </label>
                         );
                       })}
-                  </div>
-                  <div className="qb-modal-actions">
-                    <button className="qb-cancel-btn" onClick={() => setShowSectionPicker(null)}>Done</button>
+                    </div>
+                    <div className="qb-modal-actions">
+                      <button className="qb-confirm-btn" onClick={() => setShowSectionPicker(null)}>Done — {assigned.length} questions selected</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* ===== SECTION MANUAL QUESTION MODAL ===== */}
             {showSectionManualForm !== null && (
