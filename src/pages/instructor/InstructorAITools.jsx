@@ -122,6 +122,7 @@ export default function InstructorAITools() {
   // { sectionIdx: [questionId, ...] }
   const [showSectionPicker, setShowSectionPicker] = useState(null); // sectionIdx or null
   const [pickerTypeFilter, setPickerTypeFilter] = useState('all');
+  const [pickerSearch, setPickerSearch] = useState('');
 
   // Manual question form inside section
   const [showSectionManualForm, setShowSectionManualForm] = useState(null); // sectionIdx or null
