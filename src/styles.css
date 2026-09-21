@@ -15361,7 +15361,7 @@ a.analytics-stat:hover {
   cursor: pointer;
   transition: all 0.15s;
   font-size: 13px;
-  color: var(--text);
+  color: var(--text, #e2e8f0);
 }
 
 .qb-picker-item:hover {
