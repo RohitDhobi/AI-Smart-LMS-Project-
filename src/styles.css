@@ -15361,6 +15361,8 @@ a.analytics-stat:hover {
   cursor: pointer;
   transition: all 0.15s;
   font-size: 13px;
+  font-weight: 400;
+  margin-bottom: 0;
   color: var(--text, #e2e8f0);
 }
 
