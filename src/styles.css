@@ -14815,6 +14815,39 @@ a.analytics-stat:hover {
 .paper-btn-download:hover { background: #ecfdf5; border-color: #059669; color: #059669; }
 .paper-btn-print { border-color: #f59e0b; color: #f59e0b; }
 .paper-btn-print:hover { background: #fffbeb; border-color: #d97706; color: #d97706; }
+/* Short-answer cards inside the AI quiz (mixed / text questions) */
+.quiz-short-answer {
+  margin-top: 10px;
+}
+
+.quiz-short-answer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.quiz-short-answer textarea:focus {
+  border-color: var(--primary);
+}
+
+.quiz-short-answer textarea:disabled {
+  opacity: 0.8;
+}
+
+.quiz-short-answer small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
 .paper-btn-upload { border-color: #3b82f6; color: #3b82f6; }
 .paper-btn-upload:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
 .paper-btn-upload:disabled { opacity: 0.7; cursor: default; }
