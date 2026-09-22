@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import InstructorPage from "./InstructorPage";
+import { api } from "../../api";
 
 const AI_TOOLS = [
   {
@@ -98,6 +99,8 @@ export default function InstructorAITools() {
   });
   const [paperGenerated, setPaperGenerated] = useState(false);
   const [paperData, setPaperData] = useState(null);
+  const [uploadingPaper, setUploadingPaper] = useState(false);
+  const [paperUploaded, setPaperUploaded] = useState(false);
   const QUESTIONS_PER_PAGE = 10;
 
   // Question Bank: unified store for AI + instructor questions
@@ -954,6 +957,40 @@ export default function InstructorAITools() {
     setLoading(false);
   };
 
+  // Upload the generated question paper to the Exams section
+  async function handleUploadToExam() {
+    if (!paperData || uploadingPaper || paperUploaded) return;
+    try {
+      setUploadingPaper(true);
+      // Parse duration like "3 Hours" / "90 Minutes" / "180" into minutes
+      const durationStr = String(paperData.duration || "");
+      const hours = durationStr.match(/([\d.]+)\s*hour/i);
+      const mins = durationStr.match(/([\d.]+)\s*min/i);
+      let durationMinutes = 60;
+      if (hours) durationMinutes = Math.round(parseFloat(hours[1]) * 60);
+      else if (mins) durationMinutes = Math.round(parseFloat(mins[1]));
+      else {
+        const n = parseFloat(durationStr);
+        if (Number.isFinite(n)) durationMinutes = n <= 12 ? Math.round(n * 60) : Math.round(n);
+      }
+      const totalMarks = Number(paperData.totalMarks) || 100;
+      await api.instructorCreateExam({
+        title: paperData.title || "Examination Paper",
+        description: `${paperData.subject ? paperData.subject + " — " : ""}${paperData.totalQuestions} questions, ${totalMarks} marks, Duration: ${paperData.duration}, Difficulty: ${paperData.difficulty}`,
+        durationMinutes,
+        totalMarks,
+        passingMarks: Math.max(1, Math.round(totalMarks * 0.4)),
+        questionPaper: JSON.stringify(paperData),
+      });
+      setPaperUploaded(true);
+      alert("✅ Question paper uploaded to the Exams section!");
+    } catch (err) {
+      alert("Upload failed: " + (err?.message || "Unknown error") + "\n\nMake sure the backend server (port 8080) is running, then try again.");
+    } finally {
+      setUploadingPaper(false);
+    }
+  }
+
   return (
     <InstructorPage icon="🤖" title="AI Tools" subtitle="Leverage AI to enhance your teaching experience">
       <div className="inst-content">
@@ -1639,11 +1676,19 @@ export default function InstructorAITools() {
             {paperGenerated && paperData && questionType === 'questionpaper' && (
               <div className="paper-output-section">
                 <div className="paper-action-bar">
-                  <button className="inst-btn inst-btn-primary" onClick={() => { setPaperGenerated(false); setPaperData(null); }}>← Generate New</button>
+                  <button className="inst-btn inst-btn-primary" onClick={() => { setPaperGenerated(false); setPaperData(null); setPaperUploaded(false); }}>← Generate New</button>
                   <div className="paper-action-buttons">
                     <button className="paper-action-btn paper-btn-preview" onClick={() => { const el = document.getElementById('paper-preview-content'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>👁 Preview</button>
                     <button className="paper-action-btn paper-btn-download" onClick={() => { const el = document.getElementById('paper-preview-content'); if (!el) return; const w = window.open('', '_blank'); w.document.write('<html><head><title>' + paperData.title + '</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;color:#000;background:#fff}h1{text-align:center;font-size:22px;margin-bottom:4px}h2{text-align:center;font-size:14px;font-weight:normal;color:#333;margin-top:0}.paper-meta{text-align:center;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:12px}.paper-meta p{margin:2px 0;font-size:13px}.paper-instructions{border:1px solid #999;padding:12px 16px;margin-bottom:20px;font-size:12.5px}.paper-instructions h3{margin:0 0 6px;font-size:14px}.paper-instructions ul{margin:4px 0;padding-left:20px}.paper-section{margin-bottom:24px}.paper-section h3{font-size:16px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:10px}.paper-q{margin-bottom:12px;font-size:13.5px;line-height:1.6}.paper-q-num{font-weight:bold}.paper-or{color:#666;font-style:italic;margin-left:20px;margin-top:4px;font-size:12.5px}@media print{body{margin:0;padding:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); setTimeout(() => { w.print(); }, 500); }}>⬇ Download PDF</button>
                     <button className="paper-action-btn paper-btn-print" onClick={() => { const el = document.getElementById('paper-preview-content'); if (!el) return; const w = window.open('', '_blank'); w.document.write('<html><head><title>' + paperData.title + '</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;color:#000;background:#fff}h1{text-align:center;font-size:22px;margin-bottom:4px}h2{text-align:center;font-size:14px;font-weight:normal;color:#333;margin-top:0}.paper-meta{text-align:center;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:12px}.paper-meta p{margin:2px 0;font-size:13px}.paper-instructions{border:1px solid #999;padding:12px 16px;margin-bottom:20px;font-size:12.5px}.paper-instructions h3{margin:0 0 6px;font-size:14px}.paper-instructions ul{margin:4px 0;padding-left:20px}.paper-section{margin-bottom:24px}.paper-section h3{font-size:16px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:10px}.paper-q{margin-bottom:12px;font-size:13.5px;line-height:1.6}.paper-q-num{font-weight:bold}.paper-or{color:#666;font-style:italic;margin-left:20px;margin-top:4px;font-size:12.5px}@media print{body{margin:0;padding:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); setTimeout(() => { w.print(); }, 300); }}>🖨 Print</button>
+                    <button
+                      className={`paper-action-btn paper-btn-upload ${paperUploaded ? "uploaded" : ""}`}
+                      onClick={handleUploadToExam}
+                      disabled={uploadingPaper || paperUploaded}
+                      title="Upload this question paper to the Exams section"
+                    >
+                      {uploadingPaper ? "⏳ Uploading…" : paperUploaded ? "✅ Uploaded to Exam" : "📤 Upload to Exam"}
+                    </button>
                   </div>
                 </div>
 
