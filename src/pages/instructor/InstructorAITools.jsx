@@ -46,6 +46,7 @@ const QUESTION_TYPES = [
   { id: "2marker", label: "2 Marker", icon: "📝", desc: "2-mark questions" },
   { id: "3marker", label: "3 Marker", icon: "📄", desc: "3-mark questions" },
   { id: "5marker", label: "5 Marker", icon: "📑", desc: "5-mark long answer questions" },
+  { id: "mixed", label: "Mixed", icon: "🔀", desc: "Mix of MCQs, 1 Liners and marker questions" },
   { id: "questionpaper", label: "Question Paper Format", icon: "📄", desc: "Complete exam paper structure with sections" },
 ];
 
@@ -56,7 +57,7 @@ export default function InstructorAITools() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const [questionType, setQuestionType] = useState("mixed");
+  const [questionType, setQuestionType] = useState("mcq");
   const [questionCount, setQuestionCount] = useState(10);
   const [parsedQuestions, setParsedQuestions] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -668,7 +669,14 @@ export default function InstructorAITools() {
         '2marker': buildTextPool(shortTemplates),
         '3marker': buildTextPool(mediumTemplates),
         '5marker': buildTextPool(longTemplates),
-        mixed: [...mcqPool, ...buildTextPool(linerTemplates), ...buildTextPool(shortTemplates), ...buildTextPool(mediumTemplates), ...buildTextPool(longTemplates)],
+        // Mixed items are tagged with their real type so parsing/badging stays honest
+        mixed: [
+          ...mcqPool.map(o => ({ ...o, kind: 'mcq' })),
+          ...linerTemplates.map(fn => ({ text: fn(topic), kind: '1liner' })),
+          ...shortTemplates.map(fn => ({ text: fn(topic), kind: '2marker' })),
+          ...mediumTemplates.map(fn => ({ text: fn(topic), kind: '3marker' })),
+          ...longTemplates.map(fn => ({ text: fn(topic), kind: '5marker' })),
+        ],
       };
 
       const pool = pools[type] || pools.mixed;
@@ -688,42 +696,63 @@ export default function InstructorAITools() {
 
     const generatedQuestions = generateQuestions(topic, questionType, count);
 
-    // Parse MCQ questions into structured objects
-    function parseMCQQuestions(rawItems, topic) {
-      // rawItems can be an array of { text, answer } objects or an array of strings
-      return rawItems.map((item, i) => {
-        const line = typeof item === 'object' ? item.text : item;
-        const templateAnswer = typeof item === 'object' ? item.answer : null;
-        const cleaned = line.replace(/^\d+\.\s*/, '').trim();
-        // Extract options: (A) ... (B) ... (C) ... (D) ...
-        const optionRegex = /\(([A-D])\)\s*([^()]*?)(?=\s*\([A-D]\)|$)/g;
-        const options = [];
-        let match;
-        while ((match = optionRegex.exec(cleaned)) !== null) {
-          options.push({ letter: match[1], text: match[2].trim() });
-        }
-        const questionText = cleaned.replace(/\s*\([A-D]\)[\s\S]*$/, '').trim();
-        const correctAnswer = templateAnswer || (options.length > 0 ? options[0].letter : 'A');
-        return { id: `ai-${Date.now()}-${i}`, question: questionText, options, topic: topic, correctAnswer, source: 'AI', type: 'mcq', marks: 1 };
+    // ===== Parsing =====
+    const TYPE_MARKS = { '1liner': 1, '2marker': 2, '3marker': 3, '5marker': 5 };
+
+    // Parse a single MCQ line. Options are located by their " (A)".." (D)" markers so
+    // option text may itself contain parentheses (e.g. "O(1)", "O(log n)").
+    function parseMCQLine(line, templateAnswer, topic, i) {
+      const cleaned = String(line || '').replace(/^\d+\.\s*/, '').trim();
+      const markers = [...cleaned.matchAll(/\s\(([A-D])\)/g)];
+      const options = markers.map((m, mi) => {
+        const from = m.index + m[0].length;
+        const to = mi + 1 < markers.length ? markers[mi + 1].index : cleaned.length;
+        return { letter: m[1], text: cleaned.slice(from, to).trim() };
       });
+      let questionText = markers.length > 0 ? cleaned.slice(0, markers[0].index).trim() : cleaned;
+      if (!questionText) questionText = cleaned;
+      const correctAnswer = templateAnswer || (options.length > 0 ? options[0].letter : 'A');
+      return { id: `ai-${Date.now()}-${i}`, question: questionText, options, topic: topic, correctAnswer, source: 'AI', type: 'mcq', marks: 1 };
+    }
+
+    function parseMCQQuestions(rawItems, topic) {
+      return rawItems.map((item, i) =>
+        parseMCQLine(typeof item === 'object' ? item.text : item, typeof item === 'object' ? item.answer : null, topic, i)
+      );
+    }
+
+    function parseTextItem(line, qType, i) {
+      const text = String(line || '').replace(/^\d+\.\s*/, '').trim();
+      return {
+        id: `ai-${Date.now()}-${i}`,
+        text,
+        question: text,
+        source: 'AI',
+        type: qType,
+        marks: TYPE_MARKS[qType] || 1,
+        options: [],
+        correctAnswer: null,
+      };
     }
 
     function parseTextQuestions(raw, qType) {
-      const typeMarks = { '1liner': 1, '2marker': 2, '3marker': 3, '5marker': 5 };
-      return raw.split('\n').filter(l => l.trim()).map((line, i) => ({
-        id: `ai-${Date.now()}-${i}`,
-        text: line.replace(/^\d+\.\s*/, '').trim(),
-        source: 'AI',
-        type: qType,
-        marks: typeMarks[qType] || 1,
-      }));
+      return String(raw || '').split('\n').filter(l => l.trim()).map((line, i) => parseTextItem(line, qType, i));
+    }
+
+    // Mixed batches carry each item's real type via `kind`
+    function parseMixedQuestions(rawItems, topic) {
+      return rawItems.map((item, i) => {
+        if (typeof item === 'object' && item.kind === 'mcq') return parseMCQLine(item.text, item.answer, topic, i);
+        const kind = (item && item.kind) || '1liner';
+        return parseTextItem(typeof item === 'object' ? item.text : item, kind, i);
+      });
     }
 
     let parsed = [];
     if (questionType === 'mcq') {
       parsed = parseMCQQuestions(generatedQuestions, topic);
     } else if (questionType === 'mixed') {
-      parsed = parseMCQQuestions(generatedQuestions, topic);
+      parsed = parseMixedQuestions(generatedQuestions, topic);
     } else {
       parsed = parseTextQuestions(generatedQuestions, questionType);
     }
@@ -991,6 +1020,14 @@ export default function InstructorAITools() {
     }
   }
 
+  // Quiz derived stats — the quiz now shows ALL generated questions, not just MCQs
+  const quizTotal = parsedQuestions.length;
+  const quizGraded = parsedQuestions.filter(q => q.options && q.options.length > 0);
+  const quizAnswered = parsedQuestions.filter(q => {
+    const a = answers[q.id];
+    return a !== undefined && String(a).trim() !== '';
+  }).length;
+
   return (
     <InstructorPage icon="🤖" title="AI Tools" subtitle="Leverage AI to enhance your teaching experience">
       <div className="inst-content">
@@ -1253,23 +1290,23 @@ export default function InstructorAITools() {
               </div>
             </div>
 
-            {response && activeTool.id === 'questions' && parsedQuestions.filter(q => q.options && q.options.length > 0).length > 0 && (questionType === 'mcq' || questionType === 'mixed') && (
+            {response && activeTool.id === 'questions' && quizTotal > 0 && (questionType === 'mcq' || questionType === 'mixed') && (
               <div className="quiz-container">
                 {/* Info Bar */}
                 <div className="quiz-info-bar">
                   <span className="quiz-info-item">Topic: <strong>{generatedTopic}</strong></span>
-                  <span className="quiz-info-item">Total: <strong>{parsedQuestions.filter(q => q.options && q.options.length > 0).length} Questions</strong></span>
-                  <span className="quiz-info-item">Progress: <strong>{Object.keys(answers).length} / {parsedQuestions.filter(q => q.options && q.options.length > 0).length} Answered</strong></span>
+                  <span className="quiz-info-item">Total: <strong>{quizTotal} Questions</strong></span>
+                  <span className="quiz-info-item">Progress: <strong>{quizAnswered} / {quizTotal} Answered</strong></span>
                 </div>
 
                 {/* Question Navigator */}
                 <div className="quiz-navigator">
                   <div className="quiz-navigator-header">
-                    <span>Question Navigator ({parsedQuestions.filter(q => q.options && q.options.length > 0).length} Questions):</span>
+                    <span>Question Navigator ({quizTotal} Questions):</span>
                     <span className="quiz-navigator-hint">Click any number to jump</span>
                   </div>
                   <div className="quiz-navigator-grid">
-                    {parsedQuestions.filter(q => q.options && q.options.length > 0).map((q, navIdx) => {
+                    {parsedQuestions.map((q, navIdx) => {
                       const qNum = navIdx + 1;
                       return (
                         <button
@@ -1303,20 +1340,26 @@ export default function InstructorAITools() {
 
                 {/* Questions */}
                 {(() => {
-                  const mcqQs = parsedQuestions.filter(q => q.options && q.options.length > 0);
-                  const filtered = mcqQs.filter(q => !searchQuery || q.question.toLowerCase().includes(searchQuery.toLowerCase()) || q.options.some(o => o.text.toLowerCase().includes(searchQuery.toLowerCase())));
+                  const allQs = parsedQuestions;
+                  const filtered = allQs.filter(q => {
+                    if (!searchQuery) return true;
+                    const s = searchQuery.toLowerCase();
+                    if ((q.question || q.text || '').toLowerCase().includes(s)) return true;
+                    return (q.options || []).some(o => o.text.toLowerCase().includes(s));
+                  });
                   return filtered
                     .slice(currentPage * QUESTIONS_PER_PAGE, (currentPage + 1) * QUESTIONS_PER_PAGE)
                     .map((q) => {
-                      const globalIdx = mcqQs.indexOf(q);
+                      const globalIdx = allQs.indexOf(q);
                       const qNum = globalIdx + 1;
                       return (
                         <div key={q.id} id={`quiz-q-${globalIdx}`} className="quiz-question-card">
                           <div className="quiz-question-header">
-                            <span className="quiz-q-label">Question {qNum} of {mcqQs.length}</span>
+                            <span className="quiz-q-label">Question {qNum} of {allQs.length}</span>
                         {q.topic && <span className="quiz-q-tag">{q.topic}</span>}
                       </div>
-                      <p className="quiz-question-text">{q.question}</p>
+                      <p className="quiz-question-text">{q.question || q.text}</p>
+                      {q.options && q.options.length > 0 ? (
                       <div className="quiz-options-grid">
                         {q.options.map((opt) => {
                           const isSelected = answers[q.id] === opt.letter;
@@ -1344,6 +1387,18 @@ export default function InstructorAITools() {
                           );
                         })}
                       </div>
+                      ) : (
+                      <div className="quiz-short-answer">
+                        <textarea
+                          rows={3}
+                          placeholder="Type your answer here..."
+                          value={answers[q.id] || ''}
+                          onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                          disabled={showResult}
+                        />
+                        <small>Short answer — assess it yourself (not auto-graded).</small>
+                      </div>
+                      )}
                     </div>
                       );
                     });
@@ -1352,16 +1407,16 @@ export default function InstructorAITools() {
                 {/* Pagination */}
                 <div className="quiz-pagination">
                   <button className="quiz-page-btn" disabled={currentPage === 0} onClick={() => setCurrentPage(p => Math.max(0, p - 1))}>← Previous</button>
-                  <span className="quiz-page-info">Page {currentPage + 1} of {Math.ceil(parsedQuestions.filter(q => q.options && q.options.length > 0).length / QUESTIONS_PER_PAGE)}</span>
-                  <button className="quiz-page-btn" disabled={(currentPage + 1) * QUESTIONS_PER_PAGE >= parsedQuestions.filter(q => q.options && q.options.length > 0).length} onClick={() => setCurrentPage(p => p + 1)}>Next →</button>
+                  <span className="quiz-page-info">Page {currentPage + 1} of {Math.max(1, Math.ceil(quizTotal / QUESTIONS_PER_PAGE))}</span>
+                  <button className="quiz-page-btn" disabled={(currentPage + 1) * QUESTIONS_PER_PAGE >= quizTotal} onClick={() => setCurrentPage(p => p + 1)}>Next →</button>
                 </div>
 
                 {/* Submit */}                  <div className="quiz-submit-row">
                   <button className="quiz-submit-btn" onClick={() => setShowResult(true)}>Submit Quiz</button>
                   {showResult && (
                     <span className="quiz-result-text">
-                      You scored <strong>{parsedQuestions.filter(q => q.options && q.options.length > 0).filter(q => answers[q.id] === q.correctAnswer).length}</strong> out of <strong>{parsedQuestions.filter(q => q.options && q.options.length > 0).length}</strong>!
-                      ({Math.round((parsedQuestions.filter(q => q.options && q.options.length > 0).filter(q => answers[q.id] === q.correctAnswer).length / parsedQuestions.filter(q => q.options && q.options.length > 0).length) * 100)}%)
+                      You scored <strong>{quizGraded.filter(q => answers[q.id] === q.correctAnswer).length}</strong> out of <strong>{quizGraded.length}</strong> graded questions!
+                      ({Math.round((quizGraded.filter(q => answers[q.id] === q.correctAnswer).length / (quizGraded.length || 1)) * 100)}%)
                     </span>
                   )}
                 </div>
