@@ -9,6 +9,12 @@ export default function InstructorExams() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", duration: 60, courseId: "", url: "", type: "in-person" });
   const [saving, setSaving] = useState(false);
+  const [paperView, setPaperView] = useState(null);
+
+  let viewPaper = null;
+  try {
+    viewPaper = paperView?.questionPaper ? JSON.parse(paperView.questionPaper) : null;
+  } catch { viewPaper = null; }
 
   useEffect(() => { loadData(); }, []);
 
@@ -33,6 +39,7 @@ export default function InstructorExams() {
         title: form.title,
         description: form.description,
         duration: Number(form.duration),
+        durationMinutes: Number(form.duration),
         url: form.url || undefined,
         type: form.type,
       });
@@ -120,12 +127,73 @@ export default function InstructorExams() {
                 </a>
               </div>
             )}
+            {e.questionPaper && (
+              <div style={{ marginTop: 8 }}>
+                <button
+                  className="inst-btn secondary"
+                  style={{ fontSize: 13, padding: "6px 12px" }}
+                  onClick={() => setPaperView(e)}
+                >
+                  📄 View Question Paper
+                </button>
+              </div>
+            )}
             <div className="inst-list-meta">
-              <span>⏱ {e.duration || 60} min</span>
+              <span>⏱ {e.durationMinutes || e.duration || 60} min</span>
+              <span>💯 {e.totalMarks || 100} marks</span>
               <span>📋 {e.type === "online" ? "Online" : e.type === "hybrid" ? "Hybrid" : "In-Person"}</span>
             </div>
           </div>
         ))}</div>
+      )}
+
+      {/* Question Paper Viewer */}
+      {paperView && (
+        <div className="qb-modal-overlay" onClick={() => setPaperView(null)}>
+          <div className="qb-modal" style={{ maxWidth: 780, padding: 0 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)" }}>
+              <h3 style={{ margin: 0 }}>📄 {paperView.title}</h3>
+              <button className="qb-cancel-btn" onClick={() => setPaperView(null)}>✕ Close</button>
+            </div>
+            {viewPaper && Array.isArray(viewPaper.sections) ? (
+              <div className="paper-preview" style={{ margin: 16, boxShadow: "none", border: "1px solid var(--border)" }}>
+                <h1>{viewPaper.title}</h1>
+                <h2>{viewPaper.subject}</h2>
+                <div className="paper-meta">
+                  <p><strong>Duration:</strong> {viewPaper.duration} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Maximum Marks:</strong> {viewPaper.totalMarks} &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Difficulty:</strong> {viewPaper.difficulty}</p>
+                </div>
+                {viewPaper.sections.map((sec, si) => (
+                  <div key={si} className="paper-section">
+                    <h3>{sec.name} &nbsp; <span className="paper-section-marks">({sec.total} marks)</span></h3>
+                    {sec.instructions && <p className="paper-section-instructions"><em>{sec.instructions}</em></p>}
+                    {(sec.questions || []).map((q, qi) => (
+                      <div key={qi} className="paper-q">
+                        <span className="paper-q-num">Q{q.num}.</span>
+                        <span>
+                          {q.text}
+                          {q.type === "mcq" && Array.isArray(q.options) && (
+                            <div className="paper-mcq-options">
+                              {q.options.map((opt, oi) => <span key={oi}>({'ABCD'[oi] || oi + 1}) {opt}</span>)}
+                            </div>
+                          )}
+                          <em style={{ fontSize: 12, color: "#666" }}>({q.marks} mark{q.marks !== 1 ? "s" : ""})</em>
+                        </span>
+                        {q.orChoice && <div className="paper-or">OR &nbsp; {q.orChoice}</div>}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+                <div className="paper-total-footer">
+                  <p>TOTAL: {viewPaper.totalMarks} MARKS &nbsp;&nbsp;|&nbsp;&nbsp; {viewPaper.totalQuestions} Questions</p>
+                </div>
+              </div>
+            ) : (
+              <p style={{ padding: 20, color: "var(--text-secondary)" }}>
+                Question paper preview is unavailable. Re-upload the paper from AI Tools.
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </InstructorPage>
   );
