@@ -54,6 +54,7 @@ public class ExamService {
         existing.setStartTime(updated.getStartTime());
         existing.setEndTime(updated.getEndTime());
         existing.setStatus(updated.getStatus());
+        existing.setQuestionPaper(updated.getQuestionPaper());
         return examRepository.save(existing);
     }
 

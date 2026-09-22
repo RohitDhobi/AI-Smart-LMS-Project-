@@ -44,6 +44,10 @@ public class Exam {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // JSON-serialized AI-generated question paper (uploaded from AI Tools)
+    @Column(columnDefinition = "TEXT")
+    private String questionPaper;
+
     @OneToMany(
             mappedBy = "quiz",
             cascade = CascadeType.ALL,
@@ -79,6 +83,8 @@ public class Exam {
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getQuestionPaper() { return questionPaper; }
+    public void setQuestionPaper(String questionPaper) { this.questionPaper = questionPaper; }
     public List<Question> getQuestions() { return questions; }
     public void setQuestions(List<Question> questions) { this.questions = questions; }
 }
