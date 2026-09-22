@@ -14804,6 +14804,11 @@ a.analytics-stat:hover {
 .paper-btn-download:hover { background: #ecfdf5; border-color: #059669; color: #059669; }
 .paper-btn-print { border-color: #f59e0b; color: #f59e0b; }
 .paper-btn-print:hover { background: #fffbeb; border-color: #d97706; color: #d97706; }
+.paper-btn-upload { border-color: #3b82f6; color: #3b82f6; }
+.paper-btn-upload:hover { background: #eff6ff; border-color: #2563eb; color: #2563eb; }
+.paper-btn-upload:disabled { opacity: 0.7; cursor: default; }
+.paper-btn-upload.uploaded { border-color: #10b981; color: #10b981; background: #ecfdf5; }
+.paper-btn-upload.uploaded:hover { background: #ecfdf5; border-color: #10b981; color: #10b981; }
 
 .paper-preview {
   background: #fff;
