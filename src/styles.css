@@ -15078,6 +15078,7 @@ a.analytics-stat:hover {
 }
 
 .qb-filters select {
+  width: auto;
   padding: 7px 10px;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
@@ -15348,6 +15349,7 @@ a.analytics-stat:hover {
   gap: 4px;
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
   margin-bottom: 8px;
 }
 
@@ -15376,6 +15378,7 @@ a.analytics-stat:hover {
 }
 
 .qb-picker-item input[type="checkbox"] {
+  width: auto;
   accent-color: var(--primary);
   flex-shrink: 0;
 }
