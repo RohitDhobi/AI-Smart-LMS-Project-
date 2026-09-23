@@ -102,7 +102,7 @@ export default function InstructorAITools() {
   const [paperData, setPaperData] = useState(null);
   const [uploadingPaper, setUploadingPaper] = useState(false);
   const [paperUploaded, setPaperUploaded] = useState(false);
-  const QUESTIONS_PER_PAGE = 10;
+  const [questionsPerPage, setQuestionsPerPage] = useState(10);
 
   // Question Bank: unified store for AI + instructor questions
   const [questionBank, setQuestionBank] = useState([]);
@@ -1311,9 +1311,9 @@ export default function InstructorAITools() {
                       return (
                         <button
                           key={q.id}
-                          className={`quiz-nav-btn ${answers[q.id] ? 'answered' : ''} ${currentPage * QUESTIONS_PER_PAGE + 1 <= qNum && qNum <= (currentPage + 1) * QUESTIONS_PER_PAGE ? 'active-range' : ''}`}
+                          className={`quiz-nav-btn ${answers[q.id] ? 'answered' : ''} ${currentPage * questionsPerPage + 1 <= qNum && qNum <= (currentPage + 1) * questionsPerPage ? 'active-range' : ''}`}
                           onClick={() => {
-                            setCurrentPage(Math.floor(navIdx / QUESTIONS_PER_PAGE));
+                            setCurrentPage(Math.floor(navIdx / questionsPerPage));
                             const el = document.getElementById(`quiz-q-${navIdx}`);
                             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                           }}
@@ -1334,7 +1334,20 @@ export default function InstructorAITools() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <div className="quiz-view-selector">
-                    View: <select value={QUESTIONS_PER_PAGE} disabled><option>{QUESTIONS_PER_PAGE} per page</option></select>
+                    View: (
+                      <select
+                        value={questionsPerPage}
+                        onChange={(e) => {
+                          setQuestionsPerPage(Number(e.target.value));
+                          setCurrentPage(0);
+                        }}
+                      >
+                        <option value={10}>10 per page</option>
+                        <option value={25}>25 per page</option>
+                        <option value={50}>50 per page</option>
+                        <option value={Math.max(1, quizTotal)}>All {quizTotal} questions</option>
+                      </select>
+                    )
                   </div>
                 </div>
 
@@ -1348,7 +1361,7 @@ export default function InstructorAITools() {
                     return (q.options || []).some(o => o.text.toLowerCase().includes(s));
                   });
                   return filtered
-                    .slice(currentPage * QUESTIONS_PER_PAGE, (currentPage + 1) * QUESTIONS_PER_PAGE)
+                    .slice(currentPage * questionsPerPage, (currentPage + 1) * questionsPerPage)
                     .map((q) => {
                       const globalIdx = allQs.indexOf(q);
                       const qNum = globalIdx + 1;
@@ -1407,8 +1420,8 @@ export default function InstructorAITools() {
                 {/* Pagination */}
                 <div className="quiz-pagination">
                   <button className="quiz-page-btn" disabled={currentPage === 0} onClick={() => setCurrentPage(p => Math.max(0, p - 1))}>← Previous</button>
-                  <span className="quiz-page-info">Page {currentPage + 1} of {Math.max(1, Math.ceil(quizTotal / QUESTIONS_PER_PAGE))}</span>
-                  <button className="quiz-page-btn" disabled={(currentPage + 1) * QUESTIONS_PER_PAGE >= quizTotal} onClick={() => setCurrentPage(p => p + 1)}>Next →</button>
+                  <span className="quiz-page-info">Page {currentPage + 1} of {Math.max(1, Math.ceil(quizTotal / questionsPerPage))}</span>
+                  <button className="quiz-page-btn" disabled={(currentPage + 1) * questionsPerPage >= quizTotal} onClick={() => setCurrentPage(p => p + 1)}>Next →</button>
                 </div>
 
                 {/* Submit */}                  <div className="quiz-submit-row">
