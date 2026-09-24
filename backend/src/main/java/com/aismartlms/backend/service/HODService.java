@@ -116,10 +116,11 @@ public class HODService {
         }
 
         // Prevent duplicates: same instructor + same course already active.
+        Long targetCourseId = courseId;
         boolean exists = assignmentRepository
                 .findByInstructorIdAndStatus(instructorId, "ACTIVE")
                 .stream()
-                .anyMatch(a -> Objects.equals(a.getCourseId(), courseId));
+                .anyMatch(a -> Objects.equals(a.getCourseId(), targetCourseId));
 
         if (exists) {
             throw new RuntimeException("This instructor is already assigned to this course");
