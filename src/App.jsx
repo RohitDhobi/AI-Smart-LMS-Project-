@@ -539,6 +539,31 @@ function App() {
         <Route path="audit-logs" element={<AdminAuditLogs />} />
       </Route>
       <Route
+        path="/hod"
+        element={<Protected><HODLayout />}</Protected>
+      >
+      <Route
+        index element={<HODDashboard />} />
+        <Route path="dashboard" element={<HODDashboard />} />
+        <Route path="assignments" element={<HODAssignments />} />
+        <Route path="assignments/new" element={<HODAssignments />} />
+        <Route path="courses" element={<HODCoursesSubjects />} />
+        <Route path="courses/new" element={<HODCoursesSubjects />} />
+        <Route path="courses/:id" element={<HODCoursesSubjects />} />
+        <Route path="subjects" element={<HODCoursesSubjects />} />
+        <Route path="subjects/:id" element={<HODCoursesSubjects />} />
+        <Route path="students" element={<HODStudents />} />
+        <Route path="students/:id" element={<HODStudents />} />
+        <Route path="questions" element={<HODQuestions />} />
+        <Route path="questions/new" element={<HODQuestions />} />
+        <Route path="questions/:id" element={<HODQuestions />} />
+        <Route path="exams" element={<HODExams />} />
+        <Route path="exams/new" element={<HODExams />} />
+        <Route path="exams/:id" element={<HODExams />} />
+        <Route path="announcements" element={<HODAnnouncements />} />
+        <Route path="settings" element={<HODSettings />} />
+      </Route>
+      <Route
         path="/subject/:id"
         element={<Protected><StudentLayout /></Protected>}
       >
