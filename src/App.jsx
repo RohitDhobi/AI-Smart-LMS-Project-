@@ -548,8 +548,7 @@ function App() {
         path="/hod"
         element={<Protected><HODLayout />}</Protected>
       >
-      <Route
-        index element={<HODDashboard />} />
+        <Route index element={<HODDashboard />} />
         <Route path="dashboard" element={<HODDashboard />} />
         <Route path="assignments" element={<HODAssignments />} />
         <Route path="assignments/new" element={<HODAssignments />} />
