@@ -159,8 +159,6 @@ public class HODService {
         Long newSubjectId = request.getSubjectId();
 
         if (newCourseId != null) {
-            Long oldCourseId = assignment.getCourseId();
-            Long newCourseId = request.getCourseId();
 
             // If a new course is being set, make sure the instructor is not
             // already actively assigned to it (duplicate guard).
