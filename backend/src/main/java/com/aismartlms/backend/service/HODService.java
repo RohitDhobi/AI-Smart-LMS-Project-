@@ -4,21 +4,18 @@ import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
-import com.aismartlms.backend.entity.Role;
+import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
-import com.aismartlms.backend.repository.EnrollmentRepository;
-import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.QuizRepository;
 import com.aismartlms.backend.repository.ExamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.format.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -172,8 +169,7 @@ public class HODService {
                 assignmentRepository
                         .findByInstructorIdAndCourseIdAndStatus(assignment.getInstructorId(), oldCourseId, "ACTIVE")
                         .stream()
-                        .filter(a -> a.getSubjectId() != null)
-                        .filter(a -> a.getSubjectId().longValue() != 0)
+                        .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
                         .findFirst()
                         .ifPresent(a -> {
                             assignmentRepository.delete(a);
@@ -211,14 +207,11 @@ public class HODService {
         HODDashboardView view = new HODDashboardView();
 
         Long totalCourses = (long) courseRepository.count();
-        Long totalSubjects = (long) courseRepository.findBySubjectCount().stream()
-                .mapToLong(c -> c.getSubjects() == null ? 0 : c.getSubjects().size())
-                .sum();
+        Long totalSubjects = (long) courseRepository.countDistinctSubjects();
 
-        // A "subject" is a row in the subjects table, so we count directly.
-        totalSubjects = (long) courseRepository.countDistinctSubjects();
+        Long totalInstructors = (long) courseRepository.countDistinctUsers();
 
-        Long totalUsers = (long) courseRepository.countDistinctUsers();
+        // Every user with role INSTRUCTOR is an instructor on the platform.
         Long totalStudents = (long) courseRepository.countDistinctStudents();
 
         Long totalAssignments = (long) assignmentRepository.count();
@@ -233,7 +226,7 @@ public class HODService {
 
         view.setTotalCourses(totalCourses);
         view.setTotalSubjects(totalSubjects);
-        view.setTotalInstructors(totalUsers);
+        view.setTotalInstructors(totalInstructors);
         view.setTotalStudents(totalStudents);
         view.setTotalAssignments(totalAssignments);
         view.setTotalExams(totalExams);
@@ -247,6 +240,10 @@ public class HODService {
         return view;
     }
 
+    // =========================
+    // PRIVATE HELPERS
+    // =========================
+
     private HODAssignmentView toView(InstructorCourseAssignment a) {
         HODAssignmentView v = new HODAssignmentView();
         v.setId(a.getId());
@@ -259,23 +256,26 @@ public class HODService {
                 ? null
                 : DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(a.getAssignedAt()));
 
-        // Resolve instructor, course, and subject names + the assigning user.
+        // Resolve the instructor user name.
         User instructor = courseRepository.findUserById(a.getInstructorId()).orElse(null);
         if (instructor != null) {
             v.setInstructorId(instructor.getId());
             v.setInstructorName(instructor.getName());
         }
 
+        // Resolve the course name.
         Course course = courseRepository.findById(a.getCourseId()).orElse(null);
         if (course != null) {
             v.setCourseId(course.getId());
             v.setCourseName(course.getTitle());
-        }
-
-        Subject subject = courseRepository.findSubjectById(a.getSubjectId()).orElse(null);
-        if (subject != null) {
-            v.setSubjectId(subject.getId());
-            v.setSubjectName(subject.getSubjectName());
+            // Also grab the subject name if this points at a subject.
+            if (a.getSubjectId() != null && a.getSubjectId() != 0L) {
+                Subject subject = courseRepository.findSubjectById(a.getSubjectId()).orElse(null);
+                if (subject != null) {
+                    v.setSubjectId(subject.getId());
+                    v.setSubjectName(subject.getSubjectName());
+                }
+            }
         }
 
         // The user who assigned this (usually the HOD / current admin).
