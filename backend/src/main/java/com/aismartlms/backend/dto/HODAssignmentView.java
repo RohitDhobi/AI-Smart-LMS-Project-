@@ -14,6 +14,9 @@ public class HODAssignmentView {
     private String assignedAt;
     private String instructorEmail;
     private String courseCode;
+    private String instructorName;
+    private String courseName;
+    private String subjectName;
 
     public Long getId() {
         return id;
