@@ -1,0 +1,182 @@
+package com.aismartlms.backend.controller;
+
+import com.aismartlms.backend.dto.HODAssignmentView;
+import com.aismartlms.backend.dto.HODDashboardView;
+import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.exception.AccessDeniedException;
+import com.aismartlms.backend.service.HODService;
+import com.aismartlms.backend.service.InstructorCourseAssignment;
+import com.aismartlms.backend.service.InstructorCourseAssignmentRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+/**
+ * HOD (Head of Department) REST & HTML endpoints.
+ * <p>
+ * All routes live under /api/hod to stay clearly separated from existing
+ * /api/instructor and /api/admin endpoints. Permission checks are performed
+ * here, never only in the React UI.
+ */
+@RestController
+@RequestMapping("/api/hod")
+@CrossOrigin(origins = "*")
+public class HODController {
+
+    private final HODService hodService;
+    private final InstructorCourseAssignmentRepository assignmentRepository;
+
+    public HODController(
+            HODService hodService,
+            InstructorCourseAssignmentRepository assignmentRepository) {
+
+        this.hodService = hodService;
+        this.assignmentRepository = assignmentRepository;
+    }
+
+    // =========================
+    // DASHBOARD (LEVEL 1)
+    // =========================
+
+    @GetMapping("/dashboard")
+    public HODDashboardView getDashboard(Authentication authentication) {
+
+        User user = getUser(authentication);
+
+        if (user.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        return hodService.getDashboard();
+    }
+
+    // =========================
+    // INSTRUCTOR ASSIGNMENT LIST (SECTION 3)
+    // =========================
+
+    /** Return the full assignment table: Subject/Course | Assigned Instructor | Status | Action */
+    @GetMapping("/assignments")
+    public List<HODAssignmentView> getAssignments(Authentication authentication) {
+
+        User user = getUser(authentication);
+
+        if (user.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        return hodService.getAllAssignments();
+    }
+
+    /** Return only assignments for a single instructor (one data point for their row). */
+    @GetMapping("/assignments/instructor/{instructorId}")
+    public List<HODAssignmentView> getAssignmentsByInstructor(
+            @PathVariable Long instructorId,
+            Authentication authentication) {
+
+        User user = getUser(authentication);
+
+        if (user.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        return hodService.getAssignmentsByInstructorId(instructorId);
+    }
+
+    /** Return only assignments for a single course. */
+    @GetMapping("/assignments/course/{courseId}")
+    public List<HODAssignmentView> getAssignmentsByCourse(
+            @PathVariable Long courseId,
+            Authentication authentication) {
+
+        User user = getUser(authentication);
+
+        if (user.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        return hodService.getAssignmentsByCourseId(courseId);
+    }
+
+    // =========================
+    // ASSIGN INSTRUCTOR TO COURSE (SECTION 3)
+    // =========================
+
+    @PostMapping("/assignments")
+    public InstructorCourseAssignment assignInstructor(
+            Authentication authentication,
+            @RequestBody HODRequest request) {
+
+        User actor = getUser(authentication);
+
+        if (actor.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        if (request.getInstructorId() == null || request.getCourseId() == null) {
+            throw new RuntimeException("Instructor ID and Course ID are required");
+        }
+
+        return hodService.createAssignment(request);
+    }
+
+    // =========================
+    // CHANGE/UPDATE INSTRUCTOR ASSIGNMENT (SECTION 3)
+    // =========================
+
+    @PutMapping("/assignments/{id}")
+    public InstructorCourseAssignment updateAssignment(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody HODRequest request) {
+
+        User actor = getUser(authentication);
+
+        if (actor.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        return hodService.updateAssignment(id, request);
+    }
+
+    // =========================
+    // REMOVE INSTRUCTOR FROM SUBJECT/COURSE (SECTION 3)
+    // =========================
+
+    @DeleteMapping("/assignments/instructor/{instructorId}/subject/{subjectId}")
+    public ResponseEntity<Map<String, String>> removeInstructorFromSubject(
+            Authentication authentication,
+            @PathVariable Long instructorId,
+            @PathVariable Long subjectId) {
+
+        User actor = getUser(authentication);
+
+        if (actor.getRole() != Role.HOD) {
+            throw new AccessDeniedException("HOD access required");
+        }
+
+        if (instructorId == null || subjectId == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Instructor ID and Subject ID are required"));
+        }
+
+        hodService.deleteAssignment(instructorId, subjectId);
+
+        return ResponseEntity.ok(Map.of("message", "Instructor removed from subject"));
+    }
+
+    // =========================
+    // HELPERS
+    // =========================
+
+    private User getUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        return users.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private final UserRepository users;
+}
