@@ -7,10 +7,11 @@ import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.UserRepository;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.service.HODService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*);
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
