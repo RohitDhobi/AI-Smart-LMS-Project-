@@ -8,11 +8,11 @@ import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.dto.HODRequest;
 import com.aismartlms.backend.repository.CourseRepository;
+import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.QuizRepository;
-import com.aismartlms.backend.repository.ExamRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
