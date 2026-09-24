@@ -140,7 +140,20 @@ public class HODService {
                 request.getAssignedBy() != null ? request.getAssignedBy() : null
         );
 
-        if (request.getCourseId() != null) {
+        if (newCourseId != null && newSubjectId != null) {
+            // If the course and subject are being changed together, treat it
+            // as a full assignment move (same behavior as the UI).
+            if (newCourseId.equals(oldCourseId)) {
+                assignment.setSubjectId(newSubjectId);
+            } else {
+                assignment.setCourseId(newCourseId);
+                assignment.setSubjectId(newSubjectId);
+            }
+        } else if (newCourseId != null) {
+            assignment.setCourseId(newCourseId);
+        } else if (newSubjectId != null) {
+            assignment.setSubjectId(newSubjectId);
+        }
             // If a new course is being set, make sure the instructor is not
             // already actively assigned to it (duplicate guard).
             if (newCourseId == null || !newCourseId.equals(oldCourseId)) {
