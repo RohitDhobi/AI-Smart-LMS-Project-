@@ -564,17 +564,6 @@ function App() {
         <Route path="settings" element={<HODSettings />} />
       </Route>
       <Route
-        path="/subject/:id"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<SubjectLearning />} />
-      </Route>
-      <Route
-        path="/assignments"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<Assignments />} />
-      </Route>
       <Route
         path="/exams"
         element={<Protected><StudentLayout /></Protected>}
