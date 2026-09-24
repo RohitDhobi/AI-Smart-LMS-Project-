@@ -30,17 +30,20 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT COUNT(DISTINCT s) FROM Subject s")
     Long countDistinctSubjects();
 
-    /** Count distinct users that hold the INSTRUCTOR / HOD role. */
-    @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role IN (org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder, com.aismartlms.backend.entity.Role.INSTRUCTOR, com.aismartlms.backend.entity.Role.HOD)")
-    Long countDistinctUsers();
-
-    /** Count distinct instructors plus HODs (mapped by User role). */
+    /** Count distinct users that hold the INSTRUCTOR or HOD role. */
     @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.INSTRUCTOR OR u.role = com.aismartlms.backend.entity.Role.HOD")
-    Long countDistinctInstructors();
+    Long countDistinctInstructorsAndHODs();
 
     /** Count distinct students (users with STUDENT role). */
     @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.STUDENT")
     Long countDistinctStudents();
+
+    /** Count distinct students (users with STUDENT role). */
+    @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.STUDENT")
+    Long countDistinctStudents();
+
+    /** Find the User (instructor/HOD/student) by their ID. */
+    Optional<User> findUserById(Long id);
 
     /** Find the User (instructor/HOD/student) by their ID. */
     Optional<User> findUserById(Long id);
