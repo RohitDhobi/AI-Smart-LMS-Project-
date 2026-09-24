@@ -140,7 +140,7 @@ public class HODService {
                 request.getAssignedBy() != null ? request.getAssignedBy() : null
         );
 
-        if (newCourseId != null) {
+        if (request.getCourseId() != null) {
             // If a new course is being set, make sure the instructor is not
             // already actively assigned to it (duplicate guard).
             if (newCourseId == null || !newCourseId.equals(oldCourseId)) {
