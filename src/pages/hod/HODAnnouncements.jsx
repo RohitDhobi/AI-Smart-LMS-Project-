@@ -8,7 +8,6 @@ export default function HODAnnouncements() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [posting, setPosting] = useState(false);
