@@ -217,17 +217,31 @@ export default function AdminRoles() {
   // --- Assign Role ---
   async function handleAssignRole(userId, newRole) {
     try {
-      // We can't directly change roles via existing API, so we use adminSetActive as a proxy
-      // In a real system there would be a role assignment endpoint
-      // For now, we'll store role overrides locally and refresh
       const user = users.find(u => u.id === userId);
-      if (user) {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-        showToast(`${user.name || user.email} assigned to ${newRole}`);
+      if (!user) {
+        showToast("User not found", "error");
+        return;
       }
+
+      // The backend Role enum only has STUDENT / INSTRUCTOR / ADMIN, so
+      // custom roles can't actually be stored on a user.
+      const BUILTIN = ["STUDENT", "INSTRUCTOR", "ADMIN"];
+      if (!BUILTIN.includes(newRole)) {
+        showToast(
+          `"${newRole}" is a custom (UI-only) role — users can only be assigned STUDENT, INSTRUCTOR or ADMIN`,
+          "error"
+        );
+        return;
+      }
+
+      // Persist to the backend (PUT /api/admin/users/{id}/role)
+      await api.adminSetRole(userId, newRole);
+
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      showToast(`${user.name || user.email} assigned to ${newRole}`);
       setAssignRoleModal(null);
     } catch (e) {
-      showToast("Failed to assign role", "error");
+      showToast(e.message || "Failed to assign role", "error");
     }
   }
 

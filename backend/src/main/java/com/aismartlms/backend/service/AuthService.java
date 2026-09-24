@@ -22,6 +22,10 @@ import java.util.Map;
 @Service
 public class AuthService {
 
+    /** Message returned when an instructor signup is queued for approval. */
+    public static final String PENDING_APPROVAL =
+            "Registration pending admin approval";
+
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -98,12 +102,11 @@ public class AuthService {
                 passwordEncoder.encode(request.getPassword())
         );
 
-        // Role: allow if specified, else default to STUDENT
-        user.setRole(
-            request.getRole() != null
-                ? request.getRole()
-                : Role.STUDENT
-        );
+        // SECURITY: public self-registration can ONLY create STUDENT accounts.
+        // The client-supplied role is deliberately ignored — staff accounts are
+        // created by an admin (POST /api/admin/users) or through the instructor
+        // signup flow below, otherwise anyone could register themselves as ADMIN.
+        user.setRole(Role.STUDENT);
         user.setActive(true);
 
         // Student profile details
@@ -133,6 +136,56 @@ public class AuthService {
                 token,
                 userInfo(user)
         );
+    }
+
+    // =========================
+    // INSTRUCTOR SELF-SIGNUP (PENDING APPROVAL)
+    // =========================
+
+    /**
+     * Creates an INSTRUCTOR account that is INACTIVE until an admin approves
+     * it (Admin -> Teachers -> Activate). No token is issued here because
+     * inactive accounts cannot log in yet.
+     */
+    @Transactional
+    public AuthResponse registerInstructor(RegisterRequest request) {
+
+        if (request.getName() == null || request.getName().isBlank()) {
+            return new AuthResponse("Name is required", null);
+        }
+
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            return new AuthResponse("Email is required", null);
+        }
+
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            return new AuthResponse("Password must be at least 6 characters", null);
+        }
+
+        if (request.getConfirmPassword() != null
+                && !request.getConfirmPassword().isBlank()
+                && !request.getConfirmPassword().equals(request.getPassword())) {
+            return new AuthResponse(
+                    "Password and confirm password do not match",
+                    null
+            );
+        }
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return new AuthResponse("Email already registered", null);
+        }
+
+        User instructor = new User();
+        instructor.setName(request.getName());
+        instructor.setEmail(request.getEmail());
+        instructor.setPassword(passwordEncoder.encode(request.getPassword()));
+        instructor.setRole(Role.INSTRUCTOR);
+        instructor.setActive(false); // pending admin approval
+        instructor.setPhone(request.getPhone());
+
+        userRepository.save(instructor);
+
+        return new AuthResponse(PENDING_APPROVAL, null);
     }
 
     // =========================

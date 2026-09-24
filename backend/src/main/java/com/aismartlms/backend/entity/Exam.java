@@ -1,6 +1,6 @@
 package com.aismartlms.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.*;
 
 import java.time.LocalDateTime;
@@ -23,7 +23,9 @@ public class Exam {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    @JsonIgnore
+    // Write-only: clients can send { "course": { "id": 1 } } when creating an
+    // exam, but the (lazy) course is never serialized back in responses.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Course course;
 
     private Integer durationMinutes = 60;
@@ -47,6 +49,7 @@ public class Exam {
     // JSON-serialized AI-generated question paper (uploaded from AI Tools)
     @Column(columnDefinition = "TEXT")
     private String questionPaper;
+
 
     @OneToMany(
             mappedBy = "quiz",
@@ -85,6 +88,7 @@ public class Exam {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public String getQuestionPaper() { return questionPaper; }
     public void setQuestionPaper(String questionPaper) { this.questionPaper = questionPaper; }
+
     public List<Question> getQuestions() { return questions; }
     public void setQuestions(List<Question> questions) { this.questions = questions; }
 }

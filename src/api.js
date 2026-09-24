@@ -152,6 +152,14 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  // Instructor self-signup — account is created INACTIVE and must be
+  // approved by an admin (Admin -> Teachers -> Activate) before login.
+  registerInstructor: (payload) =>
+    apiRequest("/auth/register/instructor", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
   // ===================================================
   // DASHBOARD (with offline fallback)
   // ===================================================
@@ -628,7 +636,15 @@ export const api = {
       {
         method: "PUT",
       }
-    ),  adminDeleteUser: (id) => apiRequest(`/admin/users/${id}`, {
+    ),
+
+  // ADMIN - assign a role (STUDENT | INSTRUCTOR | ADMIN) to a user
+  adminSetRole: (id, role) =>
+    apiRequest(`/admin/users/${id}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role }),
+    }),
+  adminDeleteUser: (id) => apiRequest(`/admin/users/${id}`, {
     method: "DELETE",
   }),
 

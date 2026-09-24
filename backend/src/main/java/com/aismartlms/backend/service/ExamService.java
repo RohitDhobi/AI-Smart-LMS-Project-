@@ -2,9 +2,13 @@ package com.aismartlms.backend.service;
 
 import com.aismartlms.backend.entity.Exam;
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.CourseRepository;
+import com.aismartlms.backend.repository.UserRepository;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,10 +18,15 @@ public class ExamService {
 
     private final ExamRepository examRepository;
     private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
 
-    public ExamService(ExamRepository examRepository, CourseRepository courseRepository) {
+    public ExamService(
+            ExamRepository examRepository,
+            CourseRepository courseRepository,
+            UserRepository userRepository) {
         this.examRepository = examRepository;
         this.courseRepository = courseRepository;
+        this.userRepository = userRepository;
     }
 
     public List<Exam> getAllExams() {
@@ -34,12 +43,52 @@ public class ExamService {
     }
 
     public Exam createExam(Exam exam) {
-        if (exam.getCourse() != null && exam.getCourse().getId() != null) {
-            Course course = courseRepository.findById(exam.getCourse().getId())
-                    .orElseThrow(() -> new RuntimeException("Course not found"));
-            exam.setCourse(course);
-        }
+        // exams.course_id is NOT NULL, so an exam can never be saved without a
+        // course. Callers such as the AI Tools "Upload" button don't send one,
+        // so fall back to a sensible course instead of failing the insert.
+        Course course = resolveCourse(exam.getCourse());
+        exam.setCourse(course);
         return examRepository.save(exam);
+    }
+
+    /**
+     * Resolves the course an exam belongs to:
+     * 1. The explicitly requested course id (if present),
+     * 2. a course taught by the currently authenticated instructor,
+     * 3. any existing course (seeded degree programs).
+     */
+    private Course resolveCourse(Course requested) {
+        if (requested != null && requested.getId() != null) {
+            return courseRepository.findById(requested.getId())
+                    .orElseThrow(() -> new RuntimeException("Course not found for id " + requested.getId()));
+        }
+
+        Course instructorsCourse = findCurrentInstructorsCourse();
+        if (instructorsCourse != null) {
+            return instructorsCourse;
+        }
+
+        return courseRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "No courses exist yet. Create a course before creating an exam."));
+    }
+
+    private Course findCurrentInstructorsCourse() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getName() == null || auth.getName().isEmpty()) {
+                return null;
+            }
+            User user = userRepository.findByEmail(auth.getName()).orElse(null);
+            if (user == null || user.getName() == null) {
+                return null;
+            }
+            List<Course> taught = courseRepository.findByInstructorIgnoreCase(user.getName());
+            return taught.isEmpty() ? null : taught.get(0);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public Exam updateExam(Long id, Exam updated) {

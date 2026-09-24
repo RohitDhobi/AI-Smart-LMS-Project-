@@ -48,6 +48,25 @@ public class AuthController {
     }
 
     // =========================
+    // REGISTER INSTRUCTOR (PENDING ADMIN APPROVAL)
+    // =========================
+
+    @PostMapping("/register/instructor")
+    public ResponseEntity<AuthResponse> registerInstructor(
+            @RequestBody RegisterRequest request) {
+
+        AuthResponse response =
+                authService.registerInstructor(request);
+
+        boolean pending =
+                AuthService.PENDING_APPROVAL.equals(response.getMessage());
+
+        return ResponseEntity
+                .status(pending ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    // =========================
     // LOGIN
     // =========================
 

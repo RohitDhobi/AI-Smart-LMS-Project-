@@ -17,6 +17,10 @@ function Register() {
   const [gender, setGender] = useState("");
   const [courseId, setCourseId] = useState("");
 
+  // "student" registers immediately; "instructor" creates an account that
+  // waits for admin approval (see api.registerInstructor).
+  const [accountType, setAccountType] = useState("student");
+
   // ---------- dynamic data ----------
 
   const [courses, setCourses] = useState([]);
@@ -125,17 +129,37 @@ function Register() {
       setError("");
       setSuccess("");
 
+      const payload = {
+        name,
+        email,
+        password,
+        confirmPassword,
+        phone,
+        dateOfBirth: dateOfBirth || null,
+        gender,
+        courseId: courseId ? Number(courseId) : null,
+      };
+
+      // Instructor accounts are created INACTIVE and must be approved by an
+      // admin (Admin -> Teachers -> Activate) before they can log in.
+      if (accountType === "instructor") {
+
+        await api.registerInstructor(payload);
+
+        setSuccess(
+          "Instructor account created — pending admin approval. " +
+          "You can log in at Staff Login once an admin activates it."
+        );
+
+        setTimeout(() => {
+          navigate("/staff-login");
+        }, 2500);
+
+        return;
+      }
+
       const response =
-        await api.register({
-          name,
-          email,
-          password,
-          confirmPassword,
-          phone,
-          dateOfBirth: dateOfBirth || null,
-          gender,
-          courseId: Number(courseId)
-        });
+        await api.register(payload);
 
       if (response?.token) {
 
@@ -214,6 +238,35 @@ function Register() {
           <div className="notice">
             {success}
           </div>
+        )}
+
+
+        <div className="auth-account-toggle" role="tablist" aria-label="Account type">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={accountType === "student"}
+            className={accountType === "student" ? "active" : ""}
+            onClick={() => setAccountType("student")}
+          >
+            👨‍🎓 Student
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={accountType === "instructor"}
+            className={accountType === "instructor" ? "active" : ""}
+            onClick={() => setAccountType("instructor")}
+          >
+            🧑‍🏫 Instructor
+          </button>
+        </div>
+
+        {accountType === "instructor" && (
+          <p className="auth-hint">
+            Instructor accounts are reviewed by an admin — you can log in at
+            Staff Login once your account is activated.
+          </p>
         )}
 
 
@@ -318,7 +371,7 @@ function Register() {
                   setCourseId(e.target.value);
                   setPreviewSubjects([]);
                 }}
-                required
+                required={accountType === "student"}
               >
                 <option value="">
                   Select Course
@@ -377,7 +430,9 @@ function Register() {
           >
             {loading
               ? "Creating account..."
-              : "Register"}
+              : accountType === "instructor"
+                ? "Request Instructor Account"
+                : "Register"}
           </button>
 
         </form>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import InstructorPage from "./InstructorPage";
 import { api } from "../../api";
 
@@ -103,6 +103,24 @@ export default function InstructorAITools() {
   const [uploadingPaper, setUploadingPaper] = useState(false);
   const [paperUploaded, setPaperUploaded] = useState(false);
   const [questionsPerPage, setQuestionsPerPage] = useState(10);
+
+  // Course picker for attaching an uploaded question paper to a course
+  const [uploadCourses, setUploadCourses] = useState([]);
+  const [uploadCourseId, setUploadCourseId] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    api.instructorCourses()
+      .catch(() => api.courses())
+      .then((list) => {
+        if (!alive || !Array.isArray(list)) return;
+        setUploadCourses(list);
+        // Preselect the first course so the upload always has an explicit target
+        setUploadCourseId((prev) => prev || (list[0] && list[0].id ? String(list[0].id) : ""));
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   // Question Bank: unified store for AI + instructor questions
   const [questionBank, setQuestionBank] = useState([]);
@@ -1010,6 +1028,7 @@ export default function InstructorAITools() {
         totalMarks,
         passingMarks: Math.max(1, Math.round(totalMarks * 0.4)),
         questionPaper: JSON.stringify(paperData),
+        course: uploadCourseId ? { id: Number(uploadCourseId) } : undefined,
       });
       setPaperUploaded(true);
       alert("✅ Question paper uploaded to the Exams section!");
@@ -1746,6 +1765,19 @@ export default function InstructorAITools() {
                 <div className="paper-action-bar">
                   <button className="inst-btn inst-btn-primary" onClick={() => { setPaperGenerated(false); setPaperData(null); setPaperUploaded(false); }}>← Generate New</button>
                   <div className="paper-action-buttons">
+                    <label className="paper-course-picker" title="Course this question paper will be attached to">
+                      <span>Course</span>
+                      <select
+                        value={uploadCourseId}
+                        onChange={(e) => setUploadCourseId(e.target.value)}
+                        disabled={uploadingPaper || paperUploaded}
+                      >
+                        {uploadCourses.length === 0 && <option value="">No courses yet</option>}
+                        {uploadCourses.map((c) => (
+                          <option key={c.id} value={String(c.id)}>{c.title}</option>
+                        ))}
+                      </select>
+                    </label>
                     <button className="paper-action-btn paper-btn-preview" onClick={() => { const el = document.getElementById('paper-preview-content'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>👁 Preview</button>
                     <button className="paper-action-btn paper-btn-download" onClick={() => { const el = document.getElementById('paper-preview-content'); if (!el) return; const w = window.open('', '_blank'); w.document.write('<html><head><title>' + paperData.title + '</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;color:#000;background:#fff}h1{text-align:center;font-size:22px;margin-bottom:4px}h2{text-align:center;font-size:14px;font-weight:normal;color:#333;margin-top:0}.paper-meta{text-align:center;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:12px}.paper-meta p{margin:2px 0;font-size:13px}.paper-instructions{border:1px solid #999;padding:12px 16px;margin-bottom:20px;font-size:12.5px}.paper-instructions h3{margin:0 0 6px;font-size:14px}.paper-instructions ul{margin:4px 0;padding-left:20px}.paper-section{margin-bottom:24px}.paper-section h3{font-size:16px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:10px}.paper-q{margin-bottom:12px;font-size:13.5px;line-height:1.6}.paper-q-num{font-weight:bold}.paper-or{color:#666;font-style:italic;margin-left:20px;margin-top:4px;font-size:12.5px}@media print{body{margin:0;padding:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); setTimeout(() => { w.print(); }, 500); }}>⬇ Download PDF</button>
                     <button className="paper-action-btn paper-btn-print" onClick={() => { const el = document.getElementById('paper-preview-content'); if (!el) return; const w = window.open('', '_blank'); w.document.write('<html><head><title>' + paperData.title + '</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;color:#000;background:#fff}h1{text-align:center;font-size:22px;margin-bottom:4px}h2{text-align:center;font-size:14px;font-weight:normal;color:#333;margin-top:0}.paper-meta{text-align:center;margin-bottom:20px;border-bottom:2px solid #000;padding-bottom:12px}.paper-meta p{margin:2px 0;font-size:13px}.paper-instructions{border:1px solid #999;padding:12px 16px;margin-bottom:20px;font-size:12.5px}.paper-instructions h3{margin:0 0 6px;font-size:14px}.paper-instructions ul{margin:4px 0;padding-left:20px}.paper-section{margin-bottom:24px}.paper-section h3{font-size:16px;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:10px}.paper-q{margin-bottom:12px;font-size:13.5px;line-height:1.6}.paper-q-num{font-weight:bold}.paper-or{color:#666;font-style:italic;margin-left:20px;margin-top:4px;font-size:12.5px}@media print{body{margin:0;padding:20px}}</style></head><body>' + el.innerHTML + '</body></html>'); w.document.close(); setTimeout(() => { w.print(); }, 300); }}>🖨 Print</button>

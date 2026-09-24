@@ -170,6 +170,15 @@ function AdminTeachers() {
         </div>
       </div>
 
+      {/* Pending approvals (instructors who signed up themselves) */}
+      {inactiveCount > 0 && (
+        <div className="notice" style={{ marginBottom: 20 }}>
+          ⏸️ {inactiveCount} instructor account{" "}
+          {inactiveCount === 1 ? "is" : "are"} inactive / awaiting approval —
+          use the status filter below (Inactive) to review and activate them.
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="admin-quick-links" style={{ marginBottom: 20 }}>
         <Link className="primary button-link" to="/admin">

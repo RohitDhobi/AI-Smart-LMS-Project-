@@ -144,6 +144,7 @@ public class SecurityConfig {
                     // Public authentication endpoints
                     .antMatchers(
                             "/api/auth/register",
+                            "/api/auth/register/instructor",
                             "/api/auth/login"
                     ).permitAll()
 

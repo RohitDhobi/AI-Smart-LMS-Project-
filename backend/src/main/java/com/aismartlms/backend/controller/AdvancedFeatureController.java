@@ -1174,6 +1174,52 @@ public class AdvancedFeatureController {
     }
 
     // =========================================================
+    // ADMIN - CHANGE A USER'S ROLE
+    // PUT /api/admin/users/{id}/role    body: { "role": "INSTRUCTOR" }
+    // =========================================================
+
+    @PutMapping("/admin/users/{id}/role")
+    public User updateUserRole(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+
+        User actor = me(authentication);
+
+        role(actor, Role.ADMIN);
+
+        String value = body.get("role");
+
+        Role newRole;
+
+        try {
+            newRole = Role.valueOf(
+                    value == null ? "" : value.trim().toUpperCase()
+            );
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(
+                    "Unknown role '" + value +
+                    "' (expected STUDENT, INSTRUCTOR or ADMIN)"
+            );
+        }
+
+        User user = users.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Safety: an admin must not be able to demote themselves out of
+        // the last admin account and lock everyone out of admin ops.
+        if (user.getId().equals(actor.getId()) && newRole != Role.ADMIN) {
+            throw new RuntimeException(
+                    "You cannot remove your own ADMIN role"
+            );
+        }
+
+        user.setRole(newRole);
+
+        return users.save(user);
+    }
+
+    // =========================================================
     // ADMIN - ACTIVATE / DEACTIVATE USER
     // =========================================================
 

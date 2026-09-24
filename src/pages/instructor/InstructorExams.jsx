@@ -40,6 +40,7 @@ export default function InstructorExams() {
         description: form.description,
         duration: Number(form.duration),
         durationMinutes: Number(form.duration),
+        course: form.courseId ? { id: Number(form.courseId) } : undefined,
         url: form.url || undefined,
         type: form.type,
       });
@@ -73,6 +74,26 @@ export default function InstructorExams() {
           <div className="inst-form-group">
             <label>Description</label>
             <textarea rows={3} placeholder="Exam description..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+          </div>
+
+          {/* Course selector — exams belong to a course (course_id is NOT NULL) */}
+          <div className="inst-form-group">
+            <label>Course *</label>
+            <select
+              required
+              value={form.courseId}
+              onChange={e => setForm({ ...form, courseId: e.target.value })}
+            >
+              <option value="" disabled>Select a course…</option>
+              {courses.map(c => (
+                <option key={c.id} value={String(c.id)}>{c.title}</option>
+              ))}
+            </select>
+            {courses.length === 0 && (
+              <small style={{ fontSize: 12, color: "#94a3b8", marginTop: 6, display: "block" }}>
+                No courses found — create a course first.
+              </small>
+            )}
           </div>
 
           <div className="inst-form-row">
