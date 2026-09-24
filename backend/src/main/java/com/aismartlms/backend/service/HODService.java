@@ -248,8 +248,6 @@ public class HODService {
         Long totalStudentsEnrolled = (long) enrollmentRepository.count();
         Long totalActiveAssignments = (long) assignmentRepository.countByStatus("ACTIVE");
         Long pendingAssignments = (long) assignmentRepository.countByStatus("PENDING");
-        Long pendingExams = (long) examRepository.countByStatus("PENDING");
-        Long pendingQuizzes = (long) quizRepository.countByStatus("PENDING");
 
         view.setTotalCourses(totalCourses);
         view.setTotalSubjects(totalSubjects);
