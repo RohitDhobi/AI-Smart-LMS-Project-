@@ -107,6 +107,16 @@ import StudentLayout from "./components/student/StudentLayout";
 import CodingArena from "./pages/CodingArena";
 import CodingPlayground from "./pages/CodingPlayground";
 import AdminCodingManagement from "./pages/admin/AdminCodingManagement";
+import HODLayout from "./components/hod/HODLayout";
+import HODDashboard from "./pages/hod/HODDashboard";
+import HODAssignments from "./pages/hod/HODAssignments";
+import HODCoursesSubjects from "./pages/hod/HODCoursesSubjects";
+import HODStudents from "./pages/hod/HODStudents";
+import HODQuestions from "./pages/hod/HODQuestions";
+import HODExams from "./pages/hod/HODExams";
+import HODAnnouncements from "./pages/hod/HODAnnouncements";
+import HODSettings from "./pages/hod/HODSettings";
+import HODSubjects from "./pages/hod/HODCoursesSubjects";
 
 // =====================================================
 // LAYOUT
