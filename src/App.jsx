@@ -340,11 +340,6 @@ const hodLayoutElement = <Protected><HODLayout /></Protected>;
 const adminLayoutElement = <Protected><AdminLayout /></Protected>;
 const instructorLayoutElement = <Protected><InstructorLayout /></Protected>;
 const studentLayoutElement = <Protected><StudentLayout /></Protected>;
-// Route element variables to avoid parser issues with self-closing JSX tags
-const studentLayoutElement = <Protected><StudentLayout /></Protected>;
-const hodLayoutElement = <Protected><HODLayout /></Protected>;
-const adminLayoutElement = <Protected><AdminLayout /></Protected>;
-const instructorLayoutElement = <Protected><InstructorLayout /></Protected>;
 function App() {
   return (
     <ToastProvider>
@@ -379,10 +374,6 @@ function App() {
       <Route
         path="/instructor"
         element={instructorLayoutElement}
-          <Protected>
-            <InstructorLayout />
-          </Protected>
-        }
       >
         <Route index element={<InstructorDashboard />} />
         <Route path="courses" element={<InstructorCourses />} />
