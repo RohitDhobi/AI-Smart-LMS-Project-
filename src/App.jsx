@@ -333,6 +333,13 @@ function courseCode(user) {
 // APP ROUTER
 // =====================================================
 
+
+// Route element variables to avoid parser issues with self-closing JSX tags
+const studentLayoutElement = <Protected><StudentLayout /></Protected>;
+const hodLayoutElement = <Protected><HODLayout /></Protected>;
+const adminLayoutElement = <Protected><AdminLayout /></Protected>;
+const instructorLayoutElement = <Protected><InstructorLayout /></Protected>;
+const studentLayoutElement = <Protected><StudentLayout /></Protected>;
 function App() {
   return (
     <ToastProvider>
@@ -543,7 +550,7 @@ function App() {
       </Route>
       <Route
         path="/hod"
-        element={<Protected><HODLayout />}</Protected>
+        element={hodLayoutElement}
       >
         <Route index element={<HODDashboard />} />
         <Route path="dashboard" element={<HODDashboard />} />
