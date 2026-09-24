@@ -198,6 +198,7 @@ public class HODService {
         return assignmentRepository.save(assignment);
     }
 
+    /** Delete the assignment row for one instructor + one subject. */
     @Transactional
     public void deleteAssignment(Long instructorId, Long subjectId) {
         assignmentRepository.deleteByInstructorIdAndSubjectId(instructorId, subjectId);
