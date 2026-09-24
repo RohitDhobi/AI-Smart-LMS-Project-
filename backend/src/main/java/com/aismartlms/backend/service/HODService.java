@@ -123,22 +123,7 @@ public class HODService {
             courseId = course.getId();
         }
 
-        // Prevent duplicates: same instructor + same course already active.
-        boolean exists = assignmentRepository
-                .findByInstructorIdAndStatus(instructorId, "ACTIVE")
-                .stream()
-                .anyMatch(a -> Objects.equals(a.getCourseId(), courseId));
 
-        if (exists) {
-            throw new RuntimeException("This instructor is already assigned to this course");
-        }
-
-        InstructorCourseAssignment assignment = new InstructorCourseAssignment(
-                instructorId,
-                courseId,
-                subjectId,
-                request.getAssignedBy() != null ? request.getAssignedBy() : null
-        );
 
         if (request.getStatus() != null && !request.getStatus().isBlank()) {
             assignment.setStatus(request.getStatus().toUpperCase());
