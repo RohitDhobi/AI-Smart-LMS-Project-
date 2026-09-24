@@ -12,6 +12,8 @@ public class HODAssignmentView {
     private String assignedByRole;
     private String status;
     private String assignedAt;
+    private String instructorEmail;
+    private String courseCode;
 
     public Long getId() {
         return id;
