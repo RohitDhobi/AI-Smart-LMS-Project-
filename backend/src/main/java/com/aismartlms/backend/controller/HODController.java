@@ -4,6 +4,7 @@ import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
 import com.aismartlms.backend.exception.AccessDeniedException;
+import com.aismartlms.backend.repository.UserRepository;
 import com.aismartlms.backend.service.HODService;
 import com.aismartlms.backend.service.InstructorCourseAssignment;
 import com.aismartlms.backend.service.InstructorCourseAssignmentRepository;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -27,13 +29,16 @@ public class HODController {
 
     private final HODService hodService;
     private final InstructorCourseAssignmentRepository assignmentRepository;
+    private final UserRepository users;
 
     public HODController(
             HODService hodService,
-            InstructorCourseAssignmentRepository assignmentRepository) {
+            InstructorCourseAssignmentRepository assignmentRepository,
+            UserRepository users) {
 
         this.hodService = hodService;
         this.assignmentRepository = assignmentRepository;
+        this.users = users;
     }
 
     // =========================
@@ -179,4 +184,31 @@ public class HODController {
     }
 
     private final UserRepository users;
+
+    // =========================
+    // COMMON HELPERS
+    // =========================
+
+    private User me(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new AccessDeniedException("Authentication required");
+        }
+        return users.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private boolean isHOD(Authentication authentication) {
+        User user = me(authentication);
+        return user.getRole() == Role.HOD;
+    }
+
+    private void requireHOD(Authentication authentication) {
+        if (!isHOD(authentication)) {
+            throw new AccessDeniedException("HOD access required");
+        }
+    }
+
+    private User getUser(Authentication authentication) {
+        return me(authentication);
+    }
 }
