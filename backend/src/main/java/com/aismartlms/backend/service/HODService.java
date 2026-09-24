@@ -209,7 +209,7 @@ public class HODService {
         Long totalCourses = (long) courseRepository.count();
         Long totalSubjects = (long) courseRepository.countDistinctSubjects();
 
-        Long totalInstructors = (long) courseRepository.countDistinctUsers();
+        Long totalInstructors = (long) courseRepository.countDistinctInstructorsAndHODs();
 
         // Every user with role INSTRUCTOR is an instructor on the platform.
         Long totalStudents = (long) courseRepository.countDistinctStudents();
