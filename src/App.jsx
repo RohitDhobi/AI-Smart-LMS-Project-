@@ -539,6 +539,12 @@ function App() {
         <Route path="audit-logs" element={<AdminAuditLogs />} />
       </Route>
       <Route
+        path="/subject/:id"
+        element={<Protected><StudentLayout />}</Protected>
+      >
+        <Route index element={<SubjectLearning />} />
+      </Route>
+      <Route
         path="/hod"
         element={<Protected><HODLayout />}</Protected>
       >
