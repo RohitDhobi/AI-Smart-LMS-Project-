@@ -335,10 +335,10 @@ function courseCode(user) {
 
 
 // Route element variables to avoid parser issues with self-closing JSX tags
-const studentLayoutElement = <Protected><StudentLayout /></Protected>;
-const hodLayoutElement = <Protected><HODLayout /></Protected>;
-const adminLayoutElement = <Protected><AdminLayout /></Protected>;
-const instructorLayoutElement = <Protected><InstructorLayout /></Protected>;
+const studentLayoutElement = React.createElement(Protected, null, React.createElement(StudentLayout, null));
+const hodLayoutElement = React.createElement(Protected, null, React.createElement(HODLayout, null));
+const adminLayoutElement = React.createElement(Protected, null, React.createElement(AdminLayout, null));
+const instructorLayoutElement = React.createElement(Protected, null, React.createElement(InstructorLayout, null));
 const studentLayoutElement = <Protected><StudentLayout /></Protected>;
 function App() {
   return (
