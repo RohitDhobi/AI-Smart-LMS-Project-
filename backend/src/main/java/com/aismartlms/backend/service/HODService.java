@@ -149,15 +149,6 @@ public class HODService {
                         .stream()
                         .anyMatch(a -> Objects.equals(a.getCourseId(), newCourseId));
 
-        if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
-            assignmentRepository.findByInstructorIdAndCourseIdAndStatus(
-                    assignment.getInstructorId(), oldCourseId, "ACTIVE")
-                    .stream()
-                    .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
-                    .findFirst()
-                    .ifPresent(a -> assignmentRepository.delete(a));
-        }
-
                 if (duplicate) {
                     throw new RuntimeException("This instructor is already assigned to the selected course");
                 }
@@ -165,18 +156,18 @@ public class HODService {
 
             // If removing from the current course, also clean up any
             // subject-level row pointing to the same subject.
-        if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
-            assignmentRepository
-                    .findByInstructorIdAndCourseIdAndStatus(assignment.getInstructorId(), oldCourseId, "ACTIVE")
-                    .stream()
-                    .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
-                    .findFirst()
-                    .ifPresent(a -> {
-                        assignmentRepository.delete(a);
-                    });
-        }
+            if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
+                assignmentRepository
+                        .findByInstructorIdAndCourseIdAndStatus(assignment.getInstructorId(), oldCourseId, "ACTIVE")
+                        .stream()
+                        .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
+                        .findFirst()
+                        .ifPresent(a -> {
+                            assignmentRepository.delete(a);
+                        });
+            }
 
-        assignment.setCourseId(newCourseId);
+            assignment.setCourseId(newCourseId);
         }
 
         if (request.getSubjectId() != null) {
