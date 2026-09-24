@@ -3,18 +3,16 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.exception.AccessDeniedException;
+import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.UserRepository;
 import com.aismartlms.backend.service.HODService;
-import com.aismartlms.backend.service.InstructorCourseAssignment;
-import com.aismartlms.backend.service.InstructorCourseAssignmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*);
 
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * HOD (Head of Department) REST & HTML endpoints.
