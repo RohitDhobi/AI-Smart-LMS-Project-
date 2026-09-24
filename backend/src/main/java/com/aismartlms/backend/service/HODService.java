@@ -190,18 +190,18 @@ public class HODService {
 
             // If removing from the current course, also clean up any
             // subject-level row pointing to the same subject.
-            if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
-                assignmentRepository
-                        .findByInstructorIdAndCourseIdAndStatus(assignment.getInstructorId(), oldCourseId, "ACTIVE")
-                        .stream()
-                        .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
-                        .findFirst()
-                        .ifPresent(a -> {
-                            assignmentRepository.delete(a);
-                        });
-            }
+        if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
+            assignmentRepository
+                    .findByInstructorIdAndCourseIdAndStatus(assignment.getInstructorId(), oldCourseId, "ACTIVE")
+                    .stream()
+                    .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
+                    .findFirst()
+                    .ifPresent(a -> {
+                        assignmentRepository.delete(a);
+                    });
+        }
 
-            assignment.setCourseId(newCourseId);
+        assignment.setCourseId(newCourseId);
         }
 
         if (request.getSubjectId() != null) {
