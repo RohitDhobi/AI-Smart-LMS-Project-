@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { CommandPalette } from "./components/CommandPalette";
 import { ToastProvider } from "./components/Toast";
 
@@ -43,10 +43,10 @@ import AIAssistant from "./pages/AIAssistant";
 import Profile from "./pages/Profile";
 import StudentSettings from "./pages/StudentSettings";
 import CampusTour from "./pages/CampusTour";
-const Stats3D = React.lazy(() => import("./pages/three/Stats3D"));
-const Badges3D = React.lazy(() => import("./pages/three/Badges3D"));
-const CourseCards3D = React.lazy(() => import("./pages/three/CourseCards3D"));
-const Classroom3D = React.lazy(() => import("./pages/three/Classroom3D"));
+import Stats3D from "./pages/three/Stats3D";
+import Badges3D from "./pages/three/Badges3D";
+import CourseCards3D from "./pages/three/CourseCards3D";
+import Classroom3D from "./pages/three/Classroom3D";
 import LearningPath from "./pages/LearningPath";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCourseManagement from "./pages/AdminCourseManagement";
@@ -97,7 +97,6 @@ import InstructorCalendar from "./pages/instructor/InstructorCalendar";
 import InstructorSettings from "./pages/instructor/InstructorSettings";
 import InstructorResources from "./pages/instructor/InstructorResources";
 import InstructorCodingPractice from "./pages/instructor/InstructorCodingPractice";
-import InstructorPage from "./pages/instructor/InstructorPage";
 import Assignments from "./pages/Assignments";
 import Attendance from "./pages/Attendance";
 import Discussions from "./pages/Discussions";
@@ -106,7 +105,6 @@ import StaffLogin from "./pages/StaffLogin";
 import StudentLayout from "./components/student/StudentLayout";
 import CodingArena from "./pages/CodingArena";
 import CodingPlayground from "./pages/CodingPlayground";
-import AdminCodingManagement from "./pages/admin/AdminCodingManagement";
 import HODLayout from "./components/hod/HODLayout";
 import HODDashboard from "./pages/hod/HODDashboard";
 import HODAssignments from "./pages/hod/HODAssignments";
@@ -116,7 +114,12 @@ import HODQuestions from "./pages/hod/HODQuestions";
 import HODExams from "./pages/hod/HODExams";
 import HODAnnouncements from "./pages/hod/HODAnnouncements";
 import HODSettings from "./pages/hod/HODSettings";
-import HODSubjects from "./pages/hod/HODCoursesSubjects";
+
+// Route element variables to avoid esbuild parser issues with self-closing JSX tags
+const studentLayoutElement = React.createElement(Protected, null, React.createElement(StudentLayout, null));
+const hodLayoutElement = React.createElement(Protected, null, React.createElement(HODLayout, null));
+const adminLayoutElement = React.createElement(Protected, null, React.createElement(AdminLayout, null));
+const instructorLayoutElement = React.createElement(Protected, null, React.createElement(InstructorLayout, null));
 
 // =====================================================
 // LAYOUT
@@ -212,9 +215,7 @@ function Layout({ children }) {
   return (
     <div className="app-layout">
 
-      {/* =================================================
-          SIDEBAR (dark navy)
-      ================================================= */}
+      {/* SIDEBAR (dark navy) */}
       <aside className="sidebar-v2">
         <div className="sidebar-v2-logo">
           <span className="sidebar-v2-logo-icon">📖</span>
@@ -250,14 +251,10 @@ function Layout({ children }) {
         <button className="sidebar-v2-logout" onClick={logout}>Logout</button>
       </aside>
 
-      {/* =================================================
-          MAIN
-      ================================================= */}
+      {/* MAIN */}
       <main className="main-content-v2">
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
         <header className="header-v2">
           <button
             className="header-v2-menu"
@@ -333,13 +330,6 @@ function courseCode(user) {
 // APP ROUTER
 // =====================================================
 
-
-// Route element variables to avoid parser issues with self-closing JSX tags
-const studentLayoutElement = React.createElement(Protected, null, React.createElement(StudentLayout, null));
-const hodLayoutElement = React.createElement(Protected, null, React.createElement(HODLayout, null));
-const adminLayoutElement = React.createElement(Protected, null, React.createElement(AdminLayout, null));
-const instructorLayoutElement = React.createElement(Protected, null, React.createElement(InstructorLayout, null));
-const studentLayoutElement = <Protected><StudentLayout /></Protected>;
 function App() {
   return (
     <ToastProvider>
@@ -370,7 +360,7 @@ function App() {
         }
       />
 
-      {/* Instructor Panel — own layout, no student sidebar */}
+      {/* Instructor Panel */}
       <Route
         path="/instructor"
         element={instructorLayoutElement}
@@ -397,23 +387,23 @@ function App() {
         <Route path="settings" element={<InstructorSettings />} />
       </Route>
 
-      {/* Student Routes — with student sidebar layout */}
+      {/* Student Routes */}
       <Route
         path="/dashboard"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Dashboard />} />
       </Route>
       <Route
         path="/coding"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<CodingArena />} />
         <Route path=":id" element={<CodingPlayground />} />
       </Route>
       <Route
         path="/courses"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Courses />} />
         <Route path=":id/learn" element={<StudentLearning />} />
@@ -421,93 +411,109 @@ function App() {
       </Route>
       <Route
         path="/quizzes"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Quizzes />} />
       </Route>
       <Route
         path="/leaderboard"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Leaderboard />} />
       </Route>
       <Route
         path="/wishlist"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Wishlist />} />
       </Route>
       <Route
         path="/analytics"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Analytics />} />
       </Route>
       <Route
         path="/certificates"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Certificates />} />
       </Route>
       <Route
         path="/notifications"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Notifications />} />
       </Route>
       <Route
         path="/ai-assistant"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<AIAssistant />} />
       </Route>
       <Route
         path="/learning-path"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<LearningPath />} />
       </Route>
       <Route
         path="/profile"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<Profile />} />
       </Route>
       <Route
         path="/settings"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<StudentSettings />} />
       </Route>
       <Route
         path="/campus-tour"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
         <Route index element={<CampusTour />} />
       </Route>
       <Route
         path="/3d-stats"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
-        <Route index element={<React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Stats...</div>}><Stats3D /></React.Suspense>} />
+        <Route index element={
+          <React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Stats...</div>}>
+            <Stats3D />
+          </React.Suspense>
+        } />
       </Route>
       <Route
         path="/3d-badges"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
-        <Route index element={<React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Badges...</div>}><Badges3D /></React.Suspense>} />
+        <Route index element={
+          <React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Badges...</div>}>
+            <Badges3D />
+          </React.Suspense>
+        } />
       </Route>
       <Route
         path="/3d-courses"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
-        <Route index element={<React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Courses...</div>}><CourseCards3D /></React.Suspense>} />
+        <Route index element={
+          <React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Courses...</div>}>
+            <CourseCards3D />
+          </React.Suspense>
+        } />
       </Route>
       <Route
         path="/3d-classroom"
-        element={<Protected><StudentLayout /></Protected>}
+        element={studentLayoutElement}
       >
-        <Route index element={<React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Classroom...</div>}><Classroom3D /></React.Suspense>} />
+        <Route index element={
+          <React.Suspense fallback={<div style={{color:'#fff',textAlign:'center',padding:40}}>Loading 3D Classroom...</div>}>
+            <Classroom3D />
+          </React.Suspense>
+        } />
       </Route>
       <Route
         path="/admin"
@@ -548,6 +554,54 @@ function App() {
         <Route index element={<SubjectLearning />} />
       </Route>
       <Route
+        path="/assignments"
+        element={studentLayoutElement}
+      >
+        <Route index element={<Assignments />} />
+      </Route>
+      <Route
+        path="/exams"
+        element={studentLayoutElement}
+      >
+        <Route index element={<Exams />} />
+      </Route>
+      <Route
+        path="/attendance"
+        element={studentLayoutElement}
+      >
+        <Route index element={<Attendance />} />
+      </Route>
+      <Route
+        path="/discussions"
+        element={studentLayoutElement}
+      >
+        <Route index element={<Discussions />} />
+      </Route>
+      <Route
+        path="/"
+        element={studentLayoutElement}
+      >
+        <Route index element={<Navigate to="/dashboard" replace />} />
+      </Route>
+      <Route
+        path="*"
+        element={
+          <Protected>
+            <StudentLayout>
+              <Page title="Page Not Found" subtitle="">
+                <section className="card">
+                  <h2>404</h2>
+                  <p>The page you are looking for does not exist.</p>
+                  <Link className="primary button-link" to="/dashboard">← Back to Dashboard</Link>
+                </section>
+              </Page>
+            </StudentLayout>
+          </Protected>
+        }
+      />
+
+      {/* HOD Panel */}
+      <Route
         path="/hod"
         element={hodLayoutElement}
       >
@@ -571,47 +625,6 @@ function App() {
         <Route path="announcements" element={<HODAnnouncements />} />
         <Route path="settings" element={<HODSettings />} />
       </Route>
-      <Route
-      <Route
-        path="/exams"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<Exams />} />
-      </Route>
-      <Route
-        path="/attendance"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<Attendance />} />
-      </Route>
-      <Route
-        path="/discussions"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<Discussions />} />
-      </Route>
-      <Route
-        path="/"
-        element={<Protected><StudentLayout /></Protected>}
-      >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-      </Route>
-      <Route
-        path="*"
-        element={
-          <Protected>
-            <StudentLayout>
-              <Page title="Page Not Found" subtitle="">
-                <section className="card">
-                  <h2>404</h2>
-                  <p>The page you are looking for does not exist.</p>
-                  <Link className="primary button-link" to="/dashboard">← Back to Dashboard</Link>
-                </section>
-              </Page>
-            </StudentLayout>
-          </Protected>
-        }
-      />
     </Routes>
     <CommandPalette />
     </>
