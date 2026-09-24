@@ -1,10 +1,10 @@
 package com.aismartlms.backend.repository;
 
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +30,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT COUNT(DISTINCT s) FROM Subject s")
     Long countDistinctSubjects();
 
-    /** Count distinct users that hold the INSTRUCTOR or HOD role. */
+    /** Count distinct instructors and HODs. */
     @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.INSTRUCTOR OR u.role = com.aismartlms.backend.entity.Role.HOD")
     Long countDistinctInstructorsAndHODs();
 
@@ -38,9 +38,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.STUDENT")
     Long countDistinctStudents();
 
-    /** Find the User (instructor/HOD/student) by their ID. */
-    /** Find the User (instructor/HOD/student) by their ID. */
-    /** Find the User (instructor/HOD/student) by their ID. */
     /** Find the User (instructor/HOD/student) by their ID. */
     Optional<User> findUserById(Long id);
 
