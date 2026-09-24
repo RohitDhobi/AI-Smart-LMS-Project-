@@ -64,13 +64,7 @@ public class HODController {
     /** Return the full assignment table: Subject/Course | Assigned Instructor | Status | Action */
     @GetMapping("/assignments")
     public List<HODAssignmentView> getAssignments(Authentication authentication) {
-
-        User user = getUser(authentication);
-
-        if (user.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         return hodService.getAllAssignments();
     }
 
@@ -79,13 +73,7 @@ public class HODController {
     public List<HODAssignmentView> getAssignmentsByInstructor(
             @PathVariable Long instructorId,
             Authentication authentication) {
-
-        User user = getUser(authentication);
-
-        if (user.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         return hodService.getAssignmentsByInstructorId(instructorId);
     }
 
@@ -94,13 +82,7 @@ public class HODController {
     public List<HODAssignmentView> getAssignmentsByCourse(
             @PathVariable Long courseId,
             Authentication authentication) {
-
-        User user = getUser(authentication);
-
-        if (user.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         return hodService.getAssignmentsByCourseId(courseId);
     }
 
@@ -112,17 +94,10 @@ public class HODController {
     public InstructorCourseAssignment assignInstructor(
             Authentication authentication,
             @RequestBody HODRequest request) {
-
-        User actor = getUser(authentication);
-
-        if (actor.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         if (request.getInstructorId() == null || request.getCourseId() == null) {
             throw new RuntimeException("Instructor ID and Course ID are required");
         }
-
         return hodService.createAssignment(request);
     }
 
@@ -135,13 +110,7 @@ public class HODController {
             Authentication authentication,
             @PathVariable Long id,
             @RequestBody HODRequest request) {
-
-        User actor = getUser(authentication);
-
-        if (actor.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         return hodService.updateAssignment(id, request);
     }
 
@@ -154,19 +123,11 @@ public class HODController {
             Authentication authentication,
             @PathVariable Long instructorId,
             @PathVariable Long subjectId) {
-
-        User actor = getUser(authentication);
-
-        if (actor.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         if (instructorId == null || subjectId == null) {
             return ResponseEntity.badRequest().body(Map.of("message", "Instructor ID and Subject ID are required"));
         }
-
         hodService.deleteAssignment(instructorId, subjectId);
-
         return ResponseEntity.ok(Map.of("message", "Instructor removed from subject"));
     }
 
