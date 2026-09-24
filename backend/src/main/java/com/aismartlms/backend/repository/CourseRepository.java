@@ -40,6 +40,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     /** Find the User (instructor/HOD/student) by their ID. */
     /** Find the User (instructor/HOD/student) by their ID. */
+    /** Find the User (instructor/HOD/student) by their ID. */
+    /** Find the User (instructor/HOD/student) by their ID. */
     Optional<User> findUserById(Long id);
 
     /** Find the Subject by its ID, including its parent Course for navigation. */
