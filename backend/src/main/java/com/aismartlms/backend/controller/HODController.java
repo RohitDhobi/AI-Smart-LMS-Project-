@@ -4,6 +4,7 @@ import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
 import com.aismartlms.backend.entity.Role;
+import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.UserRepository;
