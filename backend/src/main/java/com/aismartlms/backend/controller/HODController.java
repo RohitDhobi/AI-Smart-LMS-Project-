@@ -12,8 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * HOD (Head of Department) REST & HTML endpoints.
@@ -47,13 +48,7 @@ public class HODController {
 
     @GetMapping("/dashboard")
     public HODDashboardView getDashboard(Authentication authentication) {
-
-        User user = getUser(authentication);
-
-        if (user.getRole() != Role.HOD) {
-            throw new AccessDeniedException("HOD access required");
-        }
-
+        requireHOD(authentication);
         return hodService.getDashboard();
     }
 
@@ -63,14 +58,14 @@ public class HODController {
 
     /** Return the full assignment table: Subject/Course | Assigned Instructor | Status | Action */
     @GetMapping("/assignments")
-    public List<HODAssignmentView> getAssignments(Authentication authentication) {
+    public java.util.List<HODAssignmentView> getAssignments(Authentication authentication) {
         requireHOD(authentication);
         return hodService.getAllAssignments();
     }
 
     /** Return only assignments for a single instructor (one data point for their row). */
     @GetMapping("/assignments/instructor/{instructorId}")
-    public List<HODAssignmentView> getAssignmentsByInstructor(
+    public java.util.List<HODAssignmentView> getAssignmentsByInstructor(
             @PathVariable Long instructorId,
             Authentication authentication) {
         requireHOD(authentication);
@@ -79,7 +74,7 @@ public class HODController {
 
     /** Return only assignments for a single course. */
     @GetMapping("/assignments/course/{courseId}")
-    public List<HODAssignmentView> getAssignmentsByCourse(
+    public java.util.List<HODAssignmentView> getAssignmentsByCourse(
             @PathVariable Long courseId,
             Authentication authentication) {
         requireHOD(authentication);
@@ -130,21 +125,6 @@ public class HODController {
         hodService.deleteAssignment(instructorId, subjectId);
         return ResponseEntity.ok(Map.of("message", "Instructor removed from subject"));
     }
-
-    // =========================
-    // HELPERS
-    // =========================
-
-    private User getUser(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new AccessDeniedException("Authentication required");
-        }
-
-        return users.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    private final UserRepository users;
 
     // =========================
     // COMMON HELPERS
