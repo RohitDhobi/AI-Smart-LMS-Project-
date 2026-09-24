@@ -2,13 +2,6 @@ package com.aismartlms.backend.service;
 
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
-import com.aismartlms.backend.entity.Course;
-import com.aismartlms.backend.entity.InstructorCourseAssignment;
-import com.aismartlms.backend.entity.Subject;
-import com.aismartlms.backend.entity.User;
-import com.aismartlms.backend.dto.HODRequest;
-import com.aismartlms.backend.dto.HODAssignmentView;
-import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
@@ -107,7 +100,6 @@ public class HODService {
 
     @Transactional
     public InstructorCourseAssignment createAssignment(HODRequest request) {
-
         Long instructorId = request.getInstructorId();
         Long courseId = request.getCourseId();
         Long subjectId = request.getSubjectId();
@@ -140,20 +132,25 @@ public class HODService {
                 request.getAssignedBy() != null ? request.getAssignedBy() : null
         );
 
-        if (newCourseId != null && newSubjectId != null) {
-            // If the course and subject are being changed together, treat it
-            // as a full assignment move (same behavior as the UI).
-            if (newCourseId.equals(oldCourseId)) {
-                assignment.setSubjectId(newSubjectId);
-            } else {
-                assignment.setCourseId(newCourseId);
-                assignment.setSubjectId(newSubjectId);
-            }
-        } else if (newCourseId != null) {
-            assignment.setCourseId(newCourseId);
-        } else if (newSubjectId != null) {
-            assignment.setSubjectId(newSubjectId);
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            assignment.setStatus(request.getStatus().toUpperCase());
+        } else {
+            assignment.setStatus("ACTIVE");
         }
+
+        return assignmentRepository.save(assignment);
+    }
+
+    @Transactional
+    public InstructorCourseAssignment updateAssignment(Long id, HODRequest request) {
+        InstructorCourseAssignment assignment = assignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
+        Long oldCourseId = assignment.getCourseId();
+        Long newCourseId = request.getCourseId();
+        Long newSubjectId = request.getSubjectId();
+
+        if (newCourseId != null) {
             // If a new course is being set, make sure the instructor is not
             // already actively assigned to it (duplicate guard).
             if (newCourseId == null || !newCourseId.equals(oldCourseId)) {
@@ -183,8 +180,8 @@ public class HODService {
             assignment.setCourseId(newCourseId);
         }
 
-        if (request.getSubjectId() != null) {
-            assignment.setSubjectId(request.getSubjectId());
+        if (newSubjectId != null) {
+            assignment.setSubjectId(newSubjectId);
         }
 
         if (request.getAssignedBy() != null) {
@@ -202,16 +199,6 @@ public class HODService {
     @Transactional
     public void deleteAssignment(Long instructorId, Long subjectId) {
         assignmentRepository.deleteByInstructorIdAndSubjectId(instructorId, subjectId);
-    }
-
-    /** Run updateAssignment once for a full replace of an instructor's assignment. */
-    @Transactional
-    public InstructorCourseAssignment assignInstructor(Long instructorId, Long courseId, Long subjectId, String status) {
-        InstructorCourseAssignment assignment = new InstructorCourseAssignment(
-                instructorId, courseId, subjectId, null
-        );
-        assignment.setStatus(status == null || status.isBlank() ? "ACTIVE" : status.toUpperCase());
-        return assignmentRepository.save(assignment);
     }
 
     // =========================
