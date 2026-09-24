@@ -84,7 +84,7 @@ public class HODController {
     // =========================
 
     @PostMapping("/assignments")
-    public InstructorCourseAssignment createAssignment(
+    public com.aismartlms.backend.entity.InstructorCourseAssignment createAssignment(
             Authentication authentication,
             @RequestBody HODRequest request) {
         requireHOD(authentication);
@@ -99,7 +99,7 @@ public class HODController {
     // =========================
 
     @PutMapping("/assignments/{id}")
-    public InstructorCourseAssignment editAssignment(
+    public com.aismartlms.backend.entity.InstructorCourseAssignment editAssignment(
             Authentication authentication,
             @PathVariable Long id,
             @RequestBody HODRequest request) {
