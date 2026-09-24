@@ -259,8 +259,6 @@ public class HODService {
         view.setTotalStudentsEnrolled(totalStudentsEnrolled);
         view.setTotalActiveAssignments(totalActiveAssignments);
         view.setPendingAssignments(pendingAssignments);
-        view.setPendingExams(pendingExams);
-        view.setPendingQuizzes(pendingQuizzes);
 
         return view;
     }
