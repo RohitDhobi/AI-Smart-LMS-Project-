@@ -615,14 +615,61 @@ export const api = {
     apiRequest("/admin/pending-courses"),
 
   // ===================================================
+  // HOD
+  // ===================================================
+
+  hodDashboard: () => apiRequest("/hod/dashboard"),
+
+  hodAssignments: () => apiRequest("/hod/assignments"),
+
+  hodCreateAssignment: (body) =>
+    apiRequest("/hod/assignments", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  hodUpdateAssignment: (id, body) =>
+    apiRequest(`/hod/assignments/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  hodRemoveAssignment: (instructorId, subjectId) =>
+    apiRequest(`/hod/assignments/instructor/${instructorId}/subject/${subjectId}`, {
+      method: "DELETE",
+    }),
+
+  hodCourses: () => apiRequest("/hod/courses"),
+
+  hodSubjects: () => apiRequest("/hod/subjects"),
+
+  hodStudents: () => apiRequest("/hod/students"),
+
+  hodQuestions: () => apiRequest("/hod/questions"),
+
+  hodGenerateQuestions: (body) =>
+    apiRequest("/hod/questions/generate", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  hodExams: () => apiRequest("/hod/exams"),
+
+  hodAnnouncements: () => apiRequest("/hod/announcements"),
+
+  hodCreateAnnouncement: (body) =>
+    apiRequest("/hod/announcements", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  // ===================================================
   // ADMIN
   // ===================================================
 
-  adminDashboard: () =>
-    apiRequest("/admin/dashboard"),
+  adminDashboard: () => apiRequest("/admin/dashboard"),
 
-  adminUsers: () =>
-    apiRequest("/admin/users"),
+  adminUsers: () => apiRequest("/admin/users"),
 
   adminCreateInstructor: (body) =>
     apiRequest("/admin/users", {
