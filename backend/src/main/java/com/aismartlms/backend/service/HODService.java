@@ -154,6 +154,14 @@ public class HODService {
         InstructorCourseAssignment assignment = assignmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
 
+        Long oldCourseId = assignment.getCourseId();
+        Long newCourseId = request.getCourseId();
+        Long newSubjectId = request.getSubjectId();
+
+        if (newCourseId != null) {
+        InstructorCourseAssignment assignment = assignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
         if (request.getCourseId() != null) {
             Long oldCourseId = assignment.getCourseId();
             Long newCourseId = request.getCourseId();
