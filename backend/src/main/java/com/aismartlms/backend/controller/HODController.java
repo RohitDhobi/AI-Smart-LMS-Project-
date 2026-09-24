@@ -3,8 +3,8 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.User;
-import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.UserRepository;
@@ -85,7 +85,7 @@ public class HODController {
     // =========================
 
     @PostMapping("/assignments")
-    public InstructorCourseAssignment assignInstructor(
+    public InstructorCourseAssignment createAssignment(
             Authentication authentication,
             @RequestBody HODRequest request) {
         requireHOD(authentication);
@@ -100,7 +100,7 @@ public class HODController {
     // =========================
 
     @PutMapping("/assignments/{id}")
-    public InstructorCourseAssignment updateAssignment(
+    public InstructorCourseAssignment editAssignment(
             Authentication authentication,
             @PathVariable Long id,
             @RequestBody HODRequest request) {
