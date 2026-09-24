@@ -113,7 +113,7 @@ public class HODService {
         if (subjectId != null) {
             Course course = courseRepository.findById(subjectId)
                     .orElseThrow(() -> new RuntimeException("Subject not found"));
-            courseId = course.getCourse() != null ? course.getCourse().getId() : courseId;
+            courseId = course.getId();
         }
 
         // Prevent duplicates: same instructor + same course already active.
@@ -159,6 +159,15 @@ public class HODService {
                         .stream()
                         .anyMatch(a -> Objects.equals(a.getCourseId(), newCourseId));
 
+        if (oldCourseId != null && !oldCourseId.equals(newCourseId)) {
+            assignmentRepository.findByInstructorIdAndCourseIdAndStatus(
+                    assignment.getInstructorId(), oldCourseId, "ACTIVE")
+                    .stream()
+                    .filter(a -> a.getSubjectId() != null && a.getSubjectId() != 0L)
+                    .findFirst()
+                    .ifPresent(a -> assignmentRepository.delete(a));
+        }
+
                 if (duplicate) {
                     throw new RuntimeException("This instructor is already assigned to the selected course");
                 }
@@ -198,6 +207,16 @@ public class HODService {
     @Transactional
     public void deleteAssignment(Long instructorId, Long subjectId) {
         assignmentRepository.deleteByInstructorIdAndSubjectId(instructorId, subjectId);
+    }
+
+    /** Run updateAssignment once for a full replace of an instructor's assignment. */
+    @Transactional
+    public InstructorCourseAssignment assignInstructor(Long instructorId, Long courseId, Long subjectId, String status) {
+        InstructorCourseAssignment assignment = new InstructorCourseAssignment(
+                instructorId, courseId, subjectId, null
+        );
+        assignment.setStatus(status == null || status.isBlank() ? "ACTIVE" : status.toUpperCase());
+        return assignmentRepository.save(assignment);
     }
 
     // =========================
