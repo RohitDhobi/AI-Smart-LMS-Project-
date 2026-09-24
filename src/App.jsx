@@ -538,10 +538,7 @@ function App() {
         <Route path="settings" element={<AdminSettings />} />
         <Route path="audit-logs" element={<AdminAuditLogs />} />
       </Route>
-      <Route
-        path="/subject/:id"
-        element={<Protected><StudentLayout />}</Protected>
-      >
+      <Route path="/subject/:id" element={<Protected><StudentLayout />}</Protected>>
         <Route index element={<SubjectLearning />} />
       </Route>
       <Route
