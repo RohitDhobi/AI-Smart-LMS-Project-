@@ -19,5 +19,17 @@ public interface InstructorCourseAssignmentRepository
     List<InstructorCourseAssignment> findByInstructorIdAndStatus(
             Long instructorId, String status);
 
+    List<InstructorCourseAssignment> findByCourseIdAndStatus(
+            Long courseId, String status);
+
+    List<InstructorCourseAssignment> findBySubjectIdAndStatus(
+            Long subjectId, String status);
+
     void deleteByInstructorIdAndSubjectId(Long instructorId, Long subjectId);
+
+    /** Count assignments with a specific status. */
+    long countByStatus(String status);
+
+    /** Count active assignments for an instructor. */
+    long countByInstructorIdAndStatus(Long instructorId, String status);
 }
