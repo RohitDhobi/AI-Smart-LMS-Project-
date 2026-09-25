@@ -52,6 +52,15 @@ public class ExamService {
     }
 
     /**
+     * Resolves the course a new exam would be saved against, without saving.
+     * Lets the controller run the HOD assignment check (HTTP 403) before any
+     * write happens.
+     */
+    public Course peekCourseForNewExam(Exam exam) {
+        return resolveCourse(exam.getCourse());
+    }
+
+    /**
      * Resolves the course an exam belongs to:
      * 1. The explicitly requested course id (if present),
      * 2. a course taught by the currently authenticated instructor,
