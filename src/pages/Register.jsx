@@ -176,12 +176,14 @@ function Register() {
           JSON.stringify(user)
         );
 
-        // Redirect admin/teacher users to their own dashboards
+        // Redirect admin/teacher/HOD users to their own dashboards
         const userRole = response?.user?.role || response?.role || user?.role;
         if (userRole === "ADMIN") {
           navigate("/admin");
         } else if (userRole === "INSTRUCTOR") {
           navigate("/instructor");
+        } else if (userRole === "HOD") {
+          navigate("/hod");
         } else {
           navigate("/dashboard");
         }
