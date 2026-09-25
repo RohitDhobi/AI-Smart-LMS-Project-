@@ -58,10 +58,16 @@ public class ExamController {
     @PostMapping
     public ResponseEntity<Exam> createExam(@RequestBody Exam exam) {
 
-        // ExamService resolves a course when the client omits one, so the
-        // check runs after resolution by re-reading the saved entity.
-        Exam saved = examService.createExam(exam);
-        return ResponseEntity.ok(saved);
+        // Resolve first (the client may omit a course), enforce the HOD
+        // assignment check on that course, then save. HTTP 403 if unassigned.
+        com.aismartlms.backend.entity.Course target =
+                examService.peekCourseForNewExam(exam);
+
+        if (target != null && target.getId() != null) {
+            access.requireCourseManage(target.getId());
+        }
+
+        return ResponseEntity.ok(examService.createExam(exam));
     }
 
     @PutMapping("/{id}")
