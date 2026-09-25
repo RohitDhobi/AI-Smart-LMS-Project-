@@ -51,6 +51,10 @@ export default function InstructorCourseDetails() {
   if (loading) return <div className="inst-loading">Loading...</div>;
   if (!course) return <div className="inst-empty">Course not found.</div>;
 
+  // canManage comes from the backend. When false the instructor may still
+  // read everything here, but no management controls are rendered.
+  const canManage = course.canManage !== false;
+
   return (
     <div className="inst-page">
       <div className="inst-page-header">
@@ -59,9 +63,17 @@ export default function InstructorCourseDetails() {
           <h1>{course.title}</h1>
           <p>{course.description}</p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <Link to={`/courses/${id}/learn`} className="inst-btn secondary">Preview</Link>
-          <button className="inst-btn primary" onClick={() => setShowLessonForm(true)}>+ Add Lesson</button>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {canManage ? (
+            <>
+              <Link to={`/courses/${id}/learn`} className="inst-btn secondary">Preview</Link>
+              <button className="inst-btn primary" onClick={() => setShowLessonForm(true)}>+ Add Lesson</button>
+            </>
+          ) : (
+            <span className="inst-badge" style={{ background: "#fef3c7", color: "#b45309", padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
+              🔒 View Only — not assigned to you
+            </span>
+          )}
         </div>
       </div>
 
@@ -79,10 +91,12 @@ export default function InstructorCourseDetails() {
       <div className="inst-section">
         <div className="inst-section-header">
           <h2>📖 Lessons ({lessons.length})</h2>
-          <button className="inst-btn primary small" onClick={() => setShowLessonForm(true)}>+ Add Lesson</button>
+          {canManage && (
+            <button className="inst-btn primary small" onClick={() => setShowLessonForm(true)}>+ Add Lesson</button>
+          )}
         </div>
 
-        {showLessonForm && (
+        {canManage && showLessonForm && (
           <form className="inst-form card" onSubmit={addLesson} style={{ marginBottom: 20 }}>
             <h3>Add New Lesson</h3>
             <div className="inst-form-group">
