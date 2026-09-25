@@ -75,6 +75,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminSemesters from "./pages/admin/AdminSemesters";
+import AdminCodingManagement from "./pages/admin/AdminCodingManagement";
 import SubjectLearning from "./pages/SubjectLearning";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorLayout from "./pages/instructor/InstructorLayout";
