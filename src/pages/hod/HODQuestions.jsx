@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { getStoredUser } from "../../ui";
-import { FileQuestion, PlusCircle, Bot, Trash2, PlayCircle } from "lucide-react";
+import { FileQuestion, Pencil, PlusCircle, Bot, Trash2, PlayCircle } from "lucide-react";
 
 export default function HODQuestions() {
   const [questions, setQuestions] = useState([]);

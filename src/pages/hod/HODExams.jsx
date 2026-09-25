@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { getStoredUser } from "../../ui";
-import { FileText, PlusCircle, GraduationCap, Clock, Trash2, PlayCircle } from "lucide-react";
+import { FileText, FileQuestion, PlusCircle, GraduationCap, Clock, Trash2, PlayCircle } from "lucide-react";
 
 export default function HODExams() {
   const [exams, setExams] = useState([]);
