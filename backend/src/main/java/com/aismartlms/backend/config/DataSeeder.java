@@ -505,11 +505,29 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
-        // Round-robin every course across the instructor pool so each
-        // instructor has work to manage and every course is covered.
+        // Round-robin the course list across the instructor pool so that
+        // every instructor owns at least one course (existing instructor
+        // features keep working) and every course is covered.
         int created = 0;
 
-        for (int i = 0; i < allCourses.size(); i++) {
+        for (int i = 0; i < instructors.size(); i++) {
+
+            User instructor = instructors.get(i);
+            Course course = allCourses.get(i % allCourses.size());
+
+            assignments.save(new InstructorCourseAssignment(
+                    instructor.getId(),
+                    course.getId(),
+                    null,
+                    null
+            ));
+
+            created++;
+        }
+
+        // When there are more courses than instructors, hand the remaining
+        // courses to instructors in rotation as well.
+        for (int i = instructors.size(); i < allCourses.size(); i++) {
 
             Course course = allCourses.get(i);
             User instructor = instructors.get(i % instructors.size());
