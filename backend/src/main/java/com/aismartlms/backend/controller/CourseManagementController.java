@@ -109,14 +109,14 @@ public class CourseManagementController {
             return;
         }
 
-        Long courseId = intValue(body.get("courseId"));
+        Long courseId = longValue(body.get("courseId"));
 
         if (courseId != null) {
             access.requireCourseManage(user, courseId);
             return;
         }
 
-        Long subjectId = intValue(body.get("subjectId"));
+        Long subjectId = longValue(body.get("subjectId"));
 
         if (subjectId != null) {
             access.requireSubjectManage(user, subjectId);
@@ -149,6 +149,24 @@ public class CourseManagementController {
 
         return subjects.findById(id)
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
+    }
+
+    /** Parses a request value that may arrive as a Number or a String. */
+    private Long longValue(Object value) {
+
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+
+        try {
+            return Long.valueOf(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // =========================================================
