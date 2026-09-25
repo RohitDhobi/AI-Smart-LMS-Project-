@@ -258,6 +258,188 @@ public class HODService {
     }
 
     // =========================
+    // COURSES / SUBJECTS / STUDENTS
+    //
+    // Read-only listings reused by the HOD Courses & Subjects pages.
+    // They build on the existing Course / Subject / User tables.
+    // =========================
+
+    /** Every course with its subject and student counts. */
+    public List<Map<String, Object>> getCourses() {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Course course : courseRepository.findAll()) {
+
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("id", course.getId());
+            item.put("courseCode", course.getCourseCode());
+            item.put("courseName", course.getCourseName());
+            item.put("title", course.getTitle());
+            item.put("description", course.getDescription());
+            item.put("category", course.getCategory());
+            item.put("difficulty", course.getDifficulty());
+            item.put("instructor", course.getInstructor());
+            item.put("price", course.getPrice());
+            item.put("duration", course.getDuration());
+            item.put("status", course.getStatus());
+
+            List<Subject> courseSubjects = subjectRepository.findByCourseId(course.getId());
+
+            item.put("subjectCount", courseSubjects.size());
+            item.put("studentCount", userRepository.findByCourse(course).size());
+
+            // How many instructors the HOD has assigned to this course.
+            item.put("assignedInstructors",
+                    assignmentRepository.findByCourseIdAndStatus(course.getId(), "ACTIVE").size());
+
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** Every subject, flattened with its parent course name. */
+    public List<Map<String, Object>> getSubjects() {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Subject subject : subjectRepository.findAll()) {
+
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("id", subject.getId());
+            item.put("subjectCode", subject.getSubjectCode());
+            item.put("subjectName", subject.getSubjectName());
+            item.put("description", subject.getDescription());
+            item.put("semester", subject.getSemester());
+
+            Long courseId = subject.getCourse() == null ? null : subject.getCourse().getId();
+            String courseName = subject.getCourse() == null ? null : subject.getCourse().getCourseName();
+
+            item.put("courseId", courseId);
+            item.put("courseName", courseName);
+
+            // Instructor assigned to this subject by the HOD, if any.
+            String assigned = null;
+            Long assignedInstructorId = null;
+
+            if (courseId != null) {
+
+                List<InstructorCourseAssignment> rows =
+                        assignmentRepository.findBySubjectIdAndStatus(subject.getId(), "ACTIVE");
+
+                if (rows.isEmpty()) {
+                    rows = assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
+                }
+
+                if (!rows.isEmpty()) {
+                    assignedInstructorId = rows.get(0).getInstructorId();
+                    assigned = userRepository.findById(assignedInstructorId)
+                            .map(User::getName)
+                            .orElse(null);
+                }
+            }
+
+            item.put("assignedInstructor", assigned);
+            item.put("assignedInstructorId", assignedInstructorId);
+
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** All students (role = STUDENT) with their enrolled course. */
+    public List<Map<String, Object>> getStudents() {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User user : userRepository.findAll()) {
+
+            if (user.getRole() != Role.STUDENT) {
+                continue;
+            }
+
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("id", user.getId());
+            item.put("name", user.getName());
+            item.put("email", user.getEmail());
+            item.put("phone", user.getPhone());
+            item.put("role", user.getRole() == null ? null : user.getRole().name());
+            item.put("active", user.getActive());
+
+            if (user.getCourse() != null) {
+                item.put("courseId", user.getCourse().getId());
+                item.put("courseName", user.getCourse().getCourseName());
+            } else {
+                item.put("courseId", null);
+                item.put("courseName", null);
+            }
+
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** All instructors (role = INSTRUCTOR) - the Assign dropdown source. */
+    public List<Map<String, Object>> getInstructors() {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (User user : userRepository.findAll()) {
+
+            if (user.getRole() != Role.INSTRUCTOR) {
+                continue;
+            }
+
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("id", user.getId());
+            item.put("name", user.getName());
+            item.put("email", user.getEmail());
+            item.put("active", user.getActive());
+            item.put("assignedCourses",
+                    assignmentRepository.countByInstructorIdAndStatus(user.getId(), "ACTIVE"));
+
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    // =========================
+    // ANNOUNCEMENTS
+    // =========================
+
+    public List<Announcement> getAnnouncements() {
+        return announcementRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Transactional
+    public Announcement createAnnouncement(
+            String title, String content, User postedBy) {
+
+        if (title == null || title.isBlank()) {
+            throw new RuntimeException("Announcement title is required");
+        }
+
+        Announcement announcement = new Announcement(
+                title.trim(),
+                content,
+                postedBy == null ? null : postedBy.getId());
+
+        if (postedBy != null && postedBy.getRole() != null) {
+            announcement.setPostedByRole(postedBy.getRole().name());
+        }
+
+        return announcementRepository.save(announcement);
+    }
+
+    // =========================
     // PRIVATE HELPERS
     // =========================
 
