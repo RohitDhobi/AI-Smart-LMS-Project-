@@ -3,16 +3,22 @@ package com.aismartlms.backend.service;
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.entity.Announcement;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.repository.AnnouncementRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.QuizRepository;
+import com.aismartlms.backend.repository.SubjectRepository;
+import com.aismartlms.backend.repository.UserRepository;
+import com.aismartlms.backend.exception.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +39,9 @@ public class HODService {
     private final QuizRepository quizRepository;
     private final ExamRepository examRepository;
     private final QuestionRepository questionRepository;
+    private final SubjectRepository subjectRepository;
+    private final UserRepository userRepository;
+    private final AnnouncementRepository announcementRepository;
 
     public HODService(
             InstructorCourseAssignmentRepository assignmentRepository,
@@ -40,7 +49,10 @@ public class HODService {
             EnrollmentRepository enrollmentRepository,
             QuizRepository quizRepository,
             ExamRepository examRepository,
-            QuestionRepository questionRepository) {
+            QuestionRepository questionRepository,
+            SubjectRepository subjectRepository,
+            UserRepository userRepository,
+            AnnouncementRepository announcementRepository) {
 
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
@@ -48,6 +60,9 @@ public class HODService {
         this.quizRepository = quizRepository;
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
+        this.subjectRepository = subjectRepository;
+        this.userRepository = userRepository;
+        this.announcementRepository = announcementRepository;
     }
 
     // =========================
@@ -110,9 +125,12 @@ public class HODService {
 
         // Normalize legacy: a subject assignment also carries the parent course.
         if (subjectId != null) {
-            Course course = courseRepository.findById(subjectId)
+            Subject subject = subjectRepository.findById(subjectId)
                     .orElseThrow(() -> new RuntimeException("Subject not found"));
-            courseId = course.getId();
+
+            if (subject.getCourse() != null) {
+                courseId = subject.getCourse().getId();
+            }
         }
 
         // Prevent duplicates: same instructor + same course already active.
