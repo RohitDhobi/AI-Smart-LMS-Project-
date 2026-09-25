@@ -3,6 +3,7 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.entity.*;
 import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.*;
+import com.aismartlms.backend.service.InstructorAccessService;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ public class CourseManagementController {
     private final WishlistRepository wishlists;
     private final CertificateRepository certificates;
     private final AssignmentRepository assignmentRepository;
+    private final InstructorAccessService access;
 
     public CourseManagementController(
             UserRepository users,
@@ -41,7 +43,8 @@ public class CourseManagementController {
             ReviewRepository reviews,
             WishlistRepository wishlists,
             CertificateRepository certificates,
-            AssignmentRepository assignmentRepository) {
+            AssignmentRepository assignmentRepository,
+            InstructorAccessService access) {
 
         this.users = users;
         this.courses = courses;
@@ -55,6 +58,7 @@ public class CourseManagementController {
         this.wishlists = wishlists;
         this.certificates = certificates;
         this.assignmentRepository = assignmentRepository;
+        this.access = access;
     }
 
     // =========================================================
