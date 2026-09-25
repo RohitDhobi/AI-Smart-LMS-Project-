@@ -25,14 +25,20 @@ export default function InstructorCourses() {
     !search || c.title?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Backend sends canManage=false for courses the HOD has not assigned to
+  // this instructor. Those stay fully visible but read-only.
+  const canCreate = courses.length === 0 || courses.some(c => c.canManage !== false);
+
   return (
     <div className="inst-page">
       <div className="inst-page-header">
         <div>
           <h1>📚 My Courses</h1>
-          <p>Manage and organize your courses.</p>
+          <p>Every course is visible. You can only manage the ones your HOD assigned to you.</p>
         </div>
-        <Link to="/instructor/courses/create" className="inst-btn inst-btn-primary">+ Create Course</Link>
+        {canCreate && (
+          <Link to="/instructor/courses/create" className="inst-btn inst-btn-primary">+ Create Course</Link>
+        )}
       </div>
 
       <div className="inst-filters">
@@ -60,7 +66,9 @@ export default function InstructorCourses() {
             <Link key={c.id} to={`/instructor/courses/${c.id}`} className="inst-course-card card">
               <div className="inst-course-card-header">
                 <div className="inst-course-card-icon">📘</div>
-                <span className="inst-badge">{c.difficulty || "Beginner"}</span>
+                <span className="inst-badge">
+                  {c.canManage === false ? "View Only" : (c.difficulty || "Beginner")}
+                </span>
               </div>
               <h3>{c.title}</h3>
               <p>{c.description?.slice(0, 100)}...</p>
@@ -70,7 +78,7 @@ export default function InstructorCourses() {
               </div>
               <div className="inst-course-card-footer">
                 <span className="inst-price">{c.price ? `₹${c.price}` : "Free"}</span>
-                <span className="inst-link">Manage →</span>
+                <span className="inst-link">{c.canManage === false ? "View →" : "Manage →"}</span>
               </div>
             </Link>
           ))}
