@@ -93,6 +93,58 @@ public class CourseManagementController {
                 .orElseThrow(() -> new RuntimeException("Course not found"));
     }
 
+    // =========================================================
+    // INSTRUCTOR ASSIGNMENT ENFORCEMENT
+    //
+    // Instructors may only manage courses/subjects that an HOD has
+    // explicitly assigned to them. Resolves the target course out of a
+    // request body and rejects the call with HTTP 403 when the logged-in
+    // instructor is not assigned to it. ADMIN and HOD always pass.
+    // =========================================================
+
+    private void enforceInstructorCourseBody(
+            User user, Map<String, Object> body) {
+
+        if (user.getRole() != Role.INSTRUCTOR) {
+            return;
+        }
+
+        Long courseId = intValue(body.get("courseId"));
+
+        if (courseId != null) {
+            access.requireCourseManage(user, courseId);
+            return;
+        }
+
+        Long subjectId = intValue(body.get("subjectId"));
+
+        if (subjectId != null) {
+            access.requireSubjectManage(user, subjectId);
+            return;
+        }
+
+        // Fall back to a course named in the body (legacy payloads).
+        String subjectName = str(body.get("subject"));
+
+        if (subjectName != null && !subjectName.isBlank()) {
+
+            Course named = courses.findAll().stream()
+                    .filter(c -> c.getTitle() != null
+                            && c.getTitle().equalsIgnoreCase(subjectName))
+                    .findFirst()
+                    .orElse(null);
+
+            if (named != null) {
+                access.requireCourseManage(user, named.getId());
+                return;
+            }
+        }
+
+        throw new AccessDeniedException(
+                "Course or subject is required, and you must be assigned to it. " +
+                "Ask your HOD to assign the subject/course to you.");
+    }
+
     private Subject subject(Long id) {
 
         return subjects.findById(id)
