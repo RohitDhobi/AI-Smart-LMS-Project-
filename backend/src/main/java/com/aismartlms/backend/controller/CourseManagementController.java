@@ -383,6 +383,13 @@ public class CourseManagementController {
         User user = me(authentication);
         requireRole(user, Role.INSTRUCTOR, Role.ADMIN);
 
+        // Pre-computed once so the per-course flag below is cheap.
+        // Staff (ADMIN/HOD) are unrestricted, so every course is manageable.
+        final boolean staff = access.isStaff(user);
+        final java.util.Set<Long> manageable = staff
+                ? java.util.Set.of()
+                : access.manageableCourseIds(user.getId());
+
         return courses.findAll().stream()
                 .map(course -> {
 
