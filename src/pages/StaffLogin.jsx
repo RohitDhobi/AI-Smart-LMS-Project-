@@ -29,6 +29,13 @@ function StaffLogin() {
       description: "Manage your courses and track student progress",
       redirect: "/instructor",
       color: "#f59e0b"
+    },
+    HOD: {
+      icon: "🏛️",
+      label: "HOD",
+      description: "Oversee courses, subjects and instructor assignments",
+      redirect: "/hod",
+      color: "#8b5cf6"
     }
   };
 
@@ -125,6 +132,18 @@ function StaffLogin() {
           >
             <span className="staff-tab-icon">🧑‍🏫</span>
             Teacher
+          </button>
+          <button
+            className={
+              `staff-tab ${role === "HOD" ? "active" : ""}`
+            }
+            onClick={() => {
+              setRole("HOD");
+              setError("");
+            }}
+          >
+            <span className="staff-tab-icon">🏛️</span>
+            HOD
           </button>
         </div>
 
