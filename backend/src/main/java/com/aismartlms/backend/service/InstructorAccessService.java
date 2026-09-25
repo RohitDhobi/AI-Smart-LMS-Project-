@@ -204,11 +204,37 @@ public class InstructorAccessService {
                 ? subject.getCourse().getId()
                 : null;
 
+        // Subject-level rows win over course-wide rows. If the HOD gave this
+        // exact subject to somebody, only that instructor manages it - the
+        // other instructor's course-wide row no longer covers it.
+        boolean claimedBySomeoneElse = false;
+
         for (InstructorCourseAssignment assignment : activeAssignments(user.getId())) {
 
             if (subjectId.equals(assignment.getSubjectId())) {
                 return true;
             }
+        }
+
+        for (InstructorCourseAssignment assignment : assignments.findAll()) {
+
+            if (!"ACTIVE".equals(assignment.getStatus())) {
+                continue;
+            }
+
+            if (subjectId.equals(assignment.getSubjectId())
+                    && !user.getId().equals(assignment.getInstructorId())) {
+                claimedBySomeoneElse = true;
+                break;
+            }
+        }
+
+        if (claimedBySomeoneElse) {
+            return false;
+        }
+
+        // Otherwise a course-wide assignment covering the parent still counts.
+        for (InstructorCourseAssignment assignment : activeAssignments(user.getId())) {
 
             if (parentId != null && parentId.equals(assignment.getCourseId())) {
                 return true;
