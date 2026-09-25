@@ -2,6 +2,7 @@ package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.Attendance;
 import com.aismartlms.backend.service.AttendanceService;
+import com.aismartlms.backend.service.InstructorAccessService;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,25 @@ import java.util.List;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+    private final InstructorAccessService access;
 
-    public AttendanceController(AttendanceService attendanceService) {
+    public AttendanceController(
+            AttendanceService attendanceService,
+            InstructorAccessService access) {
         this.attendanceService = attendanceService;
+        this.access = access;
     }
 
+    // Attendance marking is a management action on a course: only the
+    // instructor the HOD assigned to that course may record it (HTTP 403).
     @PostMapping
     public ResponseEntity<Attendance> markAttendance(@RequestBody Attendance attendance) {
+
+        if (attendance.getCourse() != null
+                && attendance.getCourse().getId() != null) {
+            access.requireCourseManage(attendance.getCourse().getId());
+        }
+
         return ResponseEntity.ok(attendanceService.markAttendance(attendance));
     }
 
