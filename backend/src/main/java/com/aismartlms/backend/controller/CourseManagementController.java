@@ -151,23 +151,6 @@ public class CourseManagementController {
                 .orElseThrow(() -> new RuntimeException("Subject not found"));
     }
 
-    /** Parses a request value that may arrive as a Number or a String. */
-    private Long longValue(Object value) {
-
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-
-        try {
-            return Long.valueOf(value.toString().trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 
     // =========================================================
     // COURSE SEMESTERS
