@@ -429,6 +429,79 @@ public class CourseManagementController {
     }
 
     // =========================================================
+    // INSTRUCTOR - MY SUBJECTS (assigned by the HOD)
+    // GET /api/instructor/my-subjects
+    //
+    // Returns the subjects/courses the HOD has assigned to the logged-in
+    // instructor. Drives the "My Subjects" page and the management-button
+    // gating in the UI. The backend still re-checks every write call.
+    // =========================================================
+
+    @GetMapping("/instructor/my-subjects")
+    public Map<String, Object> instructorMySubjects(
+            Authentication authentication) {
+
+        User user = me(authentication);
+        requireRole(user, Role.INSTRUCTOR, Role.ADMIN);
+
+        java.util.Set<Long> courseIds = access.manageableCourseIds(user.getId());
+        java.util.Set<Long> subjectIds = access.manageableSubjectIds(user.getId());
+
+        List<Map<String, Object>> assignedSubjects = new ArrayList<>();
+        List<Map<String, Object>> assignedCourses = new ArrayList<>();
+
+        for (Long subjectId : subjectIds) {
+
+            Subject s = subjects.findById(subjectId).orElse(null);
+            if (s == null) continue;
+
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", s.getId());
+            item.put("subjectCode", s.getSubjectCode());
+            item.put("subjectName", s.getSubjectName());
+            item.put("description", s.getDescription());
+            item.put("semester", s.getSemester());
+            item.put("courseId", s.getCourse() == null ? null : s.getCourse().getId());
+            item.put("courseName", s.getCourse() == null ? null : s.getCourse().getCourseName());
+            item.put("level", "SUBJECT");
+            item.put("canManage", true);
+
+            assignedSubjects.add(item);
+        }
+
+        for (Long courseId : courseIds) {
+
+            Course c = courses.findById(courseId).orElse(null);
+            if (c == null) continue;
+
+            List<Subject> courseSubjects = subjects.findByCourseId(c.getId());
+
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", c.getId());
+            item.put("courseCode", c.getCourseCode());
+            item.put("courseName", c.getCourseName());
+            item.put("title", c.getTitle());
+            item.put("description", c.getDescription());
+            item.put("category", c.getCategory());
+            item.put("difficulty", c.getDifficulty());
+            item.put("subjectCount", courseSubjects.size());
+            item.put("level", "COURSE");
+            item.put("canManage", true);
+
+            assignedCourses.add(item);
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("instructorId", user.getId());
+        response.put("instructorName", user.getName());
+        response.put("courses", assignedCourses);
+        response.put("subjects", assignedSubjects);
+        response.put("totalAssigned", assignedCourses.size() + assignedSubjects.size());
+
+        return response;
+    }
+
+    // =========================================================
     // INSTRUCTOR - SINGLE COURSE
     // GET /api/instructor/courses/{id}
     // =========================================================
