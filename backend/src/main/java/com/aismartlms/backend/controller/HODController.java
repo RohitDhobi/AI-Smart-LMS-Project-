@@ -39,19 +39,22 @@ public class HODController {
     private final UserRepository users;
     private final QuestionRepository questionRepository;
     private final AIQuestionService aiQuestionService;
+    private final com.aismartlms.backend.repository.ExamRepository examRepository;
 
     public HODController(
             HODService hodService,
             InstructorCourseAssignmentRepository assignmentRepository,
             UserRepository users,
             QuestionRepository questionRepository,
-            AIQuestionService aiQuestionService) {
+            AIQuestionService aiQuestionService,
+            com.aismartlms.backend.repository.ExamRepository examRepository) {
 
         this.hodService = hodService;
         this.assignmentRepository = assignmentRepository;
         this.users = users;
         this.questionRepository = questionRepository;
         this.aiQuestionService = aiQuestionService;
+        this.examRepository = examRepository;
     }
 
     // =========================
@@ -199,7 +202,7 @@ public class HODController {
 
         List<Map<String, Object>> result = new ArrayList<>();
 
-        for (com.aismartlms.backend.entity.Exam exam : hodExams()) {
+        for (com.aismartlms.backend.entity.Exam exam : examRepository.findAll()) {
 
             Map<String, Object> item = new LinkedHashMap<>();
 
@@ -223,18 +226,6 @@ public class HODController {
         }
 
         return result;
-    }
-
-    private List<com.aismartlms.backend.entity.Exam> hodExams() {
-        return new ArrayList<>(
-                com.aismartlms.backend.entity.Exam.class.cast(
-                        java.util.Collections.emptyList()) == null
-                        ? List.of()
-                        : examList());
-    }
-
-    private List<com.aismartlms.backend.entity.Exam> examList() {
-        return examServiceList;
     }
 
     // =========================
