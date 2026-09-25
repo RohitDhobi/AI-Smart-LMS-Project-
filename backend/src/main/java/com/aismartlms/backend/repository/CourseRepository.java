@@ -38,9 +38,14 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT COUNT(DISTINCT u) FROM User u WHERE u.role = com.aismartlms.backend.entity.Role.STUDENT")
     Long countDistinctStudents();
 
-    /** Find the User (instructor/HOD/student) by their ID. */
-    Optional<User> findUserById(Long id);
+    /** Find the User (instructor/HOD/student) by their ID.
+     *  Must be an explicit @Query: as a derived query on this Course repository,
+     *  "findUserById" parsed as Course WHERE id = :id and failed converting
+     *  Course -> User ("No converter found capable of converting..."). */
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findUserById(@org.springframework.data.repository.query.Param("id") Long id);
 
-    /** Find the Subject by its ID, including its parent Course for navigation. */
-    Optional<Subject> findSubjectById(Long id);
+    /** Find the Subject by its ID (same derived-query pitfall as above). */
+    @Query("SELECT s FROM Subject s WHERE s.id = :id")
+    Optional<Subject> findSubjectById(@org.springframework.data.repository.query.Param("id") Long id);
 }
