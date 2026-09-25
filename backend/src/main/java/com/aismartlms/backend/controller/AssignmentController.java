@@ -3,6 +3,7 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.entity.Assignment;
 import com.aismartlms.backend.entity.AssignmentSubmission;
 import com.aismartlms.backend.service.AssignmentService;
+import com.aismartlms.backend.service.InstructorAccessService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,9 +18,25 @@ import java.util.Map;
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
+    private final InstructorAccessService access;
 
-    public AssignmentController(AssignmentService assignmentService) {
+    public AssignmentController(
+            AssignmentService assignmentService,
+            InstructorAccessService access) {
         this.assignmentService = assignmentService;
+        this.access = access;
+    }
+
+    // Creating, editing or deleting an assignment is a management action on
+    // its course. Unassigned instructors get HTTP 403 from the HOD rule.
+    private void requireManageAssignment(Long id) {
+
+        Assignment assignment = assignmentService.getAssignmentById(id);
+
+        if (assignment.getCourse() != null
+                && assignment.getCourse().getId() != null) {
+            access.requireCourseManage(assignment.getCourse().getId());
+        }
     }
 
     @GetMapping
@@ -39,16 +56,24 @@ public class AssignmentController {
 
     @PostMapping
     public ResponseEntity<Assignment> createAssignment(@RequestBody Assignment assignment) {
+
+        if (assignment.getCourse() != null
+                && assignment.getCourse().getId() != null) {
+            access.requireCourseManage(assignment.getCourse().getId());
+        }
+
         return ResponseEntity.ok(assignmentService.createAssignment(assignment));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Assignment> updateAssignment(@PathVariable Long id, @RequestBody Assignment assignment) {
+        requireManageAssignment(id);
         return ResponseEntity.ok(assignmentService.updateAssignment(id, assignment));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAssignment(@PathVariable Long id) {
+        requireManageAssignment(id);
         assignmentService.deleteAssignment(id);
         return ResponseEntity.ok().build();
     }
