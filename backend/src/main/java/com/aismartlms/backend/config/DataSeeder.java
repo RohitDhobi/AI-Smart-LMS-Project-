@@ -19,6 +19,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +42,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final InstructorCourseAssignmentRepository assignments;
+    private final DataSource dataSource;
 
     @Value("${app.seed-data:true}")
     private boolean seedData;
@@ -46,13 +52,15 @@ public class DataSeeder implements CommandLineRunner {
             SubjectRepository subjects,
             UserRepository users,
             PasswordEncoder passwordEncoder,
-            InstructorCourseAssignmentRepository assignments) {
+            InstructorCourseAssignmentRepository assignments,
+            DataSource dataSource) {
 
         this.courses = courses;
         this.subjects = subjects;
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.assignments = assignments;
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -63,6 +71,8 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
+        widenRoleColumnIfNeeded();
+
         seedCourses();
 
         seedAdmin();
@@ -72,6 +82,42 @@ public class DataSeeder implements CommandLineRunner {
         seedHod();
 
         seedDefaultAssignments();
+    }
+
+    // =========================================================
+    // SCHEMA GUARD
+    // =========================================================
+
+    /**
+     * Legacy databases created users.role as a MySQL ENUM that predates the HOD
+     * role. ddl-auto=update never changes an existing column type, so inserting
+     * Role.HOD would fail with "Data truncated". Widen the column to VARCHAR once.
+     * Idempotent: only alters when the column is still an ENUM.
+     */
+    private void widenRoleColumnIfNeeded() {
+        try (Connection conn = dataSource.getConnection()) {
+            boolean isEnum = false;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT DATA_TYPE FROM information_schema.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role'")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        isEnum = "enum".equalsIgnoreCase(rs.getString(1));
+                    }
+                }
+            }
+
+            if (isEnum) {
+                try (Statement st = conn.createStatement()) {
+                    st.executeUpdate("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) NOT NULL");
+                }
+                log.info("Widened users.role from ENUM to VARCHAR(255) so the HOD role can be stored");
+            }
+        } catch (Exception e) {
+            // Non-fatal here: if the column still rejects HOD, seedHod() will report it.
+            log.warn("Could not widen users.role column: {}", e.getMessage());
+        }
     }
 
     // =========================================================
