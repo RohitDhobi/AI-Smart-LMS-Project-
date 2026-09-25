@@ -1,11 +1,13 @@
 package com.aismartlms.backend.config;
 
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Lesson;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.CourseRepository;
+import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
 
@@ -34,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
     private final SubjectRepository subjects;
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
+    private final InstructorCourseAssignmentRepository assignments;
 
     @Value("${app.seed-data:true}")
     private boolean seedData;
@@ -42,12 +45,14 @@ public class DataSeeder implements CommandLineRunner {
             CourseRepository courses,
             SubjectRepository subjects,
             UserRepository users,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            InstructorCourseAssignmentRepository assignments) {
 
         this.courses = courses;
         this.subjects = subjects;
         this.users = users;
         this.passwordEncoder = passwordEncoder;
+        this.assignments = assignments;
     }
 
     @Override
@@ -63,6 +68,10 @@ public class DataSeeder implements CommandLineRunner {
         seedAdmin();
 
         seedInstructors();
+
+        seedHod();
+
+        seedDefaultAssignments();
     }
 
     // =========================================================
