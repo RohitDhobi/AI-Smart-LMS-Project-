@@ -120,13 +120,13 @@ public class QuizController {
     public ResponseEntity<?> deleteQuiz(
             @PathVariable Long id) {
 
-        requireManageQuiz(id);
-
         if (!quizRepository.existsById(id)) {
             return ResponseEntity
                     .notFound()
                     .build();
         }
+
+        requireManageQuiz(id);
 
         quizRepository.deleteById(id);
 
