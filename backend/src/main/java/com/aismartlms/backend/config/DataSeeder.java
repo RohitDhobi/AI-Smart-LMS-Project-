@@ -451,6 +451,88 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // =========================================================
+    // DEFAULT HOD (HEAD OF DEPARTMENT)
+    // =========================================================
+
+    private void seedHod() {
+
+        if (users.findByEmail("hod@example.com").isPresent()) {
+            return;
+        }
+
+        User hod = new User();
+
+        hod.setName("Head of Department");
+        hod.setEmail("hod@example.com");
+        hod.setPassword(passwordEncoder.encode("hod123"));
+        hod.setRole(Role.HOD);
+        hod.setActive(true);
+
+        users.save(hod);
+
+        log.info(
+                "DataSeeder: created default HOD account " +
+                        "(hod@example.com / hod123)"
+        );
+    }
+
+    // =========================================================
+    // DEFAULT INSTRUCTOR -> COURSE ASSIGNMENTS
+    //
+    // Backend 403 enforcement means an instructor may only manage a course
+    // that an HOD has assigned to them. Seeding a starting set keeps the
+    // existing instructor features working out of the box, while courses
+    // left unassigned correctly return HTTP 403.
+    // =========================================================
+
+    private void seedDefaultAssignments() {
+
+        if (assignments.count() > 0) {
+            return; // already seeded, never overwrite HOD decisions
+        }
+
+        List<Course> allCourses = courses.findAll();
+
+        if (allCourses.isEmpty()) {
+            return;
+        }
+
+        List<User> instructors = users.findAll().stream()
+                .filter(u -> u.getRole() == Role.INSTRUCTOR)
+                .toList();
+
+        if (instructors.isEmpty()) {
+            return;
+        }
+
+        // Round-robin every course across the instructor pool so each
+        // instructor has work to manage and every course is covered.
+        int created = 0;
+
+        for (int i = 0; i < allCourses.size(); i++) {
+
+            Course course = allCourses.get(i);
+            User instructor = instructors.get(i % instructors.size());
+
+            assignments.save(new InstructorCourseAssignment(
+                    instructor.getId(),
+                    course.getId(),
+                    null,
+                    null
+            ));
+
+            created++;
+        }
+
+        if (created > 0) {
+            log.info(
+                    "DataSeeder: seeded {} default instructor-course assignments",
+                    created
+            );
+        }
+    }
+
+    // =========================================================
     // SUBJECT DEFINITIONS
     // Each row: { semester, nameIndex1, nameIndex2, ... }
     // =========================================================
