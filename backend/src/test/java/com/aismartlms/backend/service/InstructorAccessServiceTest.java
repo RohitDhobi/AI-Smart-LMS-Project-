@@ -74,6 +74,10 @@ class InstructorAccessServiceTest {
                 row(101L, DBMS_COURSE, DBMS_SUBJECT)
         ));
 
+        // Default: unknown subjects resolve to nothing. Stubbed before the
+        // specific case below so the specific stub wins.
+        when(subjects.findById(anyLong())).thenReturn(Optional.empty());
+
         // DBMS subject belongs to course 3.
         Subject dbms = new Subject();
         dbms.setId(DBMS_SUBJECT);
@@ -84,7 +88,6 @@ class InstructorAccessServiceTest {
         dbms.setCourse(dbmsCourse);
 
         when(subjects.findById(DBMS_SUBJECT)).thenReturn(Optional.of(dbms));
-        when(subjects.findById(anyLong())).thenReturn(Optional.empty());
     }
 
     private User user(Long id, String name, Role role) {
