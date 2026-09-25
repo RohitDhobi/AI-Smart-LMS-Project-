@@ -649,6 +649,12 @@ export const api = {
       method: "DELETE",
     }),
 
+  // Remove a single assignment row (works for course-wide and subject rows)
+  hodRemoveAssignmentById: (id) =>
+    apiRequest(`/hod/assignments/${id}`, {
+      method: "DELETE",
+    }),
+
   hodCourses: () => apiRequest("/hod/courses"),
 
   hodSubjects: () => apiRequest("/hod/subjects"),
