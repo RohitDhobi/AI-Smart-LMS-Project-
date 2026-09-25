@@ -941,6 +941,10 @@ public class CourseManagementController {
         User user = me(authentication);
         requireRole(user, Role.INSTRUCTOR, Role.ADMIN);
 
+        // BACKEND SECURITY: an instructor may only add lessons to subjects
+        // the HOD has assigned to them. Everyone else gets HTTP 403.
+        access.requireSubjectManage(user, subjectId);
+
         Subject subject = subject(subjectId);
 
         String title = str(body.get("title"));
@@ -1116,6 +1120,10 @@ public class CourseManagementController {
 
         User user = me(authentication);
         requireRole(user, Role.INSTRUCTOR, Role.ADMIN);
+
+        // BACKEND SECURITY: instructors may only create assignments for a
+        // course the HOD has assigned to them. HTTP 403 otherwise.
+        enforceInstructorCourseBody(user, body);
 
         // Delegate to AssignmentService through the existing controller logic
         // We call the AssignmentController's create endpoint internally
