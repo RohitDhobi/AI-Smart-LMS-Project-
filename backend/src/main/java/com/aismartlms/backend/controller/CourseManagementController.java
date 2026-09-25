@@ -416,6 +416,12 @@ public class CourseManagementController {
                             users.findByCourse(course).size()
                     );
 
+                    // Read-only for courses the HOD has not assigned.
+                    item.put(
+                            "canManage",
+                            staff || manageable.contains(course.getId())
+                    );
+
                     return item;
                 })
                 .collect(Collectors.toList());
