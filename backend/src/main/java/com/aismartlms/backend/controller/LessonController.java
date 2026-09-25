@@ -1,6 +1,7 @@
 package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.Lesson;
+import com.aismartlms.backend.service.InstructorAccessService;
 import com.aismartlms.backend.service.LessonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,11 +14,38 @@ import java.util.List;
 public class LessonController {
 
     private final LessonService lessonService;
+    private final InstructorAccessService access;
 
     public LessonController(
-            LessonService lessonService) {
+            LessonService lessonService,
+            InstructorAccessService access) {
 
         this.lessonService = lessonService;
+        this.access = access;
+    }
+
+    // =========================
+    // BACKEND SECURITY
+    //
+    // Creating, updating or deleting a lesson is a management action on
+    // the lesson's subject/course. An instructor who has not been assigned
+    // it by an HOD receives HTTP 403.
+    // =========================
+
+    private void requireManageLesson(Long lessonId) {
+
+        Lesson lesson = lessonService.getLessonById(lessonId);
+
+        if (lesson.getSubject() != null
+                && lesson.getSubject().getId() != null) {
+            access.requireSubjectManage(lesson.getSubject().getId());
+            return;
+        }
+
+        if (lesson.getCourse() != null
+                && lesson.getCourse().getId() != null) {
+            access.requireCourseManage(lesson.getCourse().getId());
+        }
     }
 
     // =========================
@@ -28,6 +56,8 @@ public class LessonController {
     public ResponseEntity<Lesson> createLesson(
             @PathVariable Long courseId,
             @RequestBody Lesson lesson) {
+
+        access.requireCourseManage(courseId);
 
         return ResponseEntity.ok(
                 lessonService.createLesson(
@@ -86,6 +116,8 @@ public class LessonController {
             @PathVariable Long id,
             @RequestBody Lesson lesson) {
 
+        requireManageLesson(id);
+
         return ResponseEntity.ok(
                 lessonService.updateLesson(
                         id,
@@ -101,6 +133,8 @@ public class LessonController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteLesson(
             @PathVariable Long id) {
+
+        requireManageLesson(id);
 
         lessonService.deleteLesson(id);
 
