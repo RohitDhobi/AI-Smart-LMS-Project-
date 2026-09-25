@@ -28,6 +28,7 @@ const NAV = [
     { to: "/instructor", icon: LayoutDashboard, label: "Dashboard", exact: true },
   ]},
   { section: "COURSES", items: [
+    { to: "/instructor/my-subjects", icon: BookOpen, label: "My Subjects" },
     { to: "/instructor/courses", icon: BookOpen, label: "All Courses" },
     { to: "/instructor/courses/create", icon: PlusCircle, label: "Create Course" },
   ]},

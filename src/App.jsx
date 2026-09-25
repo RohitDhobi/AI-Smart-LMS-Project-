@@ -82,6 +82,7 @@ import InstructorLayout from "./pages/instructor/InstructorLayout";
 import InstructorCourses from "./pages/instructor/InstructorCourses";
 import InstructorCourseCreate from "./pages/instructor/InstructorCourseCreate";
 import InstructorCourseDetails from "./pages/instructor/InstructorCourseDetails";
+import InstructorMySubjects from "./pages/instructor/InstructorMySubjects";
 import InstructorLessons from "./pages/instructor/InstructorLessons";
 import InstructorStudents from "./pages/instructor/InstructorStudents";
 import InstructorAssignments from "./pages/instructor/InstructorAssignments";
@@ -368,6 +369,7 @@ function App() {
         element={instructorLayoutElement}
       >
         <Route index element={<InstructorDashboard />} />
+        <Route path="my-subjects" element={<InstructorMySubjects />} />
         <Route path="courses" element={<InstructorCourses />} />
         <Route path="courses/create" element={<InstructorCourseCreate />} />
         <Route path="courses/:id" element={<InstructorCourseDetails />} />
