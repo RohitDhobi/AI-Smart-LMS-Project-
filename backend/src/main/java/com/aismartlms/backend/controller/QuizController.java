@@ -4,6 +4,8 @@ import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Quiz;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.QuizRepository;
+import com.aismartlms.backend.service.InstructorAccessService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,12 +17,32 @@ public class QuizController {
 
     private final QuizRepository quizRepository;
     private final CourseRepository courseRepository;
+    private final InstructorAccessService access;
 
     public QuizController(
             QuizRepository quizRepository,
-            CourseRepository courseRepository) {
+            CourseRepository courseRepository,
+            InstructorAccessService access) {
         this.quizRepository = quizRepository;
         this.courseRepository = courseRepository;
+        this.access = access;
+    }
+
+    // =========================
+    // BACKEND SECURITY
+    //
+    // Creating or deleting a quiz is a management action. The instructor
+    // must be assigned the target course by an HOD, else HTTP 403.
+    // =========================
+
+    private void requireManageQuiz(Long quizId) {
+
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + quizId));
+
+        if (quiz.getCourse() != null && quiz.getCourse().getId() != null) {
+            access.requireCourseManage(quiz.getCourse().getId());
+        }
     }
 
     // =========================
@@ -40,6 +62,9 @@ public class QuizController {
                     .badRequest()
                     .body("Course not found with id: " + courseId);
         }
+
+        // 403 unless this instructor owns the course.
+        access.requireCourseManage(courseId);
 
         quiz.setCourse(course);
 
@@ -94,6 +119,8 @@ public class QuizController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteQuiz(
             @PathVariable Long id) {
+
+        requireManageQuiz(id);
 
         if (!quizRepository.existsById(id)) {
             return ResponseEntity
