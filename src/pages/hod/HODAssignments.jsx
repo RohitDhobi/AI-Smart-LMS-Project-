@@ -1,27 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api";
-import { getStoredUser } from "../../ui";
 import {
-  Users, Pencil, Trash2, PlusCircle, AlertCircle, Clock, CheckCircle, XCircle
+  Users, Pencil, Trash2, PlusCircle, RefreshCw, Search, X
 } from "lucide-react";
 
+/**
+ * HOD - Instructor Assignment (spec section 3)
+ *
+ * Table:  Subject/Course | Assigned Instructor | Status | Action
+ *
+ * Backed by the real /api/hod/* endpoints. The backend independently
+ * enforces these assignments with HTTP 403, so hiding buttons here is a
+ * convenience only - never the security boundary.
+ */
 export default function HODAssignments() {
-  const [assignments, setAssignments] = useState([]);
+  const [rows, setRows] = useState([]);            // subject-level rows
+  const [instructors, setInstructors] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState(null); // single assignment detail
-  const [editOpen, setEditOpen] = useState(false);
-  const [assignOpen, setAssignOpen] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [search, setSearch] = useState("");
 
-  useEffect(() => { loadAssignments(); }, []);
+  // Modal state: { mode: "assign" | "change", row }
+  const [modal, setModal] = useState(null);
+  const [selectedInstructor, setSelectedInstructor] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  async function loadAssignments() {
+  useEffect(() => { loadAll(); }, []);
+
+  async function loadAll() {
     try {
       setLoading(true);
       setError("");
-      const data = await api.hodAssignments().catch(() => []);
-      setAssignments(Array.isArray(data) ? data : []);
+      setNotice("");
+
+      const [subjectList, instructorList, courseList] = await Promise.all([
+        api.hodSubjects().catch(() => []),
+        api.hodInstructors().catch(() => []),
+        api.hodCourses().catch(() => []),
+      ]);
+
+      setRows(Array.isArray(subjectList) ? subjectList : []);
+      setInstructors(Array.isArray(instructorList) ? instructorList : []);
+      setCourses(Array.isArray(courseList) ? courseList : []);
+
     } catch (e) {
       setError(e.message || "Unable to load assignments.");
     } finally {
@@ -29,8 +53,113 @@ export default function HODAssignments() {
     }
   }
 
-  const handleEdit = (a) => setView(a);
-  const handleCloseEdit = () => setView(null);
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        (r.subjectName || "").toLowerCase().includes(q) ||
+        (r.courseName || "").toLowerCase().includes(q) ||
+        (r.assignedInstructor || "").toLowerCase().includes(q)
+    );
+  }, [rows, search]);
+
+  function openAssign(row) {
+    setModal({ mode: "assign", row });
+    setSelectedInstructor("");
+  }
+
+  function openChange(row) {
+    setModal({ mode: "change", row });
+    setSelectedInstructor(row.assignedInstructorId ? String(row.assignedInstructorId) : "");
+  }
+
+  function closeModal() {
+    setModal(null);
+    setSelectedInstructor("");
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!modal) return;
+    if (!selectedInstructor) {
+      setError("Select an instructor first.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const body = {
+        instructorId: Number(selectedInstructor),
+        courseId: modal.row.courseId,
+        subjectId: modal.row.id,
+      };
+
+      if (modal.mode === "assign") {
+        await api.hodCreateAssignment(body);
+        setNotice(`Assigned ${modal.row.subjectName} successfully.`);
+      } else {
+        // Reuse the existing row when it already exists for this subject.
+        const existing = await findExistingAssignment(modal.row);
+        if (existing) {
+          await api.hodUpdateAssignment(existing.id, body);
+        } else {
+          await api.hodCreateAssignment(body);
+        }
+        setNotice(`Updated instructor for ${modal.row.subjectName}.`);
+      }
+
+      closeModal();
+      await loadAll();
+
+    } catch (err) {
+      setError(err.message || "Failed to save assignment.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function findExistingAssignment(row) {
+    const all = await api.hodAssignments().catch(() => []);
+    if (!Array.isArray(all)) return null;
+    return (
+      all.find((a) => Number(a.subjectId) === Number(row.id)) ||
+      all.find(
+        (a) =>
+          Number(a.courseId) === Number(row.courseId) &&
+          !a.subjectId
+      ) ||
+      null
+    );
+  }
+
+  async function handleRemove(row) {
+    const who = row.assignedInstructor || "this instructor";
+    const ok = window.confirm(
+      `Remove ${who} from "${row.subjectName}"?\n\nThey will no longer be able to manage this subject.`
+    );
+    if (!ok) return;
+
+    try {
+      setError("");
+      const existing = await findExistingAssignment(row);
+
+      if (existing) {
+        await api.hodRemoveAssignmentById(existing.id);
+      } else if (row.assignedInstructorId) {
+        await api.hodRemoveAssignment(row.assignedInstructorId, row.id);
+      } else {
+        return;
+      }
+
+      setNotice(`Removed ${who} from ${row.subjectName}.`);
+      await loadAll();
+    } catch (err) {
+      setError(err.message || "Failed to remove assignment.");
+    }
+  }
 
   return (
     <div className="page hod-assignments">
@@ -43,33 +172,33 @@ export default function HODAssignments() {
       <div className="hod-filters">
         <input
           className="hod-input"
-          placeholder="🔍 Search by instructor or course..."
-          defaultValue=""
+          placeholder="🔍 Search by subject, course or instructor..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
       {/* Action Buttons */}
       <div className="hod-actions">
-        <Link to="/hod/assignments/new" className="inst-btn inst-btn-primary">
-          <PlusCircle size={16} /> Assign Instructor
-        </Link>
-        <button className="inst-btn inst-btn-secondary" onClick={loadAssignments}>
-          Refresh
+        <button className="inst-btn inst-btn-primary" onClick={loadAll}>
+          <RefreshCw size={15} /> Refresh
         </button>
+        <span className="hod-sub" style={{ marginTop: 0 }}>
+          {filtered.length} subject{filtered.length === 1 ? "" : "s"} · {instructors.length} instructor
+          {instructors.length === 1 ? "" : "s"}
+        </span>
       </div>
 
       {error && <div className="error">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
 
       {loading ? (
         <div className="inst-loading">Loading assignments...</div>
-      ) : assignments.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="card hod-empty">
           <div className="empty-icon">👥</div>
-          <h3>No instructor assignments yet</h3>
-          <p>Assign instructors to courses/subjects to grant them access.</p>
-          <Link to="/hod/assignments/new" className="inst-btn primary">
-            <PlusCircle size={16} /> Assign Instructor
-          </Link>
+          <h3>No subjects found</h3>
+          <p>Subjects will appear here once courses are created.</p>
         </div>
       ) : (
         <div className="hod-table-wrap">
@@ -83,88 +212,109 @@ export default function HODAssignments() {
               </tr>
             </thead>
             <tbody>
-              {assignments.map((a) => (
-                <tr key={a.id}>
-                  <td>
-                    <strong>{a.courseName || a.subjectName || "Unnamed"}</strong>
-                    {a.subjectName && <span className="hod-sub">{a.subjectName}</span>}
-                  </td>
-                  <td>
-                    {a.instructorName ? (
-                      <span>
-                        {a.instructorName}
-                        {a.instructorEmail && <span className="hod-sub">{a.instructorEmail}</span>}
+              {filtered.map((row) => {
+                const assigned = Boolean(row.assignedInstructor);
+                return (
+                  <tr key={row.id}>
+                    <td>
+                      <strong>{row.subjectName || "Unnamed"}</strong>
+                      <span className="hod-sub">{row.courseName || "No course"}</span>
+                    </td>
+                    <td>
+                      {assigned ? (
+                        <span>{row.assignedInstructor}</span>
+                      ) : (
+                        <span className="hod-sub" style={{ marginTop: 0 }}>Not Assigned</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${assigned ? "status-active" : ""}`}>
+                        {assigned ? "Active" : "-"}
                       </span>
-                    ) : (
-                      <span className="hod-sub">Instructor removed</span>
-                    )}
-                  </td>
-                  <td>
-                    <span className={`status-badge status-${a.status?.toLowerCase() || "active"}`}>
-                      {a.status || "ACTIVE"}
-                    </span>
-                  </td>
-                  <td className="hod-actions-cell">
-                    {a.status === "ACTIVE" ? (
-                      <>
+                    </td>
+                    <td className="hod-actions-cell">
+                      {assigned ? (
+                        <>
+                          <button
+                            className="inst-btn inst-btn-small"
+                            onClick={() => openChange(row)}
+                          >
+                            <Pencil size={13} /> Change
+                          </button>
+                          <button
+                            className="inst-btn inst-btn-small inst-btn-danger"
+                            onClick={() => handleRemove(row)}
+                          >
+                            <Trash2 size={13} /> Remove
+                          </button>
+                        </>
+                      ) : (
                         <button
-                          className="inst-btn inst-btn-small"
-                          onClick={() => handleEdit(a)}
+                          className="inst-btn inst-btn-small inst-btn-primary"
+                          onClick={() => openAssign(row)}
                         >
-                          <Pencil size={14} /> Change
+                          <PlusCircle size={13} /> Assign
                         </button>
-                        <button
-                          className="inst-btn inst-btn-small danger"
-                          onClick={() => {}}
-                        >
-                          <Trash2 size={14} /> Remove
-                        </button>
-                      </>
-                    ) : (
-                      <span className="status-badge status-active">Re-activate</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Single Assignment Editor */}
-      {view && (
-        <div className="card hod-assign-edit">
-          <div className="card-header">
-            <h2>✏️ Edit Assignment</h2>
-            <button className="card-link" onClick={handleCloseEdit}>✕</button>
-          </div>
-          <div className="hod-form">
-            <div className="hod-form-row">
-              <label>Instructor</label>
-              <select className="hod-input">
-                <option>Dr. Priya Sharma</option>
-                <option>Dr. Amit Patel</option>
-              </select>
-            </div>
-            <div className="hod-form-row">
-              <label>Course / Subject</label>
-              <select className="hod-input">
-                <option>Java Programming</option>
-                <option>Python</option>
-                <option>DBMS</option>
-              </select>
-            </div>
-            <div className="hod-form-row">
-              <label>Status</label>
-              <select className="hod-input">
-                <option value="ACTIVE">Active</option>
-                <option value="REMOVED">Removed</option>
-              </select>
-            </div>
-            <div className="hod-form-actions">
-              <button className="inst-btn" onClick={handleCloseEdit}>Save</button>
-              <button className="inst-btn inst-btn-secondary" onClick={handleCloseEdit}>Cancel</button>
-            </div>
+      {/* Assign / Change modal */}
+      {modal && (
+        <div className="inst-modal-overlay" onClick={closeModal}>
+          <div className="inst-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>
+              {modal.mode === "assign" ? "Assign Instructor" : "Change Instructor"}
+            </h2>
+            <p>
+              <strong>{modal.row.subjectName}</strong>
+              <br />
+              <span className="hod-sub" style={{ marginTop: 2 }}>
+                {modal.row.courseName}
+              </span>
+            </p>
+
+            <form onSubmit={handleSave}>
+              <div className="inst-form-group" style={{ marginTop: 14 }}>
+                <label>Instructor</label>
+                <select
+                  className="inst-select"
+                  value={selectedInstructor}
+                  onChange={(e) => setSelectedInstructor(e.target.value)}
+                  required
+                >
+                  <option value="">Select an instructor...</option>
+                  {instructors.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name} — {i.assignedCourses} assigned
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="inst-modal-actions">
+                <button
+                  type="button"
+                  className="inst-btn inst-btn-secondary"
+                  onClick={closeModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inst-btn inst-btn-primary"
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : modal.mode === "assign" ? "Assign" : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
