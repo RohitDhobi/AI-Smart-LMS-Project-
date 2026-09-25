@@ -450,6 +450,10 @@ public class CourseManagementController {
         item.put("subjectCount", subjectList.size());
         item.put("studentCount", users.findByCourse(course).size());
 
+        // Tells the React UI whether to render management buttons.
+        // Read-only instructors still receive full course details.
+        item.put("canManage", access.canManageCourse(user, course.getId()));
+
         return item;
     }
 
