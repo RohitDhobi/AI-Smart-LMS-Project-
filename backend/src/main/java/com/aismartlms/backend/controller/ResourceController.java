@@ -95,12 +95,14 @@ public class ResourceController {
     public ResponseEntity<Resource> updateResource(
             @PathVariable Long id,
             @RequestBody Resource resource) {
+        requireManageResource(id);
         return ResponseEntity.ok(resourceService.updateResource(id, resource));
     }
 
     // DELETE RESOURCE
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteResource(@PathVariable Long id) {
+        requireManageResource(id);
         resourceService.deleteResource(id);
         return ResponseEntity.ok("Resource deleted successfully");
     }
@@ -115,6 +117,8 @@ public class ResourceController {
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "visibility", required = false) String visibility) {
         try {
+            access.requireCourseManage(courseId);
+
             String filePath = fileStorageService.storeFile(file, courseId);
 
             // Determine type from extension
