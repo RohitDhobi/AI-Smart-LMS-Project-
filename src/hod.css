@@ -1,0 +1,760 @@
+/* =====================================================
+   AI Smart LMS - HOD (Head of Department) styles
+   Reuses the design tokens from styles.css so the HOD
+   panel matches the Admin/Instructor panels exactly.
+   ===================================================== */
+
+/* ---------- Page shell ---------- */
+
+.hod-dashboard,
+.hod-assignments,
+.hod-courses,
+.hod-students,
+.hod-questions,
+.hod-exams,
+.hod-announcements,
+.hod-settings {
+  max-width: 1280px;
+}
+
+/* ---------- Shared header rows ---------- */
+
+.hod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.hod-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.hod-input {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hod-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.hod-filters .hod-input {
+  max-width: 340px;
+}
+
+.hod-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.hod-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.hod-empty h3 {
+  margin: 10px 0 6px;
+}
+
+.hod-empty p {
+  margin: 4px 0 14px;
+  color: var(--text-secondary);
+}
+
+/* ---------- Stat cards (dashboard) ---------- */
+
+.hod-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.hod-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hod-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.hod-stat-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hod-stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hod-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.hod-stat-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ---------- Dashboard two-column grid ---------- */
+
+.hod-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.hod-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .hod-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Performance list ---------- */
+
+.hod-perf-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.hod-perf-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.hod-perf-row:first-child {
+  padding-top: 0;
+}
+
+.hod-perf-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.hod-perf-icon {
+  font-size: 20px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hod-perf-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hod-perf-info strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.hod-perf-info span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.hod-perf-value {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* ---------- Pending activities ---------- */
+
+.hod-pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hod-pending-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.pending-icon {
+  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pending-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pending-info strong {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pending-info span {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.pending-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--success-light);
+  color: var(--success, #16a34a);
+  border: 1px solid var(--success-border, #bbf7d0);
+  white-space: nowrap;
+}
+
+.pending-badge-warn {
+  background: var(--warning-light, #fffbeb);
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+/* ---------- Quick actions ---------- */
+
+.hod-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.hod-action-card {
+  display: block;
+  padding: 15px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hod-action-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-border, #bfdbfe);
+  box-shadow: var(--shadow-md);
+}
+
+.hod-action-card .action-icon {
+  font-size: 22px;
+  display: block;
+  margin-bottom: 7px;
+}
+
+.hod-action-card strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.hod-action-card p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* ---------- Tables ---------- */
+
+.hod-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.hod-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hod-table th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.hod-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.hod-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.hod-table tbody tr:hover {
+  background: var(--surface-soft);
+}
+
+.hod-actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+/* ---------- Status + role badges ---------- */
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.status-badge.status-active {
+  background: var(--success-light);
+  color: var(--success, #16a34a);
+  border-color: var(--success-border, #bbf7d0);
+}
+
+.status-badge.status-removed,
+.status-badge.status-inactive {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: var(--danger-border, #fecaca);
+}
+
+.status-badge.status-pending {
+  background: var(--warning-light, #fffbeb);
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.status-badge.role-hod {
+  background: #f5f3ff;
+  color: #7c3aed;
+  border-color: #ddd6fe;
+}
+
+.status-badge.role-student {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.status-badge.role-instructor {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.role-badge.role-hod {
+  background: #f5f3ff !important;
+  color: #7c3aed !important;
+}
+
+/* ---------- Generic card header used by HOD pages ---------- */
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.card-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.card-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.card-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.link-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Forms ---------- */
+
+.hod-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hod-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hod-form-row label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hod-form-row select.hod-input,
+.hod-form-row input.hod-input,
+.hod-form-row textarea.hod-input {
+  width: 100%;
+}
+
+.hod-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.hod-checkbox {
+  width: auto;
+  height: auto;
+  accent-color: var(--primary);
+}
+
+.hod-assign-edit,
+.hod-compose {
+  margin-top: 18px;
+}
+
+.hod-compose h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+/* ---------- Courses / subjects ---------- */
+
+.hod-courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+.hod-course-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.hod-course-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hod-course-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+}
+
+.hod-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hod-course-card h3 {
+  margin: 4px 0 0;
+  font-size: 16px;
+}
+
+.hod-course-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hod-course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.hod-course-meta span {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.hod-course-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
+}
+
+.hod-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.hod-course-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.hod-subjects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hod-subject-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hod-subject-row:hover {
+  border-color: var(--primary-border, #bfdbfe);
+  box-shadow: var(--shadow-sm);
+}
+
+.hod-subject-icon {
+  font-size: 19px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hod-subject-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hod-subject-info strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.hod-subject-info span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.hod-subject-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Announcements ---------- */
+
+.hod-announce-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.hod-announce-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 14px 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.hod-announce-icon {
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hod-announce-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hod-announce-info strong {
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.hod-announce-info span {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hod-announce-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ---------- Settings ---------- */
+
+.hod-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.hod-footer {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
