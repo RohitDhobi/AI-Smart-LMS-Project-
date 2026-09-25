@@ -2,6 +2,7 @@ package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.Resource;
 import com.aismartlms.backend.service.FileStorageService;
+import com.aismartlms.backend.service.InstructorAccessService;
 import com.aismartlms.backend.service.ResourceService;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -22,10 +23,27 @@ public class ResourceController {
 
     private final ResourceService resourceService;
     private final FileStorageService fileStorageService;
+    private final InstructorAccessService access;
 
-    public ResourceController(ResourceService resourceService, FileStorageService fileStorageService) {
+    public ResourceController(
+            ResourceService resourceService,
+            FileStorageService fileStorageService,
+            InstructorAccessService access) {
         this.resourceService = resourceService;
         this.fileStorageService = fileStorageService;
+        this.access = access;
+    }
+
+    // Uploading, editing or deleting course material is a management action:
+    // only the instructor the HOD assigned to that course may do it (403).
+    private void requireManageResource(Long id) {
+
+        Resource resource = resourceService.getResourceById(id);
+
+        if (resource.getCourse() != null
+                && resource.getCourse().getId() != null) {
+            access.requireCourseManage(resource.getCourse().getId());
+        }
     }
 
     // CREATE RESOURCE
@@ -33,6 +51,7 @@ public class ResourceController {
     public ResponseEntity<Resource> createResource(
             @PathVariable Long courseId,
             @RequestBody Resource resource) {
+        access.requireCourseManage(courseId);
         return ResponseEntity.ok(resourceService.createResource(courseId, resource));
     }
 
