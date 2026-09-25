@@ -540,6 +540,10 @@ export const api = {
   instructorUsers: () =>
     apiRequest("/instructor/users"),
 
+  // Subjects/courses the HOD has assigned to the logged-in instructor.
+  instructorMySubjects: () =>
+    apiRequest("/instructor/my-subjects"),
+
   instructorCreateAssignment: (body) =>
     apiRequest("/instructor/assignments", {
       method: "POST",
@@ -621,6 +625,12 @@ export const api = {
   hodDashboard: () => apiRequest("/hod/dashboard"),
 
   hodAssignments: () => apiRequest("/hod/assignments"),
+
+  // Instructors - source for the Assign/Change dropdown
+  hodInstructors: () => apiRequest("/hod/instructors"),
+
+  // Analytics used by the HOD Analytics page
+  hodAnalytics: () => apiRequest("/hod/dashboard"),
 
   hodCreateAssignment: (body) =>
     apiRequest("/hod/assignments", {
