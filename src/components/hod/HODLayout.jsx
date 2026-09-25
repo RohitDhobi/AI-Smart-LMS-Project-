@@ -8,6 +8,7 @@ import HODSidebar from "./HODSidebar";
 const NAV = [
   { section: "MAIN", items: [
     { to: "/hod", icon: LayoutDashboard, label: "Dashboard", exact: true },
+    { to: "/hod/analytics", icon: BarChart3, label: "Analytics" },
   ]},
   { section: "COURSES / SUBJECTS", items: [
     { to: "/hod/courses", icon: BookOpen, label: "Courses / Subjects" },
