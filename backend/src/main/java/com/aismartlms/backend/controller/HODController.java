@@ -285,6 +285,18 @@ public class HODController {
     // REMOVE INSTRUCTOR FROM SUBJECT/COURSE (SECTION 3)
     // =========================
 
+    /** Remove a single assignment row by its id (works for both
+     *  course-wide and subject-level rows). */
+    @DeleteMapping("/assignments/{id}")
+    public ResponseEntity<Map<String, String>> removeAssignment(
+            Authentication authentication,
+            @PathVariable Long id) {
+
+        requireHOD(authentication);
+        hodService.deleteAssignmentById(id);
+        return ResponseEntity.ok(Map.of("message", "Instructor removed from course/subject"));
+    }
+
     @DeleteMapping("/assignments/instructor/{instructorId}/subject/{subjectId}")
     public ResponseEntity<Map<String, String>> removeInstructorFromSubject(
             Authentication authentication,

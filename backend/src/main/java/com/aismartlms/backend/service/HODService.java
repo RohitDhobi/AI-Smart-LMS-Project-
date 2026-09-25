@@ -220,6 +220,15 @@ public class HODService {
         assignmentRepository.deleteByInstructorIdAndSubjectId(instructorId, subjectId);
     }
 
+    /** Delete one assignment row by its primary key. */
+    @Transactional
+    public void deleteAssignmentById(Long id) {
+        if (!assignmentRepository.existsById(id)) {
+            throw new RuntimeException("Assignment not found");
+        }
+        assignmentRepository.deleteById(id);
+    }
+
     // =========================
     // DASHBOARD
     // =========================
