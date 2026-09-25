@@ -110,6 +110,7 @@ import HODLayout from "./components/hod/HODLayout";
 import HODDashboard from "./pages/hod/HODDashboard";
 import HODAssignments from "./pages/hod/HODAssignments";
 import HODCoursesSubjects from "./pages/hod/HODCoursesSubjects";
+import HODAnalytics from "./pages/hod/HODAnalytics";
 import HODStudents from "./pages/hod/HODStudents";
 import HODQuestions from "./pages/hod/HODQuestions";
 import HODExams from "./pages/hod/HODExams";
@@ -608,6 +609,7 @@ function App() {
       >
         <Route index element={<HODDashboard />} />
         <Route path="dashboard" element={<HODDashboard />} />
+        <Route path="analytics" element={<HODAnalytics />} />
         <Route path="assignments" element={<HODAssignments />} />
         <Route path="assignments/new" element={<HODAssignments />} />
         <Route path="courses" element={<HODCoursesSubjects />} />
