@@ -389,6 +389,13 @@
   align-items: center;
 }
 
+/* The class is also placed directly on <td> cells. A flex <td> breaks the
+   table's row/border alignment, so keep the cell a real table cell - the
+   flex layout lives on the inner <div class="hod-actions-cell"> instead. */
+td.hod-actions-cell {
+  display: table-cell;
+}
+
 /* ---------- Status + role badges ---------- */
 
 .status-badge {
