@@ -51,8 +51,8 @@ for backend-specific notes see [`backend/README.md`](./backend/README.md).
 │   │   └── hod/            # HODLayout + HOD sidebar
 │   ├── pages/
 │   │   ├── *.jsx           # shared/student pages (Login, Dashboard, Courses, Quizzes…)
-│   │   ├── admin/          # 24 admin screens (AdminAnalytics … AdminCodingManagement)
-│   │   ├── instructor/     # 24 instructor screens (InstructorLayout + dashboard…)
+│   │   ├── admin/          # 23 admin screens (AdminAnalytics … AdminSubjects)
+│   │   ├── instructor/     # 23 instructor screens (InstructorLayout + dashboard…)
 │   │   ├── hod/            # 9 HOD screens (Dashboard, Students, Questions, Exams…)
 │   │   └── three/          # 3D scenes (Stats3D, Badges3D, CourseCards3D, Classroom3D)
 │   └── *.test.js           # node --test unit tests
