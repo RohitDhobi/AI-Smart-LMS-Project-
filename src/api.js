@@ -669,6 +669,30 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  // Question Bank CRUD (backend /api/questions - ADMIN and HOD count as
+  // "staff" in InstructorAccessService, so they can manage any course).
+  getQuestion: (id) => apiRequest(`/questions/${id}`),
+
+  createQuestion: (quizId, body) =>
+    apiRequest(`/questions/quiz/${quizId}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  updateQuestion: (id, body) =>
+    apiRequest(`/questions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  deleteQuestion: (id) => apiRequest(`/questions/${id}`, {
+    method: "DELETE",
+  }),
+
+  deleteExam: (id) => apiRequest(`/exams/${id}`, {
+    method: "DELETE",
+  }),
+
   hodExams: () => apiRequest("/hod/exams"),
 
   hodAnnouncements: () => apiRequest("/hod/announcements"),
