@@ -216,7 +216,7 @@ Base URL: `http://localhost:8080/api`
 | HOD | `GET /hod/dashboard`, `/hod/questions`, `/hod/students`, `/hod/assignments`, … |
 | Admin | `GET /admin/dashboard`, `/admin/reports` |
 
-Full endpoint lists: [`backend/API_TESTLIST.md`](./backend/API_TESTING.md) and
+Full endpoint lists: [`backend/API_TESTING.md`](./backend/API_TESTING.md) and
 [`backend/README.md`](./backend/README.md).
 
 > **AI note:** AI endpoints are intentionally rule-based and local so the Java backend
