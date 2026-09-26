@@ -15546,3 +15546,25 @@ a.analytics-stat:hover {
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* =========================================================
+   Button label overrides
+
+   `.page .card a` / `[data-theme=dark] .page .card a` force
+   color:#2563eb (or var(--primary)) on every link inside a
+   card, which painted blue primary buttons blue-on-blue and
+   made their labels invisible. Keep blue backgrounds, force
+   white labels back onto the button variants that carry a
+   solid fill.
+   ========================================================= */
+
+.page .card a.inst-btn-primary,
+.main-content-v2 .card a.inst-btn-primary,
+.page .card a.primary,
+.main-content-v2 .card a.primary,
+[data-theme=dark] .page .card a.inst-btn-primary,
+[data-theme=dark] .main-content-v2 .card a.inst-btn-primary,
+[data-theme=dark] .page .card a.primary,
+[data-theme=dark] .main-content-v2 .card a.primary {
+  color: #fff !important;
+}
