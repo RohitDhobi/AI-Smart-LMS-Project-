@@ -45,9 +45,10 @@ for backend-specific notes see [`backend/README.md`](./backend/README.md).
 │   ├── gamification.js     # points, streaks, badges, theme
 │   ├── ai-question-engine.js, flashcards.js, dashboard.js, highlight.js
 │   ├── components/         # Toast, CommandPalette, ProgressRing, StudyPlanner,
-│   │   ├── admin/          #   LearningHeatmap, StudyStreak, CertificateGenerator
-│   │   ├── student/        # AdminLayout + sidebar/menu config
-│   │   └── hod/            # StudentLayout + sidebar, HODLayout
+│   │   │                   #   LearningHeatmap, StudyStreak, CertificateGenerator
+│   │   ├── admin/          # AdminLayout + sidebar/menu config
+│   │   ├── student/        # StudentLayout + sidebar/menu config
+│   │   └── hod/            # HODLayout + HOD sidebar
 │   ├── pages/
 │   │   ├── *.jsx           # shared/student pages (Login, Dashboard, Courses, Quizzes…)
 │   │   ├── admin/          # 24 admin screens (AdminAnalytics … AdminCodingManagement)
