@@ -24,6 +24,20 @@ export default function HODExams() {
     }
   }
 
+  async function handleDelete(exam) {
+    const name = exam.title || exam.name || "this exam";
+    const ok = window.confirm(`Delete "${name}"? This cannot be undone.`);
+    if (!ok) return;
+
+    try {
+      setError("");
+      await api.deleteExam(exam.id);
+      await loadExams();
+    } catch (err) {
+      setError(err.message || "Failed to delete exam.");
+    }
+  }
+
   return (
     <div className="page hod-exams">
       <div className="page-heading">
@@ -93,12 +107,17 @@ export default function HODExams() {
                     </span>
                   </td>
                   <td className="hod-actions-cell">
-                    <Link to={`/hod/exams/${e.id}`} className="inst-btn inst-btn-small">
-                      <GraduationCap size={14} /> Manage
-                    </Link>
-                    <button className="inst-btn inst-btn-small danger">
-                      <Trash2 size={14} /> Delete
-                    </button>
+                    <div className="hod-actions-cell">
+                      <Link to={`/hod/exams/${e.id}`} className="inst-btn inst-btn-small">
+                        <GraduationCap size={14} /> Manage
+                      </Link>
+                      <button
+                        className="inst-btn inst-btn-small danger"
+                        onClick={() => handleDelete(e)}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -90,9 +90,11 @@ export default function HODStudents() {
                     </span>
                   </td>
                   <td className="hod-actions-cell">
-                    <Link to={`/hod/students/${s.id}`} className="inst-btn inst-btn-small">
-                      <ChevronRight size={14} /> Details
-                    </Link>
+                    <div className="hod-actions-cell">
+                      <Link to={`/hod/students/${s.id}`} className="inst-btn inst-btn-small">
+                        <ChevronRight size={14} /> Details
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

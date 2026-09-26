@@ -233,29 +233,31 @@ export default function HODAssignments() {
                       </span>
                     </td>
                     <td className="hod-actions-cell">
-                      {assigned ? (
-                        <>
+                      <div className="hod-actions-cell">
+                        {assigned ? (
+                          <>
+                            <button
+                              className="inst-btn inst-btn-small"
+                              onClick={() => openChange(row)}
+                            >
+                              <Pencil size={13} /> Change
+                            </button>
+                            <button
+                              className="inst-btn inst-btn-small inst-btn-danger"
+                              onClick={() => handleRemove(row)}
+                            >
+                              <Trash2 size={13} /> Remove
+                            </button>
+                          </>
+                        ) : (
                           <button
-                            className="inst-btn inst-btn-small"
-                            onClick={() => openChange(row)}
+                            className="inst-btn inst-btn-small inst-btn-primary"
+                            onClick={() => openAssign(row)}
                           >
-                            <Pencil size={13} /> Change
+                            <PlusCircle size={13} /> Assign
                           </button>
-                          <button
-                            className="inst-btn inst-btn-small inst-btn-danger"
-                            onClick={() => handleRemove(row)}
-                          >
-                            <Trash2 size={13} /> Remove
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          className="inst-btn inst-btn-small inst-btn-primary"
-                          onClick={() => openAssign(row)}
-                        >
-                          <PlusCircle size={13} /> Assign
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
