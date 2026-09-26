@@ -396,6 +396,15 @@ td.hod-actions-cell {
   display: table-cell;
 }
 
+/* Inline icon inside a table cell (student detail view) */
+.hod-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
 /* ---------- Status + role badges ---------- */
 
 .status-badge {
