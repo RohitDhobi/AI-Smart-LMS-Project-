@@ -43,6 +43,11 @@ public class User {
     @JoinColumn(name = "course_id")
     private Course course;
 
+    // Division / section the student belongs to inside their course (e.g. BCA Div A)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "division_id")
+    private Division division;
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 
@@ -106,6 +111,8 @@ public class User {
     public void setGender(String gender) { this.gender = gender; }
     public Course getCourse() { return course; }
     public void setCourse(Course course) { this.course = course; }
+    public Division getDivision() { return division; }
+    public void setDivision(Division division) { this.division = division; }
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 }

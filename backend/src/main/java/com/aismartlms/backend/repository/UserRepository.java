@@ -27,4 +27,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     List<User> findByCourse(Course course);
+
+    // Division / section helpers (HOD panel)
+    List<User> findByDivisionId(Long divisionId);
+
+    long countByDivisionId(Long divisionId);
 }
