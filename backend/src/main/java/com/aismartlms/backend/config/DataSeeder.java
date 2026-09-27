@@ -533,6 +533,111 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // =========================================================
+    // DEFAULT STUDENTS
+    //
+    // A permanent demo login for the student panel plus a small batch
+    // of students in BCA/MCA so HOD pages (students, divisions) and the
+    // division allocator have data out of the box.
+    // =========================================================
+
+    private void seedStudents() {
+
+        // Main documented student login.
+        ensureStudent("Student Demo", "student@example.com", "student123", "BCA");
+
+        // Demo batch - same password, real names for realistic tables.
+        ensureStudent("Aarav Sharma",  "aarav@example.com",  "student123", "BCA");
+        ensureStudent("Diya Patel",    "diya@example.com",    "student123", "BCA");
+        ensureStudent("Rohan Gupta",   "rohan@example.com",   "student123", "BCA");
+        ensureStudent("Sneha Iyer",    "sneha@example.com",    "student123", "BCA");
+        ensureStudent("Karan Mehta",   "karan@example.com",   "student123", "MCA");
+    }
+
+    private void ensureStudent(
+            String name, String email, String pass, String courseCode) {
+
+        if (users.findByEmail(email).isPresent()) {
+            return;
+        }
+
+        User student = new User();
+
+        student.setName(name);
+        student.setEmail(email);
+        student.setPassword(passwordEncoder.encode(pass));
+        student.setRole(Role.STUDENT);
+        student.setActive(true);
+
+        // Attach the degree program so HOD/course pages show a course.
+        Course course = courses.findByCourseCodeIgnoreCase(courseCode).orElse(null);
+        student.setCourse(course);
+
+        users.save(student);
+
+        log.info("DataSeeder: created student {} ({})", name, email);
+    }
+
+    // =========================================================
+    // DEMO DIVISIONS (BCA Div A / B / C)
+    //
+    // Only seeds when the divisions table is completely empty, so real
+    // HOD decisions are never overwritten.
+    // =========================================================
+
+    private void seedDivisions() {
+
+        if (divisionRepository.count() > 0) {
+            return;
+        }
+
+        Course bca = courses.findByCourseCodeIgnoreCase("BCA").orElse(null);
+        if (bca == null) {
+            return;
+        }
+
+        String[][] rows = {
+                {"Division A", "A"},
+                {"Division B", "B"},
+                {"Division C", "C"}
+        };
+
+        int year = Year.now().getValue();
+
+        for (String[] row : rows) {
+            Division division = new Division();
+            division.setName(row[0]);
+            division.setCode(row[1]);
+            division.setCourse(bca);
+            division.setAcademicYear(year);
+            division.setMaxCapacity(60);
+            divisionRepository.save(division);
+        }
+
+        // Spread the BCA students across the three divisions so the
+        // allocator and student tables show data immediately.
+        List<User> bcaStudents = users.findByCourse(bca).stream()
+                .filter(u -> u.getRole() == Role.STUDENT)
+                .toList();
+
+        if (!bcaStudents.isEmpty()) {
+            List<Division> divisions =
+                    divisionRepository.findByCourseIdOrderByCodeAsc(bca.getId());
+
+            for (int i = 0; i < bcaStudents.size(); i++) {
+                bcaStudents.get(i).setDivision(
+                        divisions.get(i % divisions.size()));
+            }
+            users.saveAll(bcaStudents);
+        }
+
+        log.info(
+                "DataSeeder: created 3 demo divisions for BCA " +
+                        "(Div A / B / C, {} students assigned)",
+                bcaStudents.size()
+        );
+    }
+
+    // =========================================================
     // DEFAULT INSTRUCTOR -> COURSE ASSIGNMENTS
     //
     // Backend 403 enforcement means an instructor may only manage a course
