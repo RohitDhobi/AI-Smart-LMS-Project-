@@ -167,10 +167,7 @@ function DivisionList({ courseId }) {
                         {d.name || `Division ${d.code}`}
                       </strong>
                       {d.code && (
-                        <span className="hod-sub">
-                          {d.courseName ? "" : ""}
-                          Code: {d.code}
-                        </span>
+                        <span className="hod-sub">Code: {d.code}</span>
                       )}
                     </td>
                     <td>
