@@ -3,6 +3,8 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.dto.DivisionRequest;
+import com.aismartlms.backend.dto.DivisionResponse;
 import com.aismartlms.backend.entity.Announcement;
 import com.aismartlms.backend.entity.Question;
 import com.aismartlms.backend.entity.Role;
@@ -16,6 +18,8 @@ import com.aismartlms.backend.service.HODService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -311,6 +315,118 @@ public class HODController {
     }
 
     // =========================
+    // DIVISIONS / SECTIONS (BCA Div A, B, C)
+    // =========================
+
+    /** All divisions, or filtered with ?courseId= / ?semester=. */
+    @GetMapping("/divisions")
+    public List<DivisionResponse> getDivisions(
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) Integer semester,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+
+        if (courseId != null) {
+            return hodService.getDivisionsByCourse(courseId, semester);
+        }
+        return hodService.getAllDivisions();
+    }
+
+    /** Divisions for one course (path used by the HOD course detail view). */
+    @GetMapping("/courses/{courseId}/divisions")
+    public List<DivisionResponse> getDivisionsByCourse(
+            @PathVariable Long courseId,
+            @RequestParam(required = false) Integer semester,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        return hodService.getDivisionsByCourse(courseId, semester);
+    }
+
+    /** Single division (edit form / student allocator). */
+    @GetMapping("/divisions/{id}")
+    public DivisionResponse getDivision(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        return hodService.getDivision(id);
+    }
+
+    @PostMapping("/divisions")
+    public DivisionResponse createDivision(
+            @Valid @RequestBody DivisionRequest request,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        return hodService.createDivision(request);
+    }
+
+    @PutMapping("/divisions/{id}")
+    public DivisionResponse updateDivision(
+            @PathVariable Long id,
+            @Valid @RequestBody DivisionRequest request,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        return hodService.updateDivision(id, request);
+    }
+
+    @DeleteMapping("/divisions/{id}")
+    public ResponseEntity<Map<String, String>> deleteDivision(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        hodService.deleteDivision(id);
+        return ResponseEntity.ok(Map.of("message", "Division deleted"));
+    }
+
+    /** Bulk assignment: body = { "studentIds": [1, 2, 3] }. */
+    @PostMapping("/divisions/{id}/assign-students")
+    public Map<String, Object> assignStudents(
+            @PathVariable Long id,
+            @RequestBody Map<String, List<Long>> body,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+
+        List<Long> studentIds = body.get("studentIds");
+        if (studentIds == null || studentIds.isEmpty()) {
+            throw new RuntimeException("studentIds are required");
+        }
+        return hodService.bulkAssignStudents(id, studentIds);
+    }
+
+    /** Remove students from a division: body = { "studentIds": [1, 2] }. */
+    @PostMapping("/divisions/{id}/remove-students")
+    public Map<String, Object> removeStudents(
+            @PathVariable Long id,
+            @RequestBody Map<String, List<Long>> body,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+
+        List<Long> studentIds = body.get("studentIds");
+        if (studentIds == null || studentIds.isEmpty()) {
+            throw new RuntimeException("studentIds are required");
+        }
+        return hodService.removeStudentsFromDivision(id, studentIds);
+    }
+
+    /** Assign a single student (path variant of the bulk endpoint). */
+    @PostMapping("/divisions/{id}/assign-students/{studentId}")
+    public DivisionResponse assignStudent(
+            @PathVariable Long id,
+            @PathVariable Long studentId,
+            Authentication authentication) {
+
+        requireHODOrAdmin(authentication);
+        return hodService.assignStudentToDivision(id, studentId);
+    }
+
+    // =========================
     // COMMON HELPERS
     // =========================
 
@@ -330,6 +446,14 @@ public class HODController {
     private void requireHOD(Authentication authentication) {
         if (!isHOD(authentication)) {
             throw new AccessDeniedException("HOD access required");
+        }
+    }
+
+    /** Division management is open to HODs and ADMINs (matches the feature spec). */
+    private void requireHODOrAdmin(Authentication authentication) {
+        User user = me(authentication);
+        if (user.getRole() != Role.HOD && user.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("HOD or ADMIN access required");
         }
     }
 
