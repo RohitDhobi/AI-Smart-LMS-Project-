@@ -1,12 +1,14 @@
 package com.aismartlms.backend.config;
 
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.Division;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Lesson;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.CourseRepository;
+import com.aismartlms.backend.repository.DivisionRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
+import java.time.Year;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,6 +45,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final InstructorCourseAssignmentRepository assignments;
+    private final DivisionRepository divisionRepository;
     private final DataSource dataSource;
 
     @Value("${app.seed-data:true}")
@@ -53,6 +57,7 @@ public class DataSeeder implements CommandLineRunner {
             UserRepository users,
             PasswordEncoder passwordEncoder,
             InstructorCourseAssignmentRepository assignments,
+            DivisionRepository divisionRepository,
             DataSource dataSource) {
 
         this.courses = courses;
@@ -60,6 +65,7 @@ public class DataSeeder implements CommandLineRunner {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.assignments = assignments;
+        this.divisionRepository = divisionRepository;
         this.dataSource = dataSource;
     }
 
@@ -80,6 +86,10 @@ public class DataSeeder implements CommandLineRunner {
         seedInstructors();
 
         seedHod();
+
+        seedStudents();
+
+        seedDivisions();
 
         seedDefaultAssignments();
     }
