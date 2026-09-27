@@ -395,6 +395,17 @@ public class HODService {
                 item.put("courseName", null);
             }
 
+            // Division / section (e.g. "Div A") the student belongs to.
+            if (user.getDivision() != null) {
+                item.put("divisionId", user.getDivision().getId());
+                item.put("divisionName", user.getDivision().getName());
+                item.put("divisionCode", user.getDivision().getCode());
+            } else {
+                item.put("divisionId", null);
+                item.put("divisionName", null);
+                item.put("divisionCode", null);
+            }
+
             result.add(item);
         }
 
