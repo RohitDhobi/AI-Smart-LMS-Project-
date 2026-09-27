@@ -783,3 +783,153 @@ td.hod-actions-cell {
   color: var(--text-muted);
   text-align: center;
 }
+
+/* ---------- Divisions / Sections ---------- */
+
+.hod-capacity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+}
+
+.hod-capacity-bar {
+  flex: 1;
+  height: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hod-capacity-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.hod-capacity-fill.full {
+  background: var(--danger, #ef4444);
+}
+
+.hod-division-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hod-notice {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.hod-division-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.hod-division-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.hod-division-col-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.hod-student-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.hod-student-filter .inst-input {
+  width: 260px;
+  max-width: 100%;
+}
+
+.hod-student-pick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hod-student-pick-head label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.hod-student-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.hod-student-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.hod-student-row:hover {
+  border-color: var(--primary);
+}
+
+.hod-student-row input {
+  width: auto;
+  accent-color: var(--primary);
+}
+
+.hod-student-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.hod-student-row .hod-sub {
+  margin-left: auto;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
