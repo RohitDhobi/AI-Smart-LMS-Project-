@@ -138,6 +138,16 @@ export default function HODStudents() {
                     )}
                   </td>
                 </tr>
+                <tr>
+                  <td><strong>Division</strong></td>
+                  <td>
+                    {student.divisionName ? (
+                      <span className="hod-division-chip">{student.divisionName}</span>
+                    ) : (
+                      <span className="hod-sub">Not assigned</span>
+                    )}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -176,6 +186,7 @@ export default function HODStudents() {
                 <th>Student</th>
                 <th>Email</th>
                 <th>Course</th>
+                <th>Division</th>
                 <th>Role</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -200,6 +211,15 @@ export default function HODStudents() {
                       </>
                     ) : (
                       <span className="hod-sub">Not enrolled</span>
+                    )}
+                  </td>
+                  <td>
+                    {s.divisionId ? (
+                      <span className="hod-division-chip">
+                        {s.divisionCode || s.divisionName || "—"}
+                      </span>
+                    ) : (
+                      <span className="hod-sub">—</span>
                     )}
                   </td>
                   <td>
