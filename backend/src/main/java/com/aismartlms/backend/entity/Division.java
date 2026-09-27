@@ -9,16 +9,14 @@ import java.time.LocalDateTime;
  * A Division / Section (e.g. "BCA - Division A") inside a degree Course.
  * <p>
  * Students are linked to a Division through {@link User#getDivision()}.
- * A unique constraint prevents duplicate codes for the same course + academic year.
+ * Duplicate codes per course + academic year are enforced by
+ * {@code HODService.existsByCourseIdAndCodeAndAcademicYear} checks before
+ * insert/update (a table-level @UniqueConstraint on this brand-new table
+ * trips a Hibernate 5.6 schema-update bug; the equivalent UNIQUE index is
+ * applied directly in the database instead).
  */
 @Entity
-@Table(
-    name = "divisions",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_division_course_code_year",
-        columnNames = {"course_id", "code", "academic_year"}
-    )
-)
+@Table(name = "divisions")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Division {
 
