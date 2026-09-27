@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, ClipboardList, Users, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, ClipboardList, Users, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo, Layers } from "lucide-react";
 import { getStoredUser } from "../../ui";
 import { getTheme, applyTheme } from "../../gamification";
 import AdminSidebarItem from "../admin/AdminSidebarItem";
@@ -25,6 +25,7 @@ const hodMenuItems = [
     items: [
       { label: "Courses", path: "/hod/courses", icon: BookOpen },
       { label: "Subjects", path: "/hod/subjects", icon: GraduationCap },
+      { label: "Divisions", path: "/hod/divisions", icon: Layers },
     ],
   },
   {

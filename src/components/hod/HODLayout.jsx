@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, Users, ClipboardList, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, Users, ClipboardList, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo, Layers } from "lucide-react";
 import { getStoredUser } from "../../ui";
 import { getTheme, applyTheme } from "../../gamification";
 import HODSidebar from "./HODSidebar";
@@ -13,6 +13,7 @@ const NAV = [
   { section: "COURSES / SUBJECTS", items: [
     { to: "/hod/courses", icon: BookOpen, label: "Courses / Subjects" },
     { to: "/hod/subjects", icon: GraduationCap, label: "Subjects" },
+    { to: "/hod/divisions", icon: Layers, label: "Divisions" },
   ]},
   { section: "INSTRUCTOR ASSIGNMENT", items: [
     { to: "/hod/assignments", icon: Users, label: "Instructor Assignment" },

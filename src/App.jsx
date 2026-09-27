@@ -112,6 +112,7 @@ import HODDashboard from "./pages/hod/HODDashboard";
 import HODAssignments from "./pages/hod/HODAssignments";
 import HODCoursesSubjects from "./pages/hod/HODCoursesSubjects";
 import HODAnalytics from "./pages/hod/HODAnalytics";
+import HODDivisions from "./pages/hod/HODDivisions";
 import HODStudents from "./pages/hod/HODStudents";
 import HODQuestions from "./pages/hod/HODQuestions";
 import HODExams from "./pages/hod/HODExams";
@@ -617,8 +618,13 @@ function App() {
         <Route path="courses" element={<HODCoursesSubjects />} />
         <Route path="courses/new" element={<HODCoursesSubjects />} />
         <Route path="courses/:id" element={<HODCoursesSubjects />} />
+        <Route path="courses/:id/divisions" element={<HODDivisions mode="course" />} />
         <Route path="subjects" element={<HODCoursesSubjects />} />
         <Route path="subjects/:id" element={<HODCoursesSubjects />} />
+        <Route path="divisions" element={<HODDivisions />} />
+        <Route path="divisions/new" element={<HODDivisions />} />
+        <Route path="divisions/:id" element={<HODDivisions />} />
+        <Route path="divisions/:id/students" element={<HODDivisions />} />
         <Route path="students" element={<HODStudents />} />
         <Route path="students/:id" element={<HODStudents />} />
         <Route path="questions" element={<HODQuestions />} />
