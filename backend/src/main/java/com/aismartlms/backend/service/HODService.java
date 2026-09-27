@@ -3,14 +3,18 @@ package com.aismartlms.backend.service;
 import com.aismartlms.backend.dto.HODAssignmentView;
 import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
+import com.aismartlms.backend.dto.DivisionRequest;
+import com.aismartlms.backend.dto.DivisionResponse;
 import com.aismartlms.backend.entity.Announcement;
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.Division;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.AnnouncementRepository;
 import com.aismartlms.backend.repository.CourseRepository;
+import com.aismartlms.backend.repository.DivisionRepository;
 import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
@@ -42,6 +46,7 @@ public class HODService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final AnnouncementRepository announcementRepository;
+    private final DivisionRepository divisionRepository;
 
     public HODService(
             InstructorCourseAssignmentRepository assignmentRepository,
@@ -52,7 +57,8 @@ public class HODService {
             QuestionRepository questionRepository,
             SubjectRepository subjectRepository,
             UserRepository userRepository,
-            AnnouncementRepository announcementRepository) {
+            AnnouncementRepository announcementRepository,
+            DivisionRepository divisionRepository) {
 
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
@@ -63,6 +69,7 @@ public class HODService {
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.announcementRepository = announcementRepository;
+        this.divisionRepository = divisionRepository;
     }
 
     // =========================
