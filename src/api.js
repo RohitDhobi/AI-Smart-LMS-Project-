@@ -128,6 +128,27 @@ export async function apiRequest(endpoint, options = {}) {
   return data;
 }
 
+// Offline fallback for the HOD Divisions UI: returned when the Spring Boot
+// backend is unreachable (safeApiRequest -> null) so the page still renders.
+function mockDivisions(courseId) {
+  return ["A", "B", "C"].map((code, i) => ({
+    id: -(i + 1),
+    name: `Division ${code}`,
+    code,
+    academicYear: new Date().getFullYear(),
+    semester: null,
+    maxCapacity: 60,
+    courseId: courseId ?? null,
+    courseName: null,
+    courseCode: null,
+    classTeacherId: null,
+    classTeacherName: null,
+    studentCount: 0,
+    createdAt: null,
+    mock: true,
+  }));
+}
+
 // =====================================================
 // API
 // =====================================================
@@ -660,6 +681,59 @@ export const api = {
   hodSubjects: () => apiRequest("/hod/subjects"),
 
   hodStudents: () => apiRequest("/hod/students"),
+
+  // ---------------------------------------------------
+  // Divisions / Sections (e.g. BCA Div A, B, C)
+  // hodDivisions falls back to sample data when the backend is down.
+  // ---------------------------------------------------
+
+  hodDivisions: async (courseId, semester) => {
+    const endpoint = courseId
+      ? `/hod/courses/${courseId}/divisions`
+      : "/hod/divisions";
+    const suffix = semester != null ? `?semester=${semester}` : "";
+    const data = await safeApiRequest(`${endpoint}${suffix}`);
+    if (data == null) return mockDivisions(courseId);
+    return data;
+  },
+
+  hodDivision: async (id) => {
+    const data = await safeApiRequest(`/hod/divisions/${id}`);
+    if (data == null) {
+      return (
+        mockDivisions(null).find((d) => d.id === Number(id)) ||
+        mockDivisions(null)[0]
+      );
+    }
+    return data;
+  },
+
+  hodCreateDivision: (body) =>
+    apiRequest("/hod/divisions", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  hodUpdateDivision: (id, body) =>
+    apiRequest(`/hod/divisions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
+  hodDeleteDivision: (id) =>
+    apiRequest(`/hod/divisions/${id}`, { method: "DELETE" }),
+
+  hodAssignStudentsToDivision: (divisionId, studentIds) =>
+    apiRequest(`/hod/divisions/${divisionId}/assign-students`, {
+      method: "POST",
+      body: JSON.stringify({ studentIds }),
+    }),
+
+  hodRemoveStudentsFromDivision: (divisionId, studentIds) =>
+    apiRequest(`/hod/divisions/${divisionId}/remove-students`, {
+      method: "POST",
+      body: JSON.stringify({ studentIds }),
+    }),
 
   hodQuestions: () => apiRequest("/hod/questions"),
 
