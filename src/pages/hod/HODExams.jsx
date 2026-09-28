@@ -440,6 +440,8 @@ function ExamManage({ examId }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [notice, setNotice] = useState("");
   // Question editor: { mode: "add" | "edit", secIdx?, qIdx?, sectionNames, form }
   const [editor, setEditor] = useState(null);
@@ -458,6 +460,8 @@ function ExamManage({ examId }) {
 
       setExam(examData);
       setStatus(examData?.status || "SCHEDULED");
+      setStartTime(toInputValue(examData?.startTime));
+      setEndTime(toInputValue(examData?.endTime));
       setMeta(
         (Array.isArray(list) ? list : []).find(
           (e) => Number(e.id) === Number(examId)
@@ -470,15 +474,30 @@ function ExamManage({ examId }) {
     }
   }
 
+  /** Save status + the day/time slot the paper opens and closes in. */
   async function handleStatusSave() {
     if (!exam) return;
+    if (startTime && endTime && endTime <= startTime) {
+      setError("Closing time must be later than the opening time.");
+      return;
+    }
     try {
       setSaving(true);
       setError("");
       // updateExam replaces every field it reads, so send the exam back as-is
-      // with only the status changed.
-      await api.updateExam(exam.id, { ...exam, status });
+      // with the status and the new slot.
+      await api.updateExam(exam.id, {
+        ...exam,
+        status,
+        startTime: toIso(startTime),
+        endTime: toIso(endTime),
+      });
       await load();
+      setNotice(
+        startTime
+          ? "Schedule saved — students can only open the paper inside this slot."
+          : "Schedule saved. This exam has no slot, so its paper stays open."
+      );
     } catch (err) {
       setError(err.message || "Failed to update the exam.");
     } finally {
@@ -689,10 +708,30 @@ function ExamManage({ examId }) {
                 {questionsOf(paper).length || meta?.questionCount || 0} questions · {exam.totalMarks} marks
                 (pass {exam.passingMarks}) · {exam.durationMinutes} mins
               </span>
-              <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <label style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
+                  Opens
+                </label>
+                <input
+                  className="inst-input"
+                  type="datetime-local"
+                  style={{ width: 200 }}
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+                <label style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
+                  Closes
+                </label>
+                <input
+                  className="inst-input"
+                  type="datetime-local"
+                  style={{ width: 200 }}
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
                 <select
                   className="inst-select"
-                  style={{ width: 170 }}
+                  style={{ width: 150 }}
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                 >
@@ -704,7 +743,12 @@ function ExamManage({ examId }) {
                 <button
                   className="inst-btn inst-btn-small inst-btn-primary"
                   onClick={handleStatusSave}
-                  disabled={saving || status === exam.status}
+                  disabled={
+                    saving ||
+                    (status === exam.status &&
+                      startTime === toInputValue(exam.startTime) &&
+                      endTime === toInputValue(exam.endTime))
+                  }
                 >
                   <Save size={14} /> {saving ? "Saving..." : "Save"}
                 </button>
@@ -718,8 +762,20 @@ function ExamManage({ examId }) {
             </div>
 
             {exam.description && <p className="hod-sub">{exam.description}</p>}
-            {exam.startTime && (
-              <p className="hod-sub">Starts {new Date(exam.startTime).toLocaleString()}</p>
+            {exam.startTime || exam.endTime ? (
+              <p className="hod-sub">
+                Paper opens {exam.startTime ? new Date(exam.startTime).toLocaleString() : "immediately"}
+                {exam.endTime
+                  ? ` and closes ${new Date(exam.endTime).toLocaleString()}`
+                  : exam.startTime
+                    ? ` and closes ${exam.durationMinutes || 60} minutes later`
+                    : ""}
+                . Students cannot view it outside this slot.
+              </p>
+            ) : (
+              <p className="hod-sub">
+                No day/time slot set — the paper stays open until you schedule one.
+              </p>
             )}
           </div>
 
