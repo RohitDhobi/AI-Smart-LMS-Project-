@@ -150,5 +150,39 @@ console.log(
   )
 );
 
+// --- control experiments -------------------------------------------------
+// 1) Does the same keystroke synthesis work on a plain text input?
+await evaljs(`(() => {
+    const t = document.createElement("input");
+    t.type = "text"; t.id = "__probe_text";
+    t.style.cssText = "position:fixed;top:10px;left:10px;z-index:99999";
+    document.body.appendChild(t);
+    return true;
+  })()`);
+console.log("type text:", await typeInto("#__probe_text", "hello"));
+
+// 2) Does React keep a programmatic value (i.e. is React clobbering it)?
+console.log(
+  "programmatic set:",
+  await evaljs(`(() => {
+      const i = document.querySelector("input[type=datetime-local]");
+      i.value = "2026-10-01T09:00";
+      i.dispatchEvent(new Event("input", { bubbles: true }));
+      i.dispatchEvent(new Event("change", { bubbles: true }));
+      return { immediately: i.value };
+    })()`)
+);
+await sleep(500);
+console.log(
+  "after react render:",
+  await evaljs(`JSON.stringify([...document.querySelectorAll("input[type=datetime-local]")].map(i=>i.value))`)
+);
+console.log(
+  "save-disabled after:",
+  await evaljs(
+    `[...document.querySelectorAll("button")].filter(b=>/save/i.test(b.textContent)).map(b=>({t:b.textContent.trim(),d:b.disabled}))`
+  )
+);
+
 chrome.kill();
 process.exit(0);
