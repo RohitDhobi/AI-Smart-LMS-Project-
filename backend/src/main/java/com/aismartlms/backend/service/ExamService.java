@@ -164,7 +164,8 @@ public class ExamService {
 
         double awarded = 0.0;
         double gradedMarks = 0.0;
-        double penalty = exam.getNegativeMarking() && exam.getNegativeMarkValue() != null
+        double penalty = Boolean.TRUE.equals(exam.getNegativeMarking())
+                && exam.getNegativeMarkValue() != null
                 ? exam.getNegativeMarkValue() : 0.0;
 
         int correct = 0, wrong = 0, skipped = 0, pendingManual = 0;
