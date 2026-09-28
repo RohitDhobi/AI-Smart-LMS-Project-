@@ -58,9 +58,13 @@ await sleep(8000);
 
 const byId = new Map();
 for (const e of events) {
+  if (e.method === "Network.requestWillBeSent") {
+    byId.set(e.params.requestId, { url: e.params.request.url, status: 0, method: e.params.request.method });
+  }
   if (e.method === "Network.responseReceived") {
     const r = e.params.response;
-    byId.set(e.params.requestId, { url: r.url, status: r.status });
+    const prev = byId.get(e.params.requestId) || {};
+    byId.set(e.params.requestId, { ...prev, url: r.url, status: r.status });
   }
 }
 console.log("--- HTTP >= 400 ---");
@@ -69,7 +73,7 @@ console.log("--- loading failed ---");
 for (const e of events) {
   if (e.method === "Network.loadingFailed") {
     const v = byId.get(e.params.requestId);
-    console.log("  FAIL", e.params.errorText, v ? v.url : "(no response)", e.params.blockedReason || "");
+    console.log("  FAIL", e.params.errorText, v ? `${v.method || ""} ${v.url}` : "(no response)", "blocked=", e.params.blockedReason || "-");
   }
 }
 console.log("--- total requests:", byId.size);
