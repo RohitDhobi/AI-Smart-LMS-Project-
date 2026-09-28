@@ -97,18 +97,33 @@ export default function HODAssignments() {
         subjectId: modal.row.id,
       };
 
+      const instructorName =
+        instructors.find((i) => Number(i.id) === body.instructorId)?.name ||
+        "That instructor";
+
       if (modal.mode === "assign") {
         await api.hodCreateAssignment(body);
         setNotice(`Assigned ${modal.row.subjectName} successfully.`);
       } else {
-        // Reuse the existing row when it already exists for this subject.
-        const existing = await findExistingAssignment(modal.row);
-        if (existing) {
-          await api.hodUpdateAssignment(existing.id, body);
+        const list = await fetchAssignments();
+        const subjectRow = findSubjectRow(list, modal.row);
+        const courseRow = findCourseRow(list, modal.row);
+
+        if (subjectRow && Number(subjectRow.instructorId) === body.instructorId) {
+          setNotice(`${instructorName} is already assigned to ${modal.row.subjectName}.`);
+        } else if (subjectRow) {
+          // Subject-level row exists: swap the instructor on that row.
+          await api.hodUpdateAssignment(subjectRow.id, body);
+          setNotice(`Updated instructor for ${modal.row.subjectName}.`);
+        } else if (courseRow && Number(courseRow.instructorId) === body.instructorId) {
+          setNotice(`${instructorName} is already assigned to ${modal.row.subjectName}.`);
         } else {
+          // No subject-level row yet (or only a course-wide one): create a row
+          // scoped to THIS subject so every other subject of the course keeps
+          // its current instructor.
           await api.hodCreateAssignment(body);
+          setNotice(`Updated instructor for ${modal.row.subjectName}.`);
         }
-        setNotice(`Updated instructor for ${modal.row.subjectName}.`);
       }
 
       closeModal();
@@ -121,37 +136,56 @@ export default function HODAssignments() {
     }
   }
 
-  async function findExistingAssignment(row) {
+  async function fetchAssignments() {
     const all = await api.hodAssignments().catch(() => []);
-    if (!Array.isArray(all)) return null;
+    return Array.isArray(all) ? all : [];
+  }
+
+  // Assignment row that belongs to exactly this subject.
+  function findSubjectRow(list, row) {
     return (
-      all.find((a) => Number(a.subjectId) === Number(row.id)) ||
-      all.find(
+      list.find(
+        (a) => a.subjectId != null && Number(a.subjectId) === Number(row.id)
+      ) || null
+    );
+  }
+
+  // Course-wide row that covers this subject (subjectId empty).
+  function findCourseRow(list, row) {
+    return (
+      list.find(
         (a) =>
-          Number(a.courseId) === Number(row.courseId) &&
-          !a.subjectId
-      ) ||
-      null
+          (a.subjectId == null || Number(a.subjectId) === 0) &&
+          Number(a.courseId) === Number(row.courseId)
+      ) || null
     );
   }
 
   async function handleRemove(row) {
     const who = row.assignedInstructor || "this instructor";
+
+    setError("");
+    const list = await fetchAssignments();
+    const subjectRow = findSubjectRow(list, row);
+    const courseRow = findCourseRow(list, row);
+    const target = subjectRow || courseRow;
+
+    if (!target && !row.assignedInstructorId) return;
+
+    const scopeNote = subjectRow
+      ? `They will no longer be able to manage "${row.subjectName}".`
+      : `They are only assigned course-wide, so this removes them from EVERY subject in "${row.courseName}".`;
+
     const ok = window.confirm(
-      `Remove ${who} from "${row.subjectName}"?\n\nThey will no longer be able to manage this subject.`
+      `Remove ${who} from "${row.subjectName}"?\n\n${scopeNote}`
     );
     if (!ok) return;
 
     try {
-      setError("");
-      const existing = await findExistingAssignment(row);
-
-      if (existing) {
-        await api.hodRemoveAssignmentById(existing.id);
-      } else if (row.assignedInstructorId) {
-        await api.hodRemoveAssignment(row.assignedInstructorId, row.id);
+      if (target) {
+        await api.hodRemoveAssignmentById(target.id);
       } else {
-        return;
+        await api.hodRemoveAssignment(row.assignedInstructorId, row.id);
       }
 
       setNotice(`Removed ${who} from ${row.subjectName}.`);
