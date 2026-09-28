@@ -394,35 +394,38 @@
    same specificity) win and the table follows the active theme again:
    dark surface in dark mode, soft blue-gray tint in light mode. */
 
-[data-theme="dark"] .page .card .hod-table-wrap {
+[data-theme="dark"] .page .hod-table-wrap {
   --hod-table-surface: var(--surface);
 }
 
-.page .card .hod-table {
+/* Anchored on .hod-table-wrap (always present, higher specificity) so it also
+   covers the pages that render their table straight on the page instead of
+   inside a .card: Divisions, Students, Questions, Exams, Assignments. */
+.page .hod-table-wrap table.hod-table {
   background: var(--hod-table-surface, #f5f7fb) !important;
   color: var(--text) !important;
 }
 
-.page .card .hod-table th {
+.page .hod-table-wrap table.hod-table th {
   color: var(--text-secondary) !important;
   background: var(--surface-soft) !important;
 }
 
-.page .card .hod-table td {
+.page .hod-table-wrap table.hod-table td {
   color: var(--text) !important;
 }
 
-.page .card .hod-table td strong {
+.page .hod-table-wrap table.hod-table td strong {
   color: var(--text) !important;
 }
 
-.page .card .hod-table td .hod-sub {
-  /* --text-secondary keeps the course code readable on the tinted/surface
+.page .hod-table-wrap table.hod-table td .hod-sub {
+  /* --text-secondary keeps secondary cell text readable on the tinted/surface
      background in both themes (the base --text-muted rule falls below AA). */
   color: var(--text-secondary) !important;
 }
 
-.page .card .hod-table tbody tr:hover {
+.page .hod-table-wrap table.hod-table tbody tr:hover {
   background: var(--surface-soft) !important;
 }
 
@@ -505,6 +508,29 @@ td.hod-actions-cell {
 .role-badge.role-hod {
   background: #f5f3ff !important;
   color: #7c3aed !important;
+}
+
+/* Dark mode: the pills above are hardcoded to light backgrounds, which turns
+   them into washed-out grey chips on the dark shell (the HOD badge in the
+   sidebar profile card was unreadable). */
+
+[data-theme="dark"] .role-badge.role-hod,
+[data-theme="dark"] .status-badge.role-hod {
+  background: rgba(124, 58, 237, 0.2) !important;
+  color: #c4b5fd !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
+}
+
+[data-theme="dark"] .status-badge.role-student {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #93c5fd !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+}
+
+[data-theme="dark"] .status-badge.role-instructor {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #fcd34d !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
 }
 
 /* ---------- Generic card header used by HOD pages ---------- */
