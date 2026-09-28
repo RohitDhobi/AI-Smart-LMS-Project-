@@ -804,6 +804,12 @@ export const api = {
     method: "DELETE",
   }),
 
+  updateExam: (id, body) =>
+    apiRequest(`/exams/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+
   deleteExam: (id) => apiRequest(`/exams/${id}`, {
     method: "DELETE",
   }),
