@@ -567,7 +567,7 @@ public class HODService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with id " + studentId));
 
-        requireStudentInDivisionCourse(student, division);
+        ensureStudentInDivisionCourse(student, division);
         requireCapacity(division, student);
 
         student.setDivision(division);
