@@ -592,6 +592,11 @@ function ExamManage({ examId }) {
     setEditor((ed) => ({ ...ed, form: { ...ed.form, ...patch } }));
   }
 
+  // MCQs need options + a fixed answer; descriptive questions do not.
+  const editorIsMcq = editor
+    ? String(editor.form.type || "mcq").toLowerCase().startsWith("mcq")
+    : true;
+
   return (
     <div className="page hod-exams">
       <div className="page-heading">
