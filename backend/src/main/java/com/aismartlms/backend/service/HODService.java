@@ -141,15 +141,26 @@ public class HODService {
             }
         }
 
-        // Prevent duplicates: same instructor + same course already active.
+        // Prevent duplicates at the right scope: a subject row only conflicts
+        // with the same subject, a course-wide row with another course-wide row.
+        // (The old rule blocked every subject of a course the instructor was
+        // already attached to, which made per-subject changes impossible.)
         Long targetCourseId = courseId;
         boolean exists = assignmentRepository
                 .findByInstructorIdAndStatus(instructorId, "ACTIVE")
                 .stream()
-                .anyMatch(a -> Objects.equals(a.getCourseId(), targetCourseId));
+                .anyMatch(a -> {
+                    if (subjectId != null) {
+                        return Objects.equals(a.getSubjectId(), subjectId);
+                    }
+                    boolean courseWide = a.getSubjectId() == null || a.getSubjectId() == 0L;
+                    return courseWide && Objects.equals(a.getCourseId(), targetCourseId);
+                });
 
         if (exists) {
-            throw new RuntimeException("This instructor is already assigned to this course");
+            throw new RuntimeException(subjectId != null
+                    ? "This instructor is already assigned to this subject"
+                    : "This instructor is already assigned to this course");
         }
 
         InstructorCourseAssignment assignment = new InstructorCourseAssignment(
@@ -211,6 +222,28 @@ public class HODService {
             assignment.setSubjectId(newSubjectId);
         }
 
+        // CHANGE THE INSTRUCTOR. This used to be ignored entirely, so the HOD
+        // "Change" button reported success while the row kept its old
+        // instructor - the exact bug reported on the Instructor Assignment page.
+        Long newInstructorId = request.getInstructorId();
+
+        if (newInstructorId != null && !newInstructorId.equals(assignment.getInstructorId())) {
+
+            boolean duplicate = assignmentRepository
+                    .findByInstructorIdAndStatus(newInstructorId, "ACTIVE")
+                    .stream()
+                    .anyMatch(a -> !Objects.equals(a.getId(), assignment.getId())
+                            && coversSameScope(a, assignment));
+
+            if (duplicate) {
+                throw new RuntimeException(isSubjectScoped(assignment)
+                        ? "This instructor is already assigned to this subject"
+                        : "This instructor is already assigned to this course");
+            }
+
+            assignment.setInstructorId(newInstructorId);
+        }
+
         if (request.getAssignedBy() != null) {
             assignment.setAssignedBy(request.getAssignedBy());
         }
@@ -220,6 +253,24 @@ public class HODService {
         }
 
         return assignmentRepository.save(assignment);
+    }
+
+    /** Subject-level row (scoped to one subject) vs course-wide row. */
+    private boolean isSubjectScoped(InstructorCourseAssignment a) {
+        return a.getSubjectId() != null && a.getSubjectId() != 0L;
+    }
+
+    /** Whether {@code candidate} already covers exactly the same scope as {@code target}. */
+    private boolean coversSameScope(
+            InstructorCourseAssignment candidate,
+            InstructorCourseAssignment target) {
+
+        if (isSubjectScoped(target)) {
+            return Objects.equals(candidate.getSubjectId(), target.getSubjectId());
+        }
+
+        return !isSubjectScoped(candidate)
+                && Objects.equals(candidate.getCourseId(), target.getCourseId());
     }
 
     /** Delete the assignment row for one instructor + one subject. */
