@@ -71,7 +71,9 @@ function DivisionList({ courseId }) {
       setLoading(true);
       setError("");
       const [divs, courseList] = await Promise.all([
-        api.hodDivisions(courseId).catch(() => []),
+        // deliberately not caught: a real API error has to reach the error
+        // banner above the table instead of looking like "no divisions yet".
+        api.hodDivisions(courseId),
         api.hodCourses().catch(() => []),
       ]);
       setDivisions(Array.isArray(divs) ? divs : []);
