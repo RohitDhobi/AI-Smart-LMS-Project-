@@ -22,7 +22,13 @@ function QuestionList() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [aiGenerating, setAiGenerating] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  // AI generation dialog
+  const [showGen, setShowGen] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
+  const [generating, setGenerating] = useState(false);
+  const [gen, setGen] = useState({ topic: "", count: 10, quizId: "" });
 
   useEffect(() => { loadQuestions(); }, []);
 
@@ -39,15 +45,54 @@ function QuestionList() {
     }
   }
 
-  async function handleGenerateAI() {
-    setAiGenerating(true);
+  async function openGenerate() {
+    setError("");
+    setShowGen(true);
+    if (quizzes.length === 0) {
+      try {
+        const data = await api.quizzes().catch(() => []);
+        const list = Array.isArray(data) ? data : [];
+        setQuizzes(list);
+        setGen((g) => ({ ...g, quizId: g.quizId || (list[0]?.id ? String(list[0].id) : "") }));
+      } catch {
+        setQuizzes([]);
+      }
+    }
+  }
+
+  async function handleGenerate(e) {
+    e.preventDefault();
+
+    if (!gen.quizId) {
+      setError("Pick the quiz the generated questions should be added to.");
+      return;
+    }
+
+    const count = Math.min(Math.max(Number(gen.count) || 10, 1), 50);
+    const quizName =
+      quizzes.find((q) => String(q.id) === String(gen.quizId))?.title ||
+      quizzes.find((q) => String(q.id) === String(gen.quizId))?.name ||
+      "quiz";
+
     try {
-      const data = await api.hodGenerateQuestions({ count: 10 }).catch(() => null);
-      if (data) loadQuestions();
-    } catch (e) {
-      setError(e.message || "AI question generation failed.");
+      setGenerating(true);
+      setError("");
+
+      const saved = await api.hodGenerateQuestions({
+        topic: gen.topic.trim() || "General",
+        count,
+        quizId: Number(gen.quizId),
+      });
+
+      setShowGen(false);
+      await loadQuestions();
+      setNotice(
+        `Generated ${Array.isArray(saved) ? saved.length : count} AI questions into "${quizName}".`
+      );
+    } catch (err) {
+      setError(err.message || "AI question generation failed.");
     } finally {
-      setAiGenerating(false);
+      setGenerating(false);
     }
   }
 
@@ -73,7 +118,7 @@ function QuestionList() {
       </div>
 
       <div className="hod-actions">
-        <button className="inst-btn inst-btn-primary" onClick={handleGenerateAI} disabled={aiGenerating}>
+        <button className="inst-btn inst-btn-primary" onClick={openGenerate}>
           <Bot size={16} /> Generate AI Questions
         </button>
         <Link to="/hod/questions/new" className="inst-btn inst-btn-secondary">
@@ -82,6 +127,7 @@ function QuestionList() {
       </div>
 
       {error && <div className="error">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
 
       {loading ? (
         <div className="inst-loading">Loading questions...</div>
@@ -90,7 +136,7 @@ function QuestionList() {
           <div className="empty-icon">📝</div>
           <h3>Question bank is empty</h3>
           <p>Add questions manually or use AI to generate them.</p>
-          <button className="inst-btn primary" onClick={handleGenerateAI}>
+          <button className="inst-btn primary" onClick={openGenerate}>
             <Bot size={16} /> Generate with AI
           </button>
         </div>
