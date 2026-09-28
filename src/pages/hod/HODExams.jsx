@@ -324,6 +324,15 @@ function ExamCreate() {
     setForm((f) => ({ ...f, [name]: value }));
   }
 
+  /** Update one half (day or time) of a slot field without losing the other. */
+  function setSlot(field, part, value) {
+    setForm((f) => {
+      const current = splitInput(f[field]);
+      const next = { ...current, [part]: value };
+      return { ...f, [field]: joinDateTime(next.date, next.time) };
+    });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -448,28 +457,23 @@ function ExamCreate() {
           </div>
 
           <div className="inst-form-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
-              <label>Opens at (day & time)</label>
-              <input
-                className="inst-input"
-                type="datetime-local"
-                value={form.startTime}
-                onChange={(e) => setField("startTime", e.target.value)}
-              />
-            </div>
-            <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
-              <label>Closes at (day & time)</label>
-              <input
-                className="inst-input"
-                type="datetime-local"
-                value={form.endTime}
-                onChange={(e) => setField("endTime", e.target.value)}
-              />
-              <small style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
-                Leave blank to close after {form.durationMinutes || 60} minutes.
-              </small>
-            </div>
-            <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
+            <ScheduleField
+              id="create-open"
+              label="Opens (day & time)"
+              {...splitInput(form.startTime)}
+              onDate={(v) => setSlot("startTime", "date", v)}
+              onTime={(v) => setSlot("startTime", "time", v)}
+              hint="Leave both blank to keep the paper open all the time."
+            />
+            <ScheduleField
+              id="create-close"
+              label="Closes (day & time)"
+              {...splitInput(form.endTime)}
+              onDate={(v) => setSlot("endTime", "date", v)}
+              onTime={(v) => setSlot("endTime", "time", v)}
+              hint={`Leave blank to close ${form.durationMinutes || 60} minutes after opening.`}
+            />
+            <div className="inst-form-group" style={{ flex: "1 1 170px", minWidth: 170 }}>
               <label>Status</label>
               <select
                 className="inst-select"
