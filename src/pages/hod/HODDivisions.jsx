@@ -832,7 +832,6 @@ function StudentAllocator({ divisionId }) {
                       onChange={() => toggle(s.id)}
                     />
                     <span className="hod-student-name">{s.name}</span>
-                    <span className="hod-sub">{s.email}</span>
                     {!s.courseId && (
                       <span
                         className="status-badge status-pending"
@@ -841,6 +840,7 @@ function StudentAllocator({ divisionId }) {
                         no course
                       </span>
                     )}
+                    <span className="hod-sub">{s.email}</span>
                   </label>
                 ))}
               </div>
