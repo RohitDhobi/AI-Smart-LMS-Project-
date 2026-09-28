@@ -1,13 +1,17 @@
 package com.aismartlms.backend.controller;
 
+import com.aismartlms.backend.dto.ExamSubmissionRequest;
 import com.aismartlms.backend.entity.Exam;
+import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.service.ExamService;
 import com.aismartlms.backend.service.InstructorAccessService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/exams")
@@ -40,19 +44,59 @@ public class ExamController {
         }
     }
 
+    /**
+     * Students only ever receive the answer key while the exam is inside its
+     * scheduled day/time slot - staff see everything, as before.
+     */
+    private Exam hidePaperFromStudents(Exam exam) {
+        User user = access.currentUser();
+        if (user != null && !access.isStaff(user) && !access.isInstructor(user)) {
+            return examService.visibleToStudent(exam);
+        }
+        return exam;
+    }
+
+    private List<Exam> hidePaperFromStudents(List<Exam> exams) {
+        User user = access.currentUser();
+        if (user != null && !access.isStaff(user) && !access.isInstructor(user)) {
+            return examService.visibleToStudent(exams);
+        }
+        return exams;
+    }
+
     @GetMapping
     public ResponseEntity<List<Exam>> getAllExams() {
-        return ResponseEntity.ok(examService.getAllExams());
+        return ResponseEntity.ok(hidePaperFromStudents(examService.getAllExams()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Exam> getExamById(@PathVariable Long id) {
-        return ResponseEntity.ok(examService.getExamById(id));
+        return ResponseEntity.ok(hidePaperFromStudents(examService.getExamById(id)));
     }
 
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<Exam>> getExamsByCourse(@PathVariable Long courseId) {
-        return ResponseEntity.ok(examService.getExamsByCourse(courseId));
+        return ResponseEntity.ok(hidePaperFromStudents(examService.getExamsByCourse(courseId)));
+    }
+
+    // =========================
+    // SUBMIT A PAPER
+    //
+    // Graded on the server and only accepted while the exam's slot is open,
+    // so the answer key never has to reach the browser.
+    // =========================
+
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<Map<String, Object>> submitExam(
+            @PathVariable Long id,
+            @RequestBody ExamSubmissionRequest request) {
+
+        Exam exam = examService.getExamById(id);
+        return ResponseEntity.ok(
+                examService.gradeSubmission(
+                        exam,
+                        request == null ? null : request.getAnswers(),
+                        LocalDateTime.now()));
     }
 
     @PostMapping
