@@ -128,6 +128,13 @@ function DivisionList({ courseId }) {
 
       {error && <div className="error">{error}</div>}
 
+      {divisions.some((d) => d.mock) && (
+        <div className="notice">
+          ⚠️ The backend is unreachable, so these are offline sample divisions.
+          They cannot be edited or deleted until the server is back.
+        </div>
+      )}
+
       {loading ? (
         <div className="inst-loading">Loading divisions...</div>
       ) : divisions.length === 0 ? (
