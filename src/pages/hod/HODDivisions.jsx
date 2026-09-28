@@ -253,6 +253,10 @@ function DivisionForm({ divisionId }) {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // True when an existing division could not be loaded (bad id / deleted).
+  // The form must not render in that case, otherwise it silently shows stale
+  // or offline sample data for a division that does not exist.
+  const [loadFailed, setLoadFailed] = useState(false);
 
   // Preselect course when coming from "Create Division" on a course page.
   const presetCourseId = useMemo(() => {
@@ -281,6 +285,7 @@ function DivisionForm({ divisionId }) {
     try {
       setLoading(true);
       setError("");
+      setLoadFailed(false);
       const d = await api.hodDivision(divisionId);
       setForm({
         name: d.name || "",
@@ -293,6 +298,7 @@ function DivisionForm({ divisionId }) {
       });
     } catch (e) {
       setError(e.message || "Unable to load division.");
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -368,6 +374,39 @@ function DivisionForm({ divisionId }) {
     return (
       <div className="page hod-divisions">
         <div className="inst-loading">Loading division...</div>
+      </div>
+    );
+  }
+
+  if (isEdit && loadFailed) {
+    return (
+      <div className="page hod-divisions">
+        <div className="page-heading">
+          <button
+            className="back-link"
+            onClick={() => navigate("/hod/divisions")}
+          >
+            <ChevronLeft size={14} /> Back to Divisions
+          </button>
+          <h1>Division not found</h1>
+          <p>
+            We could not load division #{divisionId}. It may have been deleted,
+            or the link points at an id that never existed.
+          </p>
+        </div>
+
+        {error && <div className="error">{error}</div>}
+
+        <div className="inst-empty">
+          <div className="inst-empty-icon">🔍</div>
+          <h3>There is nothing to edit</h3>
+          <button
+            className="inst-btn inst-btn-secondary"
+            onClick={() => navigate("/hod/divisions")}
+          >
+            ← Back to Divisions
+          </button>
+        </div>
       </div>
     );
   }
