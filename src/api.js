@@ -909,6 +909,14 @@ export const api = {
   examsByCourse: (courseId) =>
     apiRequest(`/exams/course/${courseId}`),
 
+  // Submit answers for a scheduled exam. The backend grades it and only
+  // accepts submissions while the exam's day/time slot is open.
+  submitExam: (id, answers) =>
+    apiRequest(`/exams/${id}/submit`, {
+      method: "POST",
+      body: JSON.stringify({ answers }),
+    }),
+
   // ===================================================
   // ATTENDANCE
   // ===================================================
