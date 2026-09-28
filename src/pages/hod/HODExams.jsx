@@ -620,9 +620,9 @@ function ExamManage({ examId }) {
   }
 
   const slotDirty =
-    status !== exam.status ||
-    startTime !== toInputValue(exam.startTime) ||
-    endTime !== toInputValue(exam.endTime);
+    status !== (exam?.status || "") ||
+    startTime !== toInputValue(exam?.startTime) ||
+    endTime !== toInputValue(exam?.endTime);
 
   const pendingStart = formatSlot(startTime);
   const pendingEnd = formatSlot(endTime);
