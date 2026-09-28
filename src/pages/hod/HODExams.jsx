@@ -212,6 +212,21 @@ function toIso(value) {
   return value.length === 16 ? `${value}:00` : value;
 }
 
+/** "2026-10-01T09:00" -> { date: "2026-10-01", time: "09:00" } */
+function splitInput(value) {
+  if (!value) return { date: "", time: "" };
+  return {
+    date: value.slice(0, 10),
+    time: value.length >= 16 ? value.slice(11, 16) : "",
+  };
+}
+
+/** Day + time pickers -> one "YYYY-MM-DDTHH:mm" slot value (midnight if no time). */
+function joinDateTime(date, time) {
+  if (!date) return "";
+  return `${date}T${time || "00:00"}`;
+}
+
 /** The slot end implied by a start time + duration, when no end was picked. */
 function deriveEnd(startValue, durationMinutes) {
   if (!startValue) return null;
@@ -219,6 +234,60 @@ function deriveEnd(startValue, durationMinutes) {
   if (Number.isNaN(start.getTime())) return null;
   const end = new Date(start.getTime() + (Number(durationMinutes) || 60) * 60000);
   return `${end.getFullYear()}-${pad2(end.getMonth() + 1)}-${pad2(end.getDate())}T${pad2(end.getHours())}:${pad2(end.getMinutes())}`;
+}
+
+/**
+ * One side of the exam slot: a day picker + a time picker.
+ *
+ * Deliberately NOT a single <input type="datetime-local">: that widget only
+ * reports a value once BOTH date and time are filled in, so picking a date
+ * from the calendar (time still "--:--") silently left the form empty and
+ * Save stayed disabled. Separate inputs each take effect immediately.
+ */
+function ScheduleField({ id, label, date, time, onDate, onTime, hint }) {
+  return (
+    <div className="inst-form-group" style={{ flex: "1 1 260px", minWidth: 240, marginBottom: 0 }}>
+      <label htmlFor={`${id}-date`} style={{ marginBottom: 6 }}>
+        {label}
+      </label>
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          id={`${id}-date`}
+          className="inst-input"
+          type="date"
+          aria-label={`${label} — day`}
+          style={{ flex: "1 1 auto", minWidth: 0 }}
+          value={date}
+          onChange={(e) => onDate(e.target.value)}
+        />
+        <input
+          id={`${id}-time`}
+          className="inst-input"
+          type="time"
+          aria-label={`${label} — time`}
+          style={{ flex: "0 0 120px" }}
+          value={time}
+          onChange={(e) => onTime(e.target.value)}
+        />
+      </div>
+      {hint && (
+        <small style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
+          {hint}
+        </small>
+      )}
+    </div>
+  );
+}
+
+/** Human-readable "Tue, 1 Oct 2026, 09:00" for a slot value. */
+function formatSlot(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString([], {
+    weekday: "short", day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
 }
 
 // =====================================================
