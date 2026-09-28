@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../api";
 import {
-  FileQuestion, PlusCircle, GraduationCap, Trash2, ChevronLeft, Save
+  FileQuestion, PlusCircle, GraduationCap, Trash2, ChevronLeft, Save, Pencil
 } from "lucide-react";
 
 /**
@@ -384,6 +384,9 @@ function ExamManage({ examId }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [notice, setNotice] = useState("");
+  // Question editor: { mode: "add" | "edit", secIdx?, qIdx?, sectionNames, form }
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => { load(); }, [examId]);
 
@@ -445,6 +448,138 @@ function ExamManage({ examId }) {
   }
 
   const paper = parsePaper(exam?.questionPaper);
+
+  // ---------- question paper editing ------------------------------------
+
+  /** Deep-copied, section-normalized paper we can safely mutate. */
+  function currentPaper() {
+    return ensureSections(
+      clonePaper(parsePaper(exam?.questionPaper) || emptyPaper(exam))
+    );
+  }
+
+  /**
+   * Save the paper back onto the exam. PUT /exams/{id} replaces the fields it
+   * reads, so the whole exam is sent with the new questionPaper only.
+   */
+  async function persistPaper(nextPaper, msg) {
+    try {
+      setError("");
+      normalizePaper(nextPaper);
+      await api.updateExam(exam.id, {
+        ...exam,
+        questionPaper: JSON.stringify(nextPaper),
+      });
+      await load();
+      setNotice(msg);
+      return true;
+    } catch (err) {
+      setError(err.message || "Failed to update the question paper.");
+      return false;
+    }
+  }
+
+  function openAddQuestion() {
+    const p = currentPaper();
+    const secIdx = 0;
+    const sample = p.sections[secIdx]?.questions?.[0];
+    setEditor({
+      mode: "add",
+      sectionNames: p.sections.map((s) => s.name || `Section ${secIdx + 1}`),
+      form: {
+        sectionIdx: secIdx,
+        text: "",
+        options: ["", "", "", ""],
+        answer: "A",
+        marks: sample?.marks ?? 1,
+        type: sample?.type ?? "mcq",
+      },
+    });
+  }
+
+  function openEditQuestion(secIdx, qIdx) {
+    const p = currentPaper();
+    const q = p.sections[secIdx]?.questions?.[qIdx];
+    if (!q) return;
+
+    const options = [...(Array.isArray(q.options) ? q.options : [])];
+    while (options.length < 4) options.push("");
+
+    setEditor({
+      mode: "edit",
+      secIdx,
+      qIdx,
+      sectionNames: p.sections.map((s, i) => s.name || `Section ${i + 1}`),
+      form: {
+        sectionIdx: secIdx,
+        text: q.text || q.question || "",
+        options: options.slice(0, 4),
+        answer: q.answer || "A",
+        marks: q.marks ?? 1,
+        type: q.type || "mcq",
+        orChoice: q.orChoice ?? null,
+        source: q.source || "manual",
+      },
+    });
+  }
+
+  function deletePaperQuestion(secIdx, qIdx) {
+    const p = currentPaper();
+    const q = p.sections[secIdx]?.questions?.[qIdx];
+    if (!q) return;
+
+    const label = String(q.text || "this question").slice(0, 70);
+    if (!window.confirm(`Delete "${label}"?`)) return;
+
+    p.sections[secIdx].questions.splice(qIdx, 1);
+    persistPaper(p, `Deleted "${label}${label.length >= 70 ? "..." : ""}" from the paper.`);
+  }
+
+  async function submitEditor(e) {
+    e.preventDefault();
+    if (!editor) return;
+
+    const f = editor.form;
+    if (!f.text.trim()) {
+      setError("Question text is required.");
+      return;
+    }
+    if (!String(f.options[0]).trim() || !String(f.options[1]).trim()) {
+      setError("Options A and B are required.");
+      return;
+    }
+
+    const p = currentPaper();
+    const payload = {
+      text: f.text.trim(),
+      options: f.options.map((o) => String(o).trim() || "-"),
+      answer: f.answer,
+      marks: Number(f.marks) || 1,
+      type: f.type || "mcq",
+      orChoice: f.orChoice ?? null,
+      source: f.source || "manual",
+    };
+
+    let msg;
+    if (editor.mode === "add") {
+      p.sections[f.sectionIdx]?.questions.push(payload);
+      msg = "Question added to the paper.";
+    } else {
+      const existing = p.sections[editor.secIdx]?.questions?.[editor.qIdx] || {};
+      p.sections[editor.secIdx].questions[editor.qIdx] = {
+        ...existing,
+        ...payload,
+      };
+      msg = "Question updated.";
+    }
+
+    const ok = await persistPaper(p, msg);
+    if (ok) setEditor(null);
+  }
+
+  function patchForm(patch) {
+    setEditor((ed) => ({ ...ed, form: { ...ed.form, ...patch } }));
+  }
 
   return (
     <div className="page hod-exams">
