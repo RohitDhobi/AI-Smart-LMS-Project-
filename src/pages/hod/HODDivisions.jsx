@@ -556,6 +556,7 @@ function StudentAllocator({ divisionId }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [loadFailed, setLoadFailed] = useState(false);
   const [notice, setNotice] = useState("");
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState({}); // { studentId: true }
@@ -570,6 +571,7 @@ function StudentAllocator({ divisionId }) {
     try {
       setLoading(true);
       setError("");
+      setLoadFailed(false);
       const [div, list] = await Promise.all([
         api.hodDivision(divisionId),
         api.hodStudents().catch(() => []),
@@ -578,6 +580,7 @@ function StudentAllocator({ divisionId }) {
       setStudents(Array.isArray(list) ? list : []);
     } catch (e) {
       setError(e.message || "Unable to load division.");
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -680,6 +683,39 @@ function StudentAllocator({ divisionId }) {
     return (
       <div className="page hod-divisions">
         <div className="inst-loading">Loading students...</div>
+      </div>
+    );
+  }
+
+  if (loadFailed && !division) {
+    return (
+      <div className="page hod-divisions">
+        <div className="page-heading">
+          <button
+            className="back-link"
+            onClick={() => navigate("/hod/divisions")}
+          >
+            <ChevronLeft size={14} /> Back to Divisions
+          </button>
+          <h1>Division not found</h1>
+          <p>
+            Students cannot be allocated because division #{divisionId} does not
+            exist (it may have been deleted).
+          </p>
+        </div>
+
+        {error && <div className="error">{error}</div>}
+
+        <div className="inst-empty">
+          <div className="inst-empty-icon">🔍</div>
+          <h3>Nothing to manage here</h3>
+          <button
+            className="inst-btn inst-btn-secondary"
+            onClick={() => navigate("/hod/divisions")}
+          >
+            ← Back to Divisions
+          </button>
+        </div>
       </div>
     );
   }
