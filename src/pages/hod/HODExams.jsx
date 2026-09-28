@@ -594,6 +594,7 @@ function ExamManage({ examId }) {
       </div>
 
       {error && <div className="error">{error}</div>}
+      {notice && <div className="notice">{notice}</div>}
 
       {loading ? (
         <div className="inst-loading">Loading exam...</div>
@@ -613,7 +614,7 @@ function ExamManage({ examId }) {
                 {exam.status || "SCHEDULED"}
               </span>
               <span className="hod-sub" style={{ marginTop: 0 }}>
-                {meta?.questionCount ?? (paper?.totalQuestions ?? 0)} questions · {exam.totalMarks} marks
+                {questionsOf(paper).length || meta?.questionCount || 0} questions · {exam.totalMarks} marks
                 (pass {exam.passingMarks}) · {exam.durationMinutes} mins
               </span>
               <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
@@ -660,14 +661,18 @@ function ExamManage({ examId }) {
             </p>
           </div>
 
-          {!paper ? (
+          {!paper || questionsOf(paper).length === 0 ? (
             <div className="card hod-empty">
               <div className="empty-icon">📄</div>
-              <h3>No question paper yet</h3>
-              <p>Generate a paper from AI Tools, then upload it to this exam.</p>
-              <Link to="/hod/questions" className="inst-btn primary">
-                <FileQuestion size={15} /> Manage Questions
-              </Link>
+              <h3>{paper ? "No questions in this paper yet" : "No question paper yet"}</h3>
+              <p>
+                {paper
+                  ? "Add the first question to start building this paper."
+                  : "Start an empty paper and add questions one by one."}
+              </p>
+              <button className="inst-btn primary" onClick={openAddQuestion}>
+                <PlusCircle size={15} /> Add Question
+              </button>
             </div>
           ) : (
             <div className="hod-table-wrap">
@@ -675,22 +680,175 @@ function ExamManage({ examId }) {
                 <thead>
                   <tr>
                     <th>#</th>
+                    <th>Section</th>
                     <th>Question</th>
                     <th>Marks</th>
                     <th>Answer</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {questionsOf(paper).map((q, i) => (
-                    <tr key={q.num ?? i}>
-                      <td><span className="hod-sub">{q.num ?? i + 1}</span></td>
-                      <td><strong>{q.text || q.question || "—"}</strong></td>
-                      <td><span className="hod-sub">{q.marks ?? 1}</span></td>
-                      <td><span className="status-badge status-active">{q.answer || "—"}</span></td>
-                    </tr>
-                  ))}
+                  {ensureSections(clonePaper(paper)).sections.flatMap((s, secIdx) =>
+                    (s.questions || []).map((q, qIdx) => (
+                      <tr key={q.num ?? `${secIdx}-${qIdx}`}>
+                        <td><span className="hod-sub">{q.num ?? "-"}</span></td>
+                        <td><span className="hod-sub">{s.name || `Section ${secIdx + 1}`}</span></td>
+                        <td><strong>{q.text || q.question || "—"}</strong></td>
+                        <td><span className="hod-sub">{q.marks ?? 1}</span></td>
+                        <td><span className="status-badge status-active">{q.answer || "—"}</span></td>
+                        <td className="hod-actions-cell">
+                          <div className="hod-actions-cell">
+                            <button
+                              className="inst-btn inst-btn-small"
+                              onClick={() => openEditQuestion(secIdx, qIdx)}
+                            >
+                              <Pencil size={13} /> Edit
+                            </button>
+                            <button
+                              className="inst-btn inst-btn-small inst-btn-danger"
+                              onClick={() => deletePaperQuestion(secIdx, qIdx)}
+                            >
+                              <Trash2 size={13} /> Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Add / edit question dialog */}
+          {editor && (
+            <div className="inst-modal-overlay" onClick={() => setEditor(null)}>
+              <div className="inst-modal" onClick={(e) => e.stopPropagation()}>
+                <h2>{editor.mode === "add" ? "Add Question" : "Edit Question"}</h2>
+                <p>
+                  {editor.mode === "add"
+                    ? `Adding to ${(editor.sectionNames || [])[editor.form.sectionIdx] || "the paper"}.`
+                    : "Update the question, its options, answer or marks."}
+                </p>
+
+                <form onSubmit={submitEditor}>
+                  {editor.mode === "add" && (
+                    <div className="inst-form-group" style={{ marginTop: 14 }}>
+                      <label>Section</label>
+                      <select
+                        className="inst-select"
+                        value={editor.form.sectionIdx}
+                        onChange={(e) => {
+                          const idx = Number(e.target.value);
+                          const sample = currentPaper().sections[idx]?.questions?.[0];
+                          patchForm({
+                            sectionIdx: idx,
+                            ...(sample
+                              ? { marks: sample.marks ?? 1, type: sample.type || "mcq" }
+                              : {}),
+                          });
+                        }}
+                      >
+                        {(editor.sectionNames || []).map((name, i) => (
+                          <option key={i} value={i}>{name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="inst-form-group">
+                    <label>Question *</label>
+                    <textarea
+                      className="inst-textarea"
+                      rows={3}
+                      value={editor.form.text}
+                      onChange={(e) => patchForm({ text: e.target.value })}
+                      placeholder="e.g. What is an array in java?"
+                      required
+                    />
+                  </div>
+
+                  <div className="inst-form-row" style={{ display: "flex", gap: 14 }}>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Option A *</label>
+                      <input
+                        className="inst-input"
+                        value={editor.form.options[0]}
+                        onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 0 ? e.target.value : o)) })}
+                        required
+                      />
+                    </div>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Option B *</label>
+                      <input
+                        className="inst-input"
+                        value={editor.form.options[1]}
+                        onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 1 ? e.target.value : o)) })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="inst-form-row" style={{ display: "flex", gap: 14 }}>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Option C</label>
+                      <input
+                        className="inst-input"
+                        value={editor.form.options[2]}
+                        onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 2 ? e.target.value : o)) })}
+                      />
+                    </div>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Option D</label>
+                      <input
+                        className="inst-input"
+                        value={editor.form.options[3]}
+                        onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 3 ? e.target.value : o)) })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="inst-form-row" style={{ display: "flex", gap: 14 }}>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Correct answer</label>
+                      <select
+                        className="inst-select"
+                        value={editor.form.answer}
+                        onChange={(e) => patchForm({ answer: e.target.value })}
+                      >
+                        {editor.form.options.map((opt, i) => (
+                          <option key={i} value={String.fromCharCode(65 + i)}>
+                            {String.fromCharCode(65 + i)} — {opt || "(empty)"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="inst-form-group" style={{ flex: 1 }}>
+                      <label>Marks</label>
+                      <input
+                        className="inst-input"
+                        type="number"
+                        min="1"
+                        value={editor.form.marks}
+                        onChange={(e) => patchForm({ marks: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="inst-modal-actions">
+                    <button
+                      type="button"
+                      className="inst-btn inst-btn-secondary"
+                      onClick={() => setEditor(null)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="inst-btn inst-btn-primary">
+                      <Save size={15} /> {editor.mode === "add" ? "Add Question" : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
         </>
@@ -722,4 +880,55 @@ function questionsOf(paper) {
       ? s.questions.map((q) => ({ ...q, marks: q.marks ?? s.marksPerQuestion }))
       : []
   );
+}
+
+/** Deep copy a parsed paper so we never mutate React state directly. */
+function clonePaper(p) {
+  return JSON.parse(JSON.stringify(p));
+}
+
+/** Fresh, empty paper for an exam that has none yet. */
+function emptyPaper(exam) {
+  return {
+    title: exam?.title || "Question Paper",
+    sections: [{ name: "Section A", instructions: "", questions: [] }],
+  };
+}
+
+/** Guarantee the sections/questions shape (legacy papers stored top-level questions). */
+function ensureSections(p) {
+  if (!Array.isArray(p.sections)) {
+    p.sections = Array.isArray(p.questions) && p.questions.length
+      ? [{ name: "Section A", instructions: "", questions: p.questions }]
+      : [];
+    delete p.questions;
+  }
+  if (p.sections.length === 0) {
+    p.sections.push({ name: "Section A", instructions: "", questions: [] });
+  }
+  for (const s of p.sections) {
+    if (!Array.isArray(s.questions)) s.questions = [];
+  }
+  return p;
+}
+
+/** Renumber questions and recompute section/paper totals after an edit. */
+function normalizePaper(p) {
+  ensureSections(p);
+  let num = 0;
+  let paperMarks = 0;
+  for (const s of p.sections) {
+    let sectionMarks = 0;
+    for (const q of s.questions) {
+      num += 1;
+      q.num = num;
+      q.marks = Number(q.marks) || 1;
+      sectionMarks += q.marks;
+    }
+    s.total = sectionMarks;
+    paperMarks += sectionMarks;
+  }
+  p.totalQuestions = num;
+  p.totalMarks = paperMarks;
+  return p;
 }
