@@ -1,58 +1,100 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <link rel="stylesheet" href="./src/styles.css" />
 <link rel="stylesheet" href="./src/hod.css" />
 </head>
-<body class="dark-theme">
-<div class="admin-content-area">
-  <main class="admin-main-content">
-    <div class="page hod-dashboard">
-      <div class="card">
-        <div class="card-header"><h2>Course Performance</h2></div>
-        <div class="hod-table-wrap">
-          <table class="hod-table">
-            <thead><tr><th>Course</th><th>Subjects</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>
-                  <strong id="title">Java Programming</strong>
-                  <span class="hod-sub" id="code">B.Sc</span>
-                </td>
-                <td id="cell">2</td>
-              </tr>
-            </tbody>
-          </table>
+<body>
+<div id="light-scope" data-theme="light">
+  <div class="admin-content-area">
+    <main class="admin-main-content">
+      <div class="page hod-dashboard">
+        <div class="card">
+          <div class="card-header"><h2>Course Performance</h2></div>
+          <div class="hod-table-wrap">
+            <table class="hod-table">
+              <thead><tr><th>Course</th><th>Coverage</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong class="t">Java Programming</strong><span class="hod-sub c">B.Sc</span></td>
+                  <td><span class="status-badge status-active">Covered</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 </div>
+
+<div id="dark-scope" data-theme="dark">
+  <div class="admin-content-area">
+    <main class="admin-main-content">
+      <div class="page hod-dashboard">
+        <div class="card">
+          <div class="card-header"><h2>Course Performance</h2></div>
+          <div class="hod-table-wrap">
+            <table class="hod-table">
+              <thead><tr><th>Course</th><th>Coverage</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong class="t">Java Programming</strong><span class="hod-sub c">B.Sc</span></td>
+                  <td><span class="status-badge status-active">Covered</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
 <pre id="out">pending</pre>
 <script>
-function c(sel) {
-  var el = document.querySelector(sel);
-  if (!el) return sel + ": MISSING";
-  var s = getComputedStyle(el);
-  return sel + " => color:" + s.color + " | bg:" + s.backgroundColor;
+function rgb(str) {
+  var m = str.match(/rgba?\((\d+), (\d+), (\d+)/);
+  if (!m) return str;
+  return "#" + [m[1], m[2], m[3]].map(function (n) {
+    return ("0" + Number(n).toString(16)).slice(-2);
+  }).join("");
+}
+function lum(c) {
+  var m = c.match(/rgba?\((\d+), (\d+), (\d+)/);
+  var v = [m[1], m[2], m[3]].map(function (n) {
+    n = n / 255;
+    return n <= 0.03928 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+function ratio(fg, bg) {
+  var a = lum(fg), b = lum(bg);
+  var hi = Math.max(a, b), lo = Math.min(a, b);
+  return ((hi + 0.05) / (lo + 0.05)).toFixed(2);
+}
+function report(scopeId) {
+  var scope = document.getElementById(scopeId);
+  function g(sel) { return scope.querySelector(sel); }
+  function cs(sel, prop) { var e = g(sel); return e ? getComputedStyle(e)[prop] : "MISSING"; }
+  var tableBg = cs(".hod-table", "backgroundColor");
+  var rows = [];
+  rows.push("== " + scopeId + " ==");
+  rows.push("table bg      : " + rgb(tableBg));
+  rows.push("wrap bg       : " + rgb(cs(".hod-table-wrap", "backgroundColor")));
+  rows.push("card bg       : " + rgb(cs(".card", "backgroundColor")));
+  rows.push("page bg       : " + rgb(cs(".page", "backgroundColor")));
+  rows.push("th bg/color   : " + rgb(cs(".hod-table th", "backgroundColor")) + " / " + rgb(cs(".hod-table th", "color")));
+  rows.push("td color      : " + rgb(cs(".hod-table td", "color")));
+  rows.push("title color   : " + rgb(cs("td strong", "color")) + "  contrast vs table = " + ratio(cs("td strong", "color"), tableBg));
+  rows.push("code color    : " + rgb(cs(".hod-sub", "color")) + "  contrast vs table = " + ratio(cs(".hod-sub", "color"), tableBg));
+  rows.push("badge color   : " + rgb(cs(".status-badge", "color")) + " / bg " + rgb(cs(".status-badge", "backgroundColor")));
+  return rows.join("\n");
 }
 window.addEventListener("load", function () {
-  var lines = [
-    "html data-theme=" + document.documentElement.getAttribute("data-theme"),
-    "body bg=" + getComputedStyle(document.body).backgroundColor,
-    c(".admin-main-content"),
-    c(".page"),
-    c(".card"),
-    c(".hod-table-wrap"),
-    c(".hod-table"),
-    c(".hod-table th"),
-    c(".hod-table td"),
-    c("#title"),
-    c("#code"),
-    c(".status-badge")
-  ];
-  document.getElementById("out").textContent = lines.join("\n");
+  var out = [report("light-scope"), "", report("dark-scope")];
+  document.getElementById("out").textContent = out.join("\n");
 });
 </script>
 </body>
