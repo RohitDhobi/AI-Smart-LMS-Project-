@@ -417,7 +417,9 @@
 }
 
 .page .card .hod-table td .hod-sub {
-  color: var(--text-muted) !important;
+  /* --text-secondary keeps the course code readable on the tinted/surface
+     background in both themes (the base --text-muted rule falls below AA). */
+  color: var(--text-secondary) !important;
 }
 
 .page .card .hod-table tbody tr:hover {
