@@ -1,9 +1,9 @@
-// Temporary diagnostic: types into the schedule inputs in a real Chrome.
+// Temporary diagnostic: drives the HOD schedule fields in a real Chrome.
 import { spawn } from "node:child_process";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const PORT = 9333;
-const PROFILE = "C:\\Temp\\cdp-probe-profile";
+const PROFILE = "C:\\Temp\\cdp-probe-profile2";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -49,11 +49,11 @@ ws.addEventListener("message", (ev) => {
 });
 await new Promise((r) => ws.addEventListener("open", r));
 
-function send(method, params = {}) {
+const send = (method, params = {}) => {
   const id = ++msgId;
   ws.send(JSON.stringify({ id, method, params }));
   return new Promise((resolve) => pending.set(id, resolve));
-}
+};
 async function evaljs(expression) {
   const r = await send("Runtime.evaluate", {
     expression,
@@ -67,7 +67,6 @@ async function evaljs(expression) {
 await send("Page.enable");
 await send("Runtime.enable");
 
-// Seed a token so the HOD exam page renders.
 const loginRes = await fetch("http://localhost:8080/api/auth/login", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -77,127 +76,83 @@ const { token } = await loginRes.json();
 
 await send("Page.navigate", { url: "http://localhost:5173/login" });
 await sleep(2500);
-console.log(
-  "seed:",
-  await evaljs(
-    `localStorage.setItem("token", ${JSON.stringify(token)});
-     localStorage.setItem("user", JSON.stringify({id:11,name:"Admin User",email:"admin@example.com",role:"HOD"}));
-     location.origin;`
-  )
+await evaljs(
+  `localStorage.setItem("token", ${JSON.stringify(token)});
+   localStorage.setItem("user", JSON.stringify({id:11,name:"Admin User",email:"admin@example.com",role:"HOD"}));`
 );
 
 await send("Page.navigate", { url: "http://localhost:5173/hod/exams/9" });
 await sleep(4000);
 
-console.log(
-  "page:",
-  await evaljs(`location.pathname + " | inputs=" + document.querySelectorAll("input").length`)
-);
-console.log(
-  "fields:",
-  await evaljs(
-    `JSON.stringify([...document.querySelectorAll("input[type=date],input[type=time],input[type=datetime-local]")].map(i => ({t:i.type, v:i.value, w:Math.round(i.getBoundingClientRect().width), h:Math.round(i.getBoundingClientRect().height)})))`
-  )
-);
+console.log("fields:", await evaljs(
+  `JSON.stringify([...document.querySelectorAll("input[type=date],input[type=time],input[type=datetime-local]")]
+      .map(i => ({ t: i.type, v: i.value, label: i.getAttribute("aria-label") || i.id })))`
+));
 
-// Does clicking focus the field?
-console.log(
-  "click-focus:",
-  await evaljs(`(() => {
-      const i = document.querySelector("input[type=datetime-local], input[type=date]");
-      if (!i) return "no input";
-      i.focus();
-      return document.activeElement === i;
-    })()`)
-);
+// Simulate a human picking a day and a time: set the value and fire the
+// native events the browser would send.
+console.log("set:", await evaljs(`(() => {
+    const d = document.querySelector("#exam-open-date");
+    const t = document.querySelector("#exam-open-time");
+    if (!d || !t) return "missing fields";
+    d.value = "2026-10-05";
+    d.dispatchEvent(new Event("input", { bubbles: true }));
+    d.dispatchEvent(new Event("change", { bubbles: true }));
+    t.value = "09:30";
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+    t.dispatchEvent(new Event("change", { bubbles: true }));
+    return { date: d.value, time: t.value };
+  })()`));
+await sleep(700);
 
-async function typeInto(selector, text) {
-  const info = await evaljs(`(() => {
-      const i = document.querySelector(${JSON.stringify(selector)});
-      if (!i) return null;
-      i.focus();
-      const r = i.getBoundingClientRect();
-      return { x: r.x + 8, y: r.y + r.height / 2 };
-    })()`);
-  if (!info) return "no element";
-  await send("Input.dispatchMouseEvent", { type: "mousePressed", x: info.x, y: info.y, button: "left", clickCount: 1 });
-  await send("Input.dispatchMouseEvent", { type: "mouseReleased", x: info.x, y: info.y, button: "left", clickCount: 1 });
-  for (const ch of text) {
-    await send("Input.dispatchKeyEvent", { type: "rawKeyDown", text: ch, key: ch, unmodifiedText: ch });
-    await send("Input.dispatchKeyEvent", { type: "char", text: ch, key: ch, unmodifiedText: ch });
-    await send("Input.dispatchKeyEvent", { type: "keyUp", key: ch });
-    await sleep(30);
-  }
-  await sleep(300);
-  return await evaljs(`(() => {
-      const i = document.querySelector(${JSON.stringify(selector)});
-      return i ? { value: i.value } : null;
-    })()`);
-}
+console.log("values after react:", await evaljs(
+  `JSON.stringify({
+      date: document.querySelector("#exam-open-date")?.value,
+      time: document.querySelector("#exam-open-time")?.value,
+      hint: [...document.querySelectorAll("p.hod-sub")].map(p => p.textContent).filter(t => /opens/i.test(t))[0]
+    })`
+));
 
-console.log("type date:", await typeInto("input[type=datetime-local]", "28102026"));
-console.log("type time:", await typeInto("input[type=datetime-local]:nth-of-type(1)", "1030"));
-console.log(
-  "after:",
-  await evaljs(
-    `JSON.stringify([...document.querySelectorAll("input[type=datetime-local]")].map(i=>i.value))`
-  )
-);
-console.log(
-  "save-disabled:",
-  await evaljs(
-    `[...document.querySelectorAll("button")].filter(b=>/save/i.test(b.textContent)).map(b=>({t:b.textContent.trim(),d:b.disabled}))`
-  )
-);
+console.log("save:", await evaljs(
+  `[...document.querySelectorAll("button")].filter(b=>/save/i.test(b.textContent))
+      .map(b=>({ t: b.textContent.trim(), disabled: b.disabled }))`
+));
 
-// --- control experiments -------------------------------------------------
-// 1) Does the same keystroke synthesis work on a plain text input?
-await evaljs(`(() => {
-    const t = document.createElement("input");
-    t.type = "text"; t.id = "__probe_text";
-    t.style.cssText = "position:fixed;top:10px;left:10px;z-index:99999";
-    document.body.appendChild(t);
-    return true;
-  })()`);
-console.log("type text:", await typeInto("#__probe_text", "hello"));
+// If Save is enabled, click it and confirm the backend persisted the slot.
+console.log("clicked:", await evaljs(`(() => {
+    const b = [...document.querySelectorAll("button")].find(b => /save/i.test(b.textContent));
+    if (!b || b.disabled) return "not clickable";
+    b.click();
+    return "clicked";
+  })()`));
+await sleep(2500);
 
-// 3) Same keystrokes on NON-React date/time widgets: if these also stay
-//    empty, my synthetic typing is at fault rather than React.
-await evaljs(`(() => {
-    for (const [id, type] of [["__probe_dt", "datetime-local"], ["__probe_date", "date"], ["__probe_time", "time"]]) {
-      const el = document.createElement("input");
-      el.type = type; el.id = id;
-      el.style.cssText = "position:fixed;top:" + (60 + Math.random() * 40) + "px;left:10px;z-index:99999";
-      document.body.appendChild(el);
-    }
-    return true;
-  })()`);
-console.log("plain datetime-local:", await typeInto("#__probe_dt", "28102026"));
-console.log("plain date:", await typeInto("#__probe_date", "28102026"));
-console.log("plain time:", await typeInto("#__probe_time", "1030"));
+const login2 = await fetch("http://localhost:8080/api/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: "admin@example.com", password: "admin123" }),
+});
+const { token: token2 } = await login2.json();
+const examRes = await fetch("http://localhost:8080/api/exams/9", {
+  headers: { Authorization: "Bearer " + token2 },
+});
+const exam = await examRes.json();
+console.log("persisted:", { startTime: exam.startTime, endTime: exam.endTime, status: exam.status });
 
-// 2) Does React keep a programmatic value (i.e. is React clobbering it)?
-console.log(
-  "programmatic set:",
-  await evaljs(`(() => {
-      const i = document.querySelector("input[type=datetime-local]");
-      i.value = "2026-10-01T09:00";
-      i.dispatchEvent(new Event("input", { bubbles: true }));
-      i.dispatchEvent(new Event("change", { bubbles: true }));
-      return { immediately: i.value };
-    })()`)
-);
-await sleep(500);
-console.log(
-  "after react render:",
-  await evaljs(`JSON.stringify([...document.querySelectorAll("input[type=datetime-local]")].map(i=>i.value))`)
-);
-console.log(
-  "save-disabled after:",
-  await evaljs(
-    `[...document.querySelectorAll("button")].filter(b=>/save/i.test(b.textContent)).map(b=>({t:b.textContent.trim(),d:b.disabled}))`
-  )
-);
+console.log("notice:", await evaljs(
+  `[...document.querySelectorAll(".notice")].map(n => n.textContent).slice(0, 2)`
+));
+
+// Leave the data exactly as we found it.
+await fetch("http://localhost:8080/api/exams/9", {
+  method: "PUT",
+  headers: { "Content-Type": "application/json", Authorization: "Bearer " + token2 },
+  body: JSON.stringify({ ...exam, startTime: null, endTime: null }),
+});
+const after = await (await fetch("http://localhost:8080/api/exams/9", {
+  headers: { Authorization: "Bearer " + token2 },
+})).json();
+console.log("restored:", { startTime: after.startTime, endTime: after.endTime });
 
 chrome.kill();
 process.exit(0);
