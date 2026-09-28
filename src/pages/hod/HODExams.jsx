@@ -136,7 +136,23 @@ function ExamList() {
                     {e.courseName ? <span className="hod-sub">{e.courseName}</span> : <span className="hod-sub">—</span>}
                   </td>
                   <td>
-                    {e.date ? <span className="hod-sub">{new Date(e.date).toLocaleDateString()}</span> : <span className="hod-sub">—</span>}
+                    {e.date || e.endTime ? (
+                      <span className="hod-sub">
+                        {e.date
+                          ? new Date(e.date).toLocaleString([], {
+                              day: "2-digit", month: "short", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })
+                          : "immediate"}
+                        {e.endTime &&
+                          ` → ${new Date(e.endTime).toLocaleString([], {
+                            day: "2-digit", month: "short",
+                            hour: "2-digit", minute: "2-digit",
+                          })}`}
+                      </span>
+                    ) : (
+                      <span className="hod-sub">— no slot —</span>
+                    )}
                   </td>
                   <td>
                     <span className="hod-sub">{e.duration} mins</span>

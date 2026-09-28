@@ -282,6 +282,8 @@ public class HODController {
             item.put("totalMarks", exam.getTotalMarks());
             item.put("status", exam.getStatus());
             item.put("date", exam.getStartTime());
+            item.put("startTime", exam.getStartTime());
+            item.put("endTime", exam.getEndTime());
             item.put("questionCount",
                     exam.getQuestions() == null ? 0 : exam.getQuestions().size());
 
