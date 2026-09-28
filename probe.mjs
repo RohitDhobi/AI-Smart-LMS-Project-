@@ -54,16 +54,20 @@ await send("Page.navigate", { url: PAGE_URL });
 await sleep(6000);
 
 const net = await evaluate(`(async () => {
-  const token = localStorage.getItem("token");
-  try {
-    const r = await fetch("http://localhost:8080/api/hod/divisions/-1", {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const t = await r.text();
-    return "fetch status=" + r.status + " body=" + t.slice(0, 120);
-  } catch (e) {
-    return "fetch REJECTED: " + e.name + ": " + e.message;
+  const out = [];
+  for (const [label, opts] of [
+    ["HEAD /auth/login", { method: "HEAD" }],
+    ["GET  /auth/login", { method: "GET" }],
+    ["GET  /hod/divisions", { method: "GET", headers: { Authorization: "Bearer " + localStorage.getItem("token") } }],
+  ]) {
+    try {
+      const r = await fetch("http://localhost:8080/api" + opts.method.replace(/^(HEAD|GET)  \/auth\/login$/, "/auth/login").replace(/^GET  \/hod\/divisions$/, "/hod/divisions"), opts);
+      out.push(label + " -> " + r.status);
+    } catch (e) {
+      out.push(label + " -> REJECTED (" + e.name + ")");
+    }
   }
+  return out.join(" | ");
 })()`);
 console.log("NET CHECK:", net);
 
