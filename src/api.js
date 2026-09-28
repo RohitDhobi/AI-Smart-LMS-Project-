@@ -22,7 +22,10 @@ async function checkBackend() {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 3000);
-      await fetch(`${API_URL}/auth/login`, { method: 'HEAD', signal: ctrl.signal });
+      // NOTE: HEAD must not be used here - the CORS config rejects it, the
+      // fetch throws, and the whole app silently started in offline/mock mode.
+      // A GET (any status) proves the server is reachable.
+      await fetch(`${API_URL}/auth/login`, { method: 'GET', signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timer);
       // Any HTTP answer means the server is reachable - only a rejected fetch
       // (network error / timeout) means it is down.
