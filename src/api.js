@@ -37,17 +37,45 @@ async function checkBackend() {
 // Kick off a non-blocking check on module load
 checkBackend();
 
+// A rejected fetch (TypeError) or an aborted request means the server never
+// answered. An HTTP error response means the opposite: the server IS up and
+// simply rejected the request - treating that as "backend down" used to flip
+// the whole app into offline/mock mode for the rest of the session (which is
+// how fake divisions with ids -1/-2/-3 ended up in the list).
+function isConnectivityError(err) {
+  return err?.name === "AbortError" || err instanceof TypeError;
+}
+
 /** Wrapped apiRequest that returns null instead of throwing when backend is down */
 async function safeApiRequest(endpoint, options = {}) {
   if (_backendDown) return null;
   try {
-    return await apiRequest(endpoint, options);
+    const data = await apiRequest(endpoint, options);
+    _backendDown = false; // backend answered - leave/recover from offline mode
+    return data;
   } catch (err) {
-    // If it looks like a network error or 403/500, mark backend down
-    if (!err.message?.includes('Unauthorized')) {
-      _backendDown = true;
-    }
+    if (isConnectivityError(err)) _backendDown = true;
     return null;
+  }
+}
+
+/**
+ * Like safeApiRequest, but only falls back to null when the backend is already
+ * known to be unreachable. API errors (400/404/...) are rethrown so callers can
+ * show the real message instead of silently serving offline/mock data.
+ */
+async function strictApiRequest(endpoint, options = {}) {
+  if (_backendDown) return null;
+  try {
+    const data = await apiRequest(endpoint, options);
+    _backendDown = false;
+    return data;
+  } catch (err) {
+    if (isConnectivityError(err)) {
+      _backendDown = true;
+      return null; // genuinely offline -> caller may use its fallback
+    }
+    throw err;
   }
 }
 
@@ -698,7 +726,9 @@ export const api = {
   },
 
   hodDivision: async (id) => {
-    const data = await safeApiRequest(`/hod/divisions/${id}`);
+    // strict: an unknown id must surface "Division not found" instead of being
+    // answered with a mock division (only the truly-offline path falls back).
+    const data = await strictApiRequest(`/hod/divisions/${id}`);
     if (data == null) {
       return (
         mockDivisions(null).find((d) => d.id === Number(id)) ||
