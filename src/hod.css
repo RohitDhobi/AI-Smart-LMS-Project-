@@ -474,6 +474,17 @@ td.hod-actions-cell {
   border-color: var(--success-border, #bbf7d0);
 }
 
+/* The default #16a34a on the mint pill only reaches 3.15:1 for 11.5px bold
+   text ("Active" / "Covered" badges x150 in light mode). Darker green for
+   light mode; dark mode keeps its brighter token below. */
+.page .status-badge.status-active {
+  color: #15803d !important;
+}
+
+[data-theme="dark"] .page .status-badge.status-active {
+  color: var(--success) !important;
+}
+
 .status-badge.status-removed,
 .status-badge.status-inactive {
   background: var(--danger-light);
