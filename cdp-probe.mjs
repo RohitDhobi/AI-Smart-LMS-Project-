@@ -161,6 +161,21 @@ await evaljs(`(() => {
   })()`);
 console.log("type text:", await typeInto("#__probe_text", "hello"));
 
+// 3) Same keystrokes on NON-React date/time widgets: if these also stay
+//    empty, my synthetic typing is at fault rather than React.
+await evaljs(`(() => {
+    for (const [id, type] of [["__probe_dt", "datetime-local"], ["__probe_date", "date"], ["__probe_time", "time"]]) {
+      const el = document.createElement("input");
+      el.type = type; el.id = id;
+      el.style.cssText = "position:fixed;top:" + (60 + Math.random() * 40) + "px;left:10px;z-index:99999";
+      document.body.appendChild(el);
+    }
+    return true;
+  })()`);
+console.log("plain datetime-local:", await typeInto("#__probe_dt", "28102026"));
+console.log("plain date:", await typeInto("#__probe_date", "28102026"));
+console.log("plain time:", await typeInto("#__probe_time", "1030"));
+
 // 2) Does React keep a programmatic value (i.e. is React clobbering it)?
 console.log(
   "programmatic set:",
