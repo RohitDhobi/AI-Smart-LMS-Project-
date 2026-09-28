@@ -514,6 +514,22 @@ td.hod-actions-cell {
    them into washed-out grey chips on the dark shell (the HOD badge in the
    sidebar profile card was unreadable). */
 
+/* The admin/HOD sidebar is dark (#0f172a) in *both* themes, but these three
+   labels were painted with light-theme greys, so in light mode the section
+   headings (MAIN, COURSES / SUBJECTS, ...) were nearly invisible (2.4:1). */
+
+.admin-sidebar .admin-nav-group-label {
+  color: #94a3b8 !important;
+}
+
+.admin-sidebar .admin-sidebar-brand-text small {
+  color: #94a3b8 !important;
+}
+
+.admin-sidebar .admin-profile-info span {
+  color: #94a3b8 !important;
+}
+
 [data-theme="dark"] .role-badge.role-hod,
 [data-theme="dark"] .status-badge.role-hod {
   background: rgba(124, 58, 237, 0.2) !important;
