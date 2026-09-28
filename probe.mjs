@@ -53,6 +53,20 @@ await evaluate(
 await send("Page.navigate", { url: PAGE_URL });
 await sleep(6000);
 
+const net = await evaluate(`(async () => {
+  const token = localStorage.getItem("token");
+  try {
+    const r = await fetch("http://localhost:8080/api/hod/divisions/-1", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    const t = await r.text();
+    return "fetch status=" + r.status + " body=" + t.slice(0, 120);
+  } catch (e) {
+    return "fetch REJECTED: " + e.name + ": " + e.message;
+  }
+})()`);
+console.log("NET CHECK:", net);
+
 const out = await evaluate(`(() => {
   const rows = [];
   const sels = [
