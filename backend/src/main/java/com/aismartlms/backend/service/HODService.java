@@ -8,6 +8,7 @@ import com.aismartlms.backend.dto.DivisionResponse;
 import com.aismartlms.backend.entity.Announcement;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Division;
+import com.aismartlms.backend.entity.Enrollment;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
@@ -574,7 +575,6 @@ public class HODService {
 
         return toDivisionView(division);
     }
-
     /**
      * Bulk assignment: skips students that are already assigned, belong to a
      * different course, or would exceed the division capacity.
@@ -599,9 +599,14 @@ public class HODService {
                 continue;
             }
 
-            boolean courseMatch = student.getCourse() != null
-                    && division.getCourse() != null
-                    && Objects.equals(student.getCourse().getId(), division.getCourse().getId());
+            // A student that has no course yet can be pulled into this
+            // division's course (see ensureStudentInDivisionCourse); a student
+            // who already belongs to another course is skipped.
+            boolean courseMatch = division.getCourse() != null
+                    && (student.getCourse() == null
+                        || Objects.equals(
+                            student.getCourse().getId(),
+                            division.getCourse().getId()));
             if (!courseMatch) {
                 skipped.add(student.getName() + ": different course");
                 continue;
@@ -621,6 +626,11 @@ public class HODService {
             }
 
             student.setDivision(division);
+            if (student.getCourse() == null) {
+                // Course-less student: adopt the division's course so the
+                // assignment is consistent with the rest of the system.
+                ensureStudentInDivisionCourse(student, division);
+            }
             userRepository.save(student);
             assigned++;
         }
@@ -699,12 +709,38 @@ public class HODService {
         return code;
     }
 
-    private void requireStudentInDivisionCourse(User student, Division division) {
+    /**
+     * Division membership is course-scoped, so before a student can join a
+     * division we make sure they are in that division's course:
+     * <ul>
+     *   <li>student already in this course -&gt; fine;</li>
+     *   <li>student with <b>no course yet</b> -&gt; joins the division's course
+     *       (same as registration does: set the course + create the enrollment),
+     *       which is what makes them assignable at all;</li>
+     *   <li>student in a <b>different</b> course -&gt; rejected.</li>
+     * </ul>
+     */
+    private void ensureStudentInDivisionCourse(User student, Division division) {
         if (student.getRole() != Role.STUDENT) {
             throw new RuntimeException("Only students can be assigned to a division");
         }
-        if (student.getCourse() == null || division.getCourse() == null
-                || !Objects.equals(student.getCourse().getId(), division.getCourse().getId())) {
+        if (division.getCourse() == null) {
+            throw new RuntimeException("This division is not attached to a course");
+        }
+        if (student.getCourse() == null) {
+            student.setCourse(division.getCourse());
+            userRepository.save(student);
+
+            if (!enrollmentRepository.existsByUserAndCourse(
+                    student, division.getCourse())) {
+                enrollmentRepository.save(
+                        new Enrollment(student, division.getCourse())
+                );
+            }
+            return;
+        }
+        if (!Objects.equals(
+                student.getCourse().getId(), division.getCourse().getId())) {
             throw new RuntimeException("Student is not enrolled in this course");
         }
     }
