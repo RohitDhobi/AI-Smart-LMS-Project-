@@ -790,7 +790,7 @@ function ExamManage({ examId }) {
 
                   <div className="inst-form-row" style={{ display: "flex", gap: 14 }}>
                     <div className="inst-form-group" style={{ flex: 1 }}>
-                      <label>Option A *</label>
+                      <label>Option A{editorIsMcq ? " *" : ""}</label>
                       <input
                         className="inst-input"
                         value={editor.form.options[0]}
@@ -799,7 +799,7 @@ function ExamManage({ examId }) {
                       />
                     </div>
                     <div className="inst-form-group" style={{ flex: 1 }}>
-                      <label>Option B *</label>
+                      <label>Option B{editorIsMcq ? " *" : ""}</label>
                       <input
                         className="inst-input"
                         value={editor.form.options[1]}
@@ -836,6 +836,7 @@ function ExamManage({ examId }) {
                         value={editor.form.answer}
                         onChange={(e) => patchForm({ answer: e.target.value })}
                       >
+                        <option value="">— (no answer)</option>
                         {editor.form.options.map((opt, i) => (
                           <option key={i} value={String.fromCharCode(65 + i)}>
                             {String.fromCharCode(65 + i)} — {opt || "(empty)"}
