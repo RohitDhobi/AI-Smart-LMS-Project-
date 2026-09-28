@@ -55,13 +55,15 @@ await sleep(6000);
 
 const net = await evaluate(`(async () => {
   const out = [];
-  for (const [label, opts] of [
-    ["HEAD /auth/login", { method: "HEAD" }],
-    ["GET  /auth/login", { method: "GET" }],
-    ["GET  /hod/divisions", { method: "GET", headers: { Authorization: "Bearer " + localStorage.getItem("token") } }],
-  ]) {
+  const token = localStorage.getItem("token");
+  const checks = [
+    ["HEAD /auth/login", "http://localhost:8080/api/auth/login", { method: "HEAD" }],
+    ["GET  /auth/login", "http://localhost:8080/api/auth/login", { method: "GET" }],
+    ["GET  /hod/divisions", "http://localhost:8080/api/hod/divisions", { headers: { Authorization: "Bearer " + token } }],
+  ];
+  for (const [label, url, opts] of checks) {
     try {
-      const r = await fetch("http://localhost:8080/api" + opts.method.replace(/^(HEAD|GET)  \/auth\/login$/, "/auth/login").replace(/^GET  \/hod\/divisions$/, "/hod/divisions"), opts);
+      const r = await fetch(url, opts);
       out.push(label + " -> " + r.status);
     } catch (e) {
       out.push(label + " -> REJECTED (" + e.name + ")");
