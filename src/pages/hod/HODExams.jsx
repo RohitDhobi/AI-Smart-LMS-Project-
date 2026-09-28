@@ -172,6 +172,39 @@ function ExamList() {
   );
 }
 
+// ---- schedule slot helpers --------------------------------------------
+
+/** Pad to the two digits <input type="datetime-local"> expects. */
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+/**
+ * ISO string ("2026-09-28T09:00:00") -> value for datetime-local.
+ * Returns "" for missing/unparseable values so the input renders empty.
+ */
+function toInputValue(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** datetime-local value -> ISO string the backend can parse. */
+function toIso(value) {
+  if (!value) return null;
+  return value.length === 16 ? `${value}:00` : value;
+}
+
+/** The slot end implied by a start time + duration, when no end was picked. */
+function deriveEnd(startValue, durationMinutes) {
+  if (!startValue) return null;
+  const start = new Date(startValue);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start.getTime() + (Number(durationMinutes) || 60) * 60000);
+  return `${end.getFullYear()}-${pad2(end.getMonth() + 1)}-${pad2(end.getDate())}T${pad2(end.getHours())}:${pad2(end.getMinutes())}`;
+}
+
 // =====================================================
 // CREATE VIEW (route: /hod/exams/new)
 // =====================================================
@@ -183,6 +216,7 @@ const EMPTY_EXAM = {
   totalMarks: 100,
   passingMarks: 40,
   startTime: "",
+  endTime: "",
   status: "SCHEDULED",
   description: "",
 };
@@ -216,6 +250,15 @@ function ExamCreate() {
       setError("Pick the course this exam belongs to.");
       return;
     }
+    if (form.startTime && form.endTime && form.endTime <= form.startTime) {
+      setError("Closing time must be later than the opening time.");
+      return;
+    }
+
+    // No explicit end? The slot then lasts exactly the exam duration.
+    const endTime = form.endTime
+      ? toIso(form.endTime)
+      : deriveEnd(form.startTime, form.durationMinutes);
 
     const body = {
       title: form.title.trim(),
@@ -224,7 +267,8 @@ function ExamCreate() {
       totalMarks: Number(form.totalMarks) || 100,
       passingMarks: Number(form.passingMarks) || 40,
       status: form.status,
-      startTime: form.startTime ? form.startTime : null,
+      startTime: toIso(form.startTime),
+      endTime,
       course: { id: Number(form.courseId) },
     };
 
@@ -320,13 +364,25 @@ function ExamCreate() {
 
           <div className="inst-form-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
-              <label>Starts at</label>
+              <label>Opens at (day & time)</label>
               <input
                 className="inst-input"
                 type="datetime-local"
                 value={form.startTime}
                 onChange={(e) => setField("startTime", e.target.value)}
               />
+            </div>
+            <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
+              <label>Closes at (day & time)</label>
+              <input
+                className="inst-input"
+                type="datetime-local"
+                value={form.endTime}
+                onChange={(e) => setField("endTime", e.target.value)}
+              />
+              <small style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
+                Leave blank to close after {form.durationMinutes || 60} minutes.
+              </small>
             </div>
             <div className="inst-form-group" style={{ flex: 1, minWidth: 180 }}>
               <label>Status</label>
