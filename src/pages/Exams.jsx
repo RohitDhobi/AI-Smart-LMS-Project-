@@ -97,6 +97,7 @@ function ExamAttempt({ exam, onClose }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const submittedRef = useRef(false);
+  const autoTriedRef = useRef(false);
 
   // Ticking clock: drives the countdown and the auto-submit at the deadline.
   useEffect(() => {
@@ -122,9 +123,14 @@ function ExamAttempt({ exam, onClose }) {
     }
   }
 
-  // Time's up: send whatever is filled in, then show the result.
+  // Time's up: send whatever is filled in, then show the result. Runs once -
+  // a rejected auto-submit must not retry every second.
   useEffect(() => {
-    if (remaining !== null && remaining <= 0 && !result && !submittedRef.current) {
+    if (
+      remaining !== null && remaining <= 0 &&
+      !result && !submittedRef.current && !autoTriedRef.current
+    ) {
+      autoTriedRef.current = true;
       handleSubmit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
