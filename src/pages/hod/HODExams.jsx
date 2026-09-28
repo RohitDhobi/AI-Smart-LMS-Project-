@@ -613,6 +613,20 @@ function ExamManage({ examId }) {
 
   const paper = parsePaper(exam?.questionPaper);
 
+  /** Update one half (day or time) of a slot without losing the other. */
+  function changeSlot(setter, current, part, value) {
+    const next = { ...splitInput(current), [part]: value };
+    setter(joinDateTime(next.date, next.time));
+  }
+
+  const slotDirty =
+    status !== exam.status ||
+    startTime !== toInputValue(exam.startTime) ||
+    endTime !== toInputValue(exam.endTime);
+
+  const pendingStart = formatSlot(startTime);
+  const pendingEnd = formatSlot(endTime);
+
   // ---------- question paper editing ------------------------------------
 
   /** Deep-copied, section-normalized paper we can safely mutate. */
@@ -798,26 +812,6 @@ function ExamManage({ examId }) {
                 (pass {exam.passingMarks}) · {exam.durationMinutes} mins
               </span>
               <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <label style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
-                  Opens
-                </label>
-                <input
-                  className="inst-input"
-                  type="datetime-local"
-                  style={{ width: 200 }}
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-                <label style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>
-                  Closes
-                </label>
-                <input
-                  className="inst-input"
-                  type="datetime-local"
-                  style={{ width: 200 }}
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
                 <select
                   className="inst-select"
                   style={{ width: 150 }}
@@ -832,12 +826,7 @@ function ExamManage({ examId }) {
                 <button
                   className="inst-btn inst-btn-small inst-btn-primary"
                   onClick={handleStatusSave}
-                  disabled={
-                    saving ||
-                    (status === exam.status &&
-                      startTime === toInputValue(exam.startTime) &&
-                      endTime === toInputValue(exam.endTime))
-                  }
+                  disabled={saving || !slotDirty}
                 >
                   <Save size={14} /> {saving ? "Saving..." : "Save"}
                 </button>
@@ -850,22 +839,45 @@ function ExamManage({ examId }) {
               </div>
             </div>
 
+            {/* The day/time slot the paper opens in */}
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 4 }}>
+              <ScheduleField
+                id="exam-open"
+                label="Opens (day & time)"
+                {...splitInput(startTime)}
+                onDate={(v) => changeSlot(setStartTime, startTime, "date", v)}
+                onTime={(v) => changeSlot(setStartTime, startTime, "time", v)}
+                hint="Day the paper unlocks for students."
+              />
+              <ScheduleField
+                id="exam-close"
+                label="Closes (day & time)"
+                {...splitInput(endTime)}
+                onDate={(v) => changeSlot(setEndTime, endTime, "date", v)}
+                onTime={(v) => changeSlot(setEndTime, endTime, "time", v)}
+                hint={`Leave blank to close ${exam.durationMinutes || 60} minutes after opening.`}
+              />
+            </div>
+
             {exam.description && <p className="hod-sub">{exam.description}</p>}
-            {exam.startTime || exam.endTime ? (
-              <p className="hod-sub">
-                Paper opens {exam.startTime ? new Date(exam.startTime).toLocaleString() : "immediately"}
-                {exam.endTime
-                  ? ` and closes ${new Date(exam.endTime).toLocaleString()}`
-                  : exam.startTime
-                    ? ` and closes ${exam.durationMinutes || 60} minutes later`
-                    : ""}
-                . Students cannot view it outside this slot.
-              </p>
-            ) : (
-              <p className="hod-sub">
-                No day/time slot set — the paper stays open until you schedule one.
-              </p>
-            )}
+            <p className="hod-sub" style={{ marginTop: 6 }}>
+              {pendingStart || pendingEnd ? (
+                <>
+                  Paper opens <strong>{pendingStart || "immediately"}</strong>
+                  {pendingEnd
+                    ? <> and closes <strong>{pendingEnd}</strong></>
+                    : startTime
+                      ? <> and closes <strong>{exam.durationMinutes || 60} minutes later</strong></>
+                      : null}
+                  . Students cannot view it outside this slot.
+                </>
+              ) : (
+                <>No day/time slot set — the paper stays open until you schedule one.</>
+              )}
+              {slotDirty && (
+                <strong style={{ color: "var(--warning, #b45309)" }}> — unsaved, press Save.</strong>
+              )}
+            </p>
           </div>
 
           {/* Question paper */}
