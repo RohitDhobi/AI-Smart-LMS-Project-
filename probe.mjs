@@ -86,6 +86,9 @@ const out = await evaluate(`(() => {
     const cs = getComputedStyle(el);
     rows.push(s + " => bg:" + cs.backgroundColor + "  color:" + cs.color + "  border:" + cs.borderColor + "  [" + el.textContent.trim().slice(0, 25) + "]");
   }
+  rows.push("notice=" + !!document.querySelector(".notice"));
+  rows.push("firstRow=" + (document.querySelector("tbody tr")?.innerText || "").replace(/\\n/g, " | "));
+  rows.push("TEXT=" + document.body.innerText.replace(/\\n+/g, " / ").slice(0, 300));
   rows.push("html data-theme=" + document.documentElement.getAttribute("data-theme"));
   rows.push("page bg=" + getComputedStyle(document.querySelector(".page")).backgroundColor);
   return rows.join("\\n");
