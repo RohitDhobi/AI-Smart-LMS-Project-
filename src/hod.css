@@ -342,7 +342,10 @@
 
 .hod-table-wrap {
   overflow-x: auto;
-  background: var(--surface);
+  /* Light mode gets a soft blue-gray tint instead of pure white; dark mode
+     overrides this to the theme surface further down. */
+  --hod-table-surface: #f5f7fb;
+  background: var(--hod-table-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
@@ -380,6 +383,45 @@
 
 .hod-table tbody tr:hover {
   background: var(--surface-soft);
+}
+
+/* ---------- Table surface: theme-aware (overrides styles.css) ----------
+   styles.css hardcodes `.page table { background:#fff; color:#0f172a }` and
+   `.page table td/th/tr:hover` with !important, so these tables stayed pure
+   white even in dark mode while the dark-theme titles stayed light - which
+   made the course/subject names in the first column unreadable.
+   hod.css loads after styles.css, so these rules (declared with at least the
+   same specificity) win and the table follows the active theme again:
+   dark surface in dark mode, soft blue-gray tint in light mode. */
+
+[data-theme="dark"] .page .card .hod-table-wrap {
+  --hod-table-surface: var(--surface);
+}
+
+.page .card .hod-table {
+  background: var(--hod-table-surface, #f5f7fb) !important;
+  color: var(--text) !important;
+}
+
+.page .card .hod-table th {
+  color: var(--text-secondary) !important;
+  background: var(--surface-soft) !important;
+}
+
+.page .card .hod-table td {
+  color: var(--text) !important;
+}
+
+.page .card .hod-table td strong {
+  color: var(--text) !important;
+}
+
+.page .card .hod-table td .hod-sub {
+  color: var(--text-muted) !important;
+}
+
+.page .card .hod-table tbody tr:hover {
+  background: var(--surface-soft) !important;
 }
 
 .hod-actions-cell {
