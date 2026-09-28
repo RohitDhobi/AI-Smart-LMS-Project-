@@ -177,13 +177,22 @@ const AUDIT = `(() => {
       });
     }
   }
+  // group repeated offenders so the report stays readable
+  const groups = {};
+  for (const item of low) {
+    const key = item.el + " || " + item.fg + " on " + item.bg;
+    if (!groups[key]) groups[key] = { ...item, count: 0 };
+    groups[key].count++;
+  }
+  const grouped = Object.values(groups).sort((a, b) => a.ratio - b.ratio);
   return {
     url: location.href,
     theme: document.documentElement.getAttribute("data-theme"),
     whiteCount: white.length,
     white: white.slice(0, 25),
     lowCount: low.length,
-    low: low.sort((a, b) => a.ratio - b.ratio).slice(0, 30),
+    invisible: grouped.filter((g) => g.ratio < 2.5),
+    grouped: grouped.slice(0, 40),
   };
 })()`;
 
