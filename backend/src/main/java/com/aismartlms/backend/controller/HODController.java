@@ -43,6 +43,7 @@ public class HODController {
     private final UserRepository users;
     private final QuestionRepository questionRepository;
     private final AIQuestionService aiQuestionService;
+    private final com.aismartlms.backend.service.QuestionService questionService;
     private final com.aismartlms.backend.repository.ExamRepository examRepository;
 
     public HODController(
@@ -51,6 +52,7 @@ public class HODController {
             UserRepository users,
             QuestionRepository questionRepository,
             AIQuestionService aiQuestionService,
+            com.aismartlms.backend.service.QuestionService questionService,
             com.aismartlms.backend.repository.ExamRepository examRepository) {
 
         this.hodService = hodService;
@@ -58,6 +60,7 @@ public class HODController {
         this.users = users;
         this.questionRepository = questionRepository;
         this.aiQuestionService = aiQuestionService;
+        this.questionService = questionService;
         this.examRepository = examRepository;
     }
 
@@ -172,7 +175,15 @@ public class HODController {
         return result;
     }
 
-    /** AI question generation for the HOD question bank. */
+    /**
+     * AI question generation for the HOD question bank.
+     *
+     * With a {@code quizId} the questions are PERSISTED into that quiz, so the
+     * Question Bank table actually shows them afterwards. (Previously the
+     * endpoint only returned the generated list without saving anything, which
+     * made the "Generate AI Questions" button appear to do nothing.)
+     * Without a {@code quizId} it still returns the generated list unsaved.
+     */
     @PostMapping("/questions/generate")
     public ResponseEntity<?> generateQuestions(
             Authentication authentication,
@@ -193,7 +204,60 @@ public class HODController {
             }
         }
 
-        return ResponseEntity.ok(aiQuestionService.generateQuestions(topic, count));
+        Long quizId = null;
+        if (body != null && body.get("quizId") != null) {
+            try {
+                quizId = Long.valueOf(String.valueOf(body.get("quizId")));
+            } catch (NumberFormatException ignored) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Invalid quiz id"));
+            }
+        }
+
+        List<Map<String, Object>> generated =
+                aiQuestionService.generateQuestions(topic, count);
+
+        if (quizId == null) {
+            return ResponseEntity.ok(generated);
+        }
+
+        // Persist into the chosen quiz (Question.quiz_id is NOT NULL).
+        List<Question> saved = new ArrayList<>();
+        int order = 1;
+
+        for (Map<String, Object> g : generated) {
+            Question q = new Question();
+            q.setQuestionText(valueOr(g.get("question"), "Generated question"));
+            q.setOptionA(valueOr(g.get("optionA"), "-"));
+            q.setOptionB(valueOr(g.get("optionB"), "-"));
+            q.setOptionC(valueOr(g.get("optionC"), "-"));
+            q.setOptionD(valueOr(g.get("optionD"), "-"));
+            q.setCorrectAnswer(valueOr(g.get("correctAnswer"), "A"));
+            q.setMarks(asInt(g.get("marks"), 1));
+            q.setQuestionOrder(order++);
+
+            saved.add(questionService.createQuestion(quizId, q));
+        }
+
+        return ResponseEntity.ok(saved);
+    }
+
+    private static String valueOr(Object value, String fallback) {
+        if (value == null || String.valueOf(value).isBlank()) {
+            return fallback;
+        }
+        return String.valueOf(value);
+    }
+
+    private static int asInt(Object value, int fallback) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     // =========================
