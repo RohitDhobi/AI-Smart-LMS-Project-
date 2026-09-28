@@ -399,7 +399,19 @@ public class HODService {
                         assignmentRepository.findBySubjectIdAndStatus(subject.getId(), "ACTIVE");
 
                 if (rows.isEmpty()) {
-                    rows = assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
+                    // Fall back to the course-wide row. Subject-level rows for
+                    // OTHER subjects of this course must never leak in here,
+                    // otherwise changing one subject would rewrite the whole course.
+                    List<InstructorCourseAssignment> courseRows =
+                            assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
+
+                    rows = courseRows.stream()
+                            .filter(r -> !isSubjectScoped(r))
+                            .collect(Collectors.toList());
+
+                    if (rows.isEmpty()) {
+                        rows = courseRows; // legacy data: only subject rows exist
+                    }
                 }
 
                 if (!rows.isEmpty()) {
