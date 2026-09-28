@@ -514,7 +514,7 @@ function ExamManage({ examId }) {
         sectionIdx: secIdx,
         text: q.text || q.question || "",
         options: options.slice(0, 4),
-        answer: q.answer || "A",
+        answer: q.answer || "",
         marks: q.marks ?? 1,
         type: q.type || "mcq",
         orChoice: q.orChoice ?? null,
@@ -544,16 +544,27 @@ function ExamManage({ examId }) {
       setError("Question text is required.");
       return;
     }
-    if (!String(f.options[0]).trim() || !String(f.options[1]).trim()) {
-      setError("Options A and B are required.");
+
+    // Descriptive questions (2marker / 3marker ...) legitimately have no
+    // options or fixed answer - only MCQs require them.
+    const isMcq = String(f.type || "mcq").toLowerCase().startsWith("mcq");
+    if (isMcq && (!String(f.options[0]).trim() || !String(f.options[1]).trim())) {
+      setError("Options A and B are required for MCQ questions.");
+      return;
+    }
+    if (isMcq && !f.answer) {
+      setError("Pick the correct answer for this MCQ.");
       return;
     }
 
     const p = currentPaper();
+    const hasOptions = f.options.some((o) => String(o).trim());
     const payload = {
       text: f.text.trim(),
-      options: f.options.map((o) => String(o).trim() || "-"),
-      answer: f.answer,
+      options: hasOptions
+        ? f.options.map((o) => String(o).trim() || "-")
+        : null,
+      answer: f.answer ? f.answer : null,
       marks: Number(f.marks) || 1,
       type: f.type || "mcq",
       orChoice: f.orChoice ?? null,
