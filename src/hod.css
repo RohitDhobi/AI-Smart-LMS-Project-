@@ -526,8 +526,14 @@ td.hod-actions-cell {
   color: #94a3b8 !important;
 }
 
-.admin-sidebar .admin-profile-info span {
+.admin-sidebar .admin-profile-info span:not(.role-badge) {
   color: #94a3b8 !important;
+}
+
+/* ...but the HOD pill keeps its own colour: #94a3b8 on the lavender chip
+   was 2.3:1 (unreadable). */
+.admin-sidebar .role-badge.role-hod {
+  color: #6d28d9 !important;
 }
 
 [data-theme="dark"] .role-badge.role-hod,
