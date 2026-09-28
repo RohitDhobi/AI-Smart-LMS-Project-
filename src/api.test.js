@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { api } from "./api.js";
+import { api, _setBackendDown } from "./api.js";
 
 function stubStorage() {
   const store = {};
@@ -55,4 +55,59 @@ test("searchCourses sends an empty keyword when none is provided", async () => {
   await api.searchCourses();
 
   assert.match(calls[0].url, /\/api\/courses\/search\?keyword=$/);
+});
+
+test("an HTTP error does not switch the app into offline mode", async () => {
+  stubStorage();
+  _setBackendDown(false);
+
+  // any successful call keeps the app online
+  stubFetch(200, JSON.stringify([{ id: 1, name: "Division A" }]));
+  await api.hodDivisions();
+
+  // the API rejects a request...
+  stubFetch(400, JSON.stringify({ error: "Division not found with id -1" }));
+  await assert.rejects(
+    () => api.hodDivision("-1"),
+    /Division not found with id -1/
+  );
+
+  // ...which must NOT be mistaken for "backend unreachable": the next call
+  // still hits the network and returns real rows instead of the id:-1 mocks.
+  const calls = stubFetch(
+    200,
+    JSON.stringify([{ id: 1, name: "Division A" }])
+  );
+  const list = await api.hodDivisions();
+
+  assert.equal(calls.length, 1, "backend must still be used after an API error");
+  assert.equal(list[0].id, 1, "must return real data, not mock divisions");
+});
+
+test("an unknown division id rejects instead of resolving to a mock", async () => {
+  stubStorage();
+  _setBackendDown(false);
+
+  stubFetch(404, JSON.stringify({ error: "Division not found with id 999" }));
+
+  await assert.rejects(
+    () => api.hodDivision("999"),
+    /Division not found with id 999/
+  );
+});
+
+test("a network failure marks the backend down and serves the sample list", async () => {
+  stubStorage();
+  _setBackendDown(false);
+
+  globalThis.fetch = async () => {
+    throw new TypeError("Failed to fetch");
+  };
+
+  const list = await api.hodDivisions();
+
+  assert.equal(list[0].mock, true, "offline fallback should be flagged as mock");
+  assert.ok(list.every((d) => d.id < 0), "sample rows use negative ids");
+
+  _setBackendDown(false);
 });
