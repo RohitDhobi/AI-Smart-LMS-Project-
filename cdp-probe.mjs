@@ -84,6 +84,9 @@ await evaljs(
 await send("Page.navigate", { url: "http://localhost:5173/hod/exams/9" });
 await sleep(4000);
 
+console.log("page:", await evaljs(`({ path: location.pathname, title: document.title,
+    text: document.body.innerText.slice(0, 300),
+    overlay: !!document.querySelector("vite-error-overlay") })`));
 console.log("fields:", await evaljs(
   `JSON.stringify([...document.querySelectorAll("input[type=date],input[type=time],input[type=datetime-local]")]
       .map(i => ({ t: i.type, v: i.value, label: i.getAttribute("aria-label") || i.id })))`
