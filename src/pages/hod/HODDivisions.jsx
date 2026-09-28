@@ -605,8 +605,15 @@ function StudentAllocator({ divisionId }) {
 
   const courseStudents = useMemo(() => {
     if (!division) return [];
+    // Students of this division's course, plus students that have no course
+    // yet. Those course-less students used to be filtered out of BOTH columns,
+    // so they were impossible to assign - they are now listed here and are
+    // enrolled in this division's course when they get assigned.
     return students.filter(
-      (s) => division.courseId == null || String(s.courseId) === String(division.courseId)
+      (s) =>
+        s.courseId == null ||
+        division.courseId == null ||
+        String(s.courseId) === String(division.courseId)
     );
   }, [students, division]);
 
@@ -789,7 +796,9 @@ function StudentAllocator({ divisionId }) {
           </div>
 
           {visible(unassigned).length === 0 ? (
-            <p className="hod-sub">No unassigned students in this course.</p>
+            <p className="hod-sub">
+              No unassigned students for this course.
+            </p>
           ) : (
             <>
               <div className="hod-student-pick-head">
@@ -824,6 +833,14 @@ function StudentAllocator({ divisionId }) {
                     />
                     <span className="hod-student-name">{s.name}</span>
                     <span className="hod-sub">{s.email}</span>
+                    {!s.courseId && (
+                      <span
+                        className="status-badge status-pending"
+                        title="No course yet - assigning will enrol them in this course"
+                      >
+                        no course
+                      </span>
+                    )}
                   </label>
                 ))}
               </div>
