@@ -800,7 +800,7 @@ function ExamManage({ examId }) {
                         className="inst-input"
                         value={editor.form.options[0]}
                         onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 0 ? e.target.value : o)) })}
-                        required
+                        required={editorIsMcq}
                       />
                     </div>
                     <div className="inst-form-group" style={{ flex: 1 }}>
@@ -809,7 +809,7 @@ function ExamManage({ examId }) {
                         className="inst-input"
                         value={editor.form.options[1]}
                         onChange={(e) => patchForm({ options: editor.form.options.map((o, i) => (i === 1 ? e.target.value : o)) })}
-                        required
+                        required={editorIsMcq}
                       />
                     </div>
                   </div>
