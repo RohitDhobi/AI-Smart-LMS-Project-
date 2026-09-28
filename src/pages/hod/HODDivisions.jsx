@@ -197,24 +197,32 @@ function DivisionList({ courseId }) {
                     </td>
                     <td>
                       <div className="hod-actions-cell">
-                        <Link
-                          to={`/hod/divisions/${d.id}`}
-                          className="inst-btn inst-btn-small"
-                        >
-                          <Edit3 size={14} /> Edit
-                        </Link>
-                        <Link
-                          to={`/hod/divisions/${d.id}/students`}
-                          className="inst-btn inst-btn-small inst-btn-primary"
-                        >
-                          <Users size={14} /> Manage Students
-                        </Link>
-                        <button
-                          className="inst-btn inst-btn-small danger"
-                          onClick={() => handleDelete(d)}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
+                        {d.mock ? (
+                          <span className="status-badge status-pending">
+                            Offline demo
+                          </span>
+                        ) : (
+                          <>
+                            <Link
+                              to={`/hod/divisions/${d.id}`}
+                              className="inst-btn inst-btn-small"
+                            >
+                              <Edit3 size={14} /> Edit
+                            </Link>
+                            <Link
+                              to={`/hod/divisions/${d.id}/students`}
+                              className="inst-btn inst-btn-small inst-btn-primary"
+                            >
+                              <Users size={14} /> Manage Students
+                            </Link>
+                            <button
+                              className="inst-btn inst-btn-small danger"
+                              onClick={() => handleDelete(d)}
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
