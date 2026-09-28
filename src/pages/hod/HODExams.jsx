@@ -19,8 +19,11 @@ import {
  */
 export default function HODExams() {
   const { id } = useParams();
+  const location = useLocation();
 
-  if (id === "new") return <ExamCreate />;
+  // NOTE: the app declares `exams/new` as a LITERAL route (not `exams/:id`),
+  // so useParams() is empty for the create page - match on the pathname.
+  if (location.pathname.endsWith("/new")) return <ExamCreate />;
   if (id) return <ExamManage examId={id} />;
   return <ExamList />;
 }
