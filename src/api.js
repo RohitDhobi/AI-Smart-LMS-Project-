@@ -22,9 +22,10 @@ async function checkBackend() {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 3000);
-      const resp = await fetch(`${API_URL}/auth/login`, { method: 'HEAD', signal: ctrl.signal });
+      await fetch(`${API_URL}/auth/login`, { method: 'HEAD', signal: ctrl.signal });
       clearTimeout(timer);
-      if (!resp.ok && resp.status !== 405) _backendDown = true;
+      // Any HTTP answer means the server is reachable - only a rejected fetch
+      // (network error / timeout) means it is down.
     } catch {
       _backendDown = true;
     }
@@ -720,7 +721,9 @@ export const api = {
       ? `/hod/courses/${courseId}/divisions`
       : "/hod/divisions";
     const suffix = semester != null ? `?semester=${semester}` : "";
-    const data = await safeApiRequest(`${endpoint}${suffix}`);
+    // strict: an API error must show an error, not silently serve fake rows
+    // (only the genuinely-offline path falls back to the sample divisions).
+    const data = await strictApiRequest(`${endpoint}${suffix}`);
     if (data == null) return mockDivisions(courseId);
     return data;
   },
