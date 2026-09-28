@@ -192,6 +192,86 @@ function QuestionList() {
           </table>
         </div>
       )}
+
+      {/* Generate AI questions dialog */}
+      {showGen && (
+        <div
+          className="inst-modal-overlay"
+          onClick={() => !generating && setShowGen(false)}
+        >
+          <div className="inst-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Generate AI Questions</h2>
+            <p>
+              Questions are generated instantly and saved into the quiz you
+              pick, so they show up in the bank right away.
+            </p>
+
+            <form onSubmit={handleGenerate}>
+              <div className="inst-form-group" style={{ marginTop: 14 }}>
+                <label>Add to quiz *</label>
+                <select
+                  className="inst-select"
+                  value={gen.quizId}
+                  onChange={(e) => setGen((g) => ({ ...g, quizId: e.target.value }))}
+                  required
+                >
+                  <option value="">Select a quiz...</option>
+                  {quizzes.map((q) => (
+                    <option key={q.id} value={q.id}>
+                      {q.title || q.name || `Quiz #${q.id}`}
+                    </option>
+                  ))}
+                </select>
+                {quizzes.length === 0 && (
+                  <span className="hod-sub">
+                    No quizzes found - create a quiz first, then generate into it.
+                  </span>
+                )}
+              </div>
+
+              <div className="inst-form-group">
+                <label>Topic</label>
+                <input
+                  className="inst-input"
+                  placeholder="e.g. Object Oriented Programming"
+                  value={gen.topic}
+                  onChange={(e) => setGen((g) => ({ ...g, topic: e.target.value }))}
+                />
+              </div>
+
+              <div className="inst-form-group">
+                <label>How many questions?</label>
+                <input
+                  className="inst-input"
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={gen.count}
+                  onChange={(e) => setGen((g) => ({ ...g, count: e.target.value }))}
+                />
+              </div>
+
+              <div className="inst-modal-actions">
+                <button
+                  type="button"
+                  className="inst-btn inst-btn-secondary"
+                  onClick={() => setShowGen(false)}
+                  disabled={generating}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inst-btn inst-btn-primary"
+                  disabled={generating}
+                >
+                  <Bot size={15} /> {generating ? "Generating..." : "Generate"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
