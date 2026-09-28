@@ -80,6 +80,11 @@ async function strictApiRequest(endpoint, options = {}) {
   }
 }
 
+/** Test hook (api.test.js): start a test from a known online/offline state. */
+export function _setBackendDown(value) {
+  _backendDown = Boolean(value);
+}
+
 // =====================================================
 // GENERIC API REQUEST
 // =====================================================
