@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../api";
 import { Pencil, PlusCircle, Bot, Trash2, ChevronLeft } from "lucide-react";
 
 export default function HODQuestions() {
   const { id } = useParams();
+  const location = useLocation();
 
-  if (id === "new") return <QuestionForm />;
+  // `questions/new` is declared as a LITERAL route (not `questions/:id`),
+  // so useParams() is empty there - match on the pathname instead.
+  if (location.pathname.endsWith("/new")) return <QuestionForm />;
   if (id) return <QuestionForm questionId={id} />;
   return <QuestionList />;
 }
