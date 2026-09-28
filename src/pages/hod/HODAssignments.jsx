@@ -101,33 +101,37 @@ export default function HODAssignments() {
         instructors.find((i) => Number(i.id) === body.instructorId)?.name ||
         "That instructor";
 
+      let savedMsg = "";
+
       if (modal.mode === "assign") {
         await api.hodCreateAssignment(body);
-        setNotice(`Assigned ${modal.row.subjectName} successfully.`);
+        savedMsg = `Assigned ${modal.row.subjectName} successfully.`;
       } else {
         const list = await fetchAssignments();
         const subjectRow = findSubjectRow(list, modal.row);
         const courseRow = findCourseRow(list, modal.row);
 
         if (subjectRow && Number(subjectRow.instructorId) === body.instructorId) {
-          setNotice(`${instructorName} is already assigned to ${modal.row.subjectName}.`);
+          savedMsg = `${instructorName} is already assigned to ${modal.row.subjectName}.`;
         } else if (subjectRow) {
           // Subject-level row exists: swap the instructor on that row.
           await api.hodUpdateAssignment(subjectRow.id, body);
-          setNotice(`Updated instructor for ${modal.row.subjectName}.`);
+          savedMsg = `Updated instructor for ${modal.row.subjectName}.`;
         } else if (courseRow && Number(courseRow.instructorId) === body.instructorId) {
-          setNotice(`${instructorName} is already assigned to ${modal.row.subjectName}.`);
+          savedMsg = `${instructorName} is already assigned to ${modal.row.subjectName}.`;
         } else {
           // No subject-level row yet (or only a course-wide one): create a row
           // scoped to THIS subject so every other subject of the course keeps
           // its current instructor.
           await api.hodCreateAssignment(body);
-          setNotice(`Updated instructor for ${modal.row.subjectName}.`);
+          savedMsg = `Updated instructor for ${modal.row.subjectName}.`;
         }
       }
 
       closeModal();
       await loadAll();
+      // loadAll() clears the notice, so show the confirmation afterwards.
+      setNotice(savedMsg);
 
     } catch (err) {
       setError(err.message || "Failed to save assignment.");
@@ -188,8 +192,9 @@ export default function HODAssignments() {
         await api.hodRemoveAssignment(row.assignedInstructorId, row.id);
       }
 
-      setNotice(`Removed ${who} from ${row.subjectName}.`);
+      const msg = `Removed ${who} from ${row.subjectName}.`;
       await loadAll();
+      setNotice(msg);
     } catch (err) {
       setError(err.message || "Failed to remove assignment.");
     }
