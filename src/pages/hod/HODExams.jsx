@@ -661,6 +661,15 @@ function ExamManage({ examId }) {
             </p>
           </div>
 
+          <div className="hod-actions" style={{ marginTop: 0 }}>
+            <button className="inst-btn inst-btn-primary" onClick={openAddQuestion}>
+              <PlusCircle size={15} /> Add Question
+            </button>
+            <span className="hod-sub" style={{ marginTop: 0 }}>
+              {questionsOf(paper).length} question{questionsOf(paper).length === 1 ? "" : "s"} in this paper
+            </span>
+          </div>
+
           {!paper || questionsOf(paper).length === 0 ? (
             <div className="card hod-empty">
               <div className="empty-icon">📄</div>
