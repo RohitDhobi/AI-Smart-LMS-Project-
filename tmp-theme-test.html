@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="./src/styles.css" />
+<link rel="stylesheet" href="./src/hod.css" />
+</head>
+<body class="dark-theme">
+<div class="admin-content-area">
+  <main class="admin-main-content">
+    <div class="page hod-dashboard">
+      <div class="card">
+        <div class="card-header"><h2>Course Performance</h2></div>
+        <div class="hod-table-wrap">
+          <table class="hod-table">
+            <thead><tr><th>Course</th><th>Subjects</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong id="title">Java Programming</strong>
+                  <span class="hod-sub" id="code">B.Sc</span>
+                </td>
+                <td id="cell">2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<pre id="out">pending</pre>
+<script>
+function c(sel) {
+  var el = document.querySelector(sel);
+  if (!el) return sel + ": MISSING";
+  var s = getComputedStyle(el);
+  return sel + " => color:" + s.color + " | bg:" + s.backgroundColor;
+}
+window.addEventListener("load", function () {
+  var lines = [
+    "html data-theme=" + document.documentElement.getAttribute("data-theme"),
+    "body bg=" + getComputedStyle(document.body).backgroundColor,
+    c(".admin-main-content"),
+    c(".page"),
+    c(".card"),
+    c(".hod-table-wrap"),
+    c(".hod-table"),
+    c(".hod-table th"),
+    c(".hod-table td"),
+    c("#title"),
+    c("#code"),
+    c(".status-badge")
+  ];
+  document.getElementById("out").textContent = lines.join("\n");
+});
+</script>
+</body>
+</html>
