@@ -533,6 +533,22 @@ td.hod-actions-cell {
   border-color: rgba(251, 191, 36, 0.4) !important;
 }
 
+/* Dark mode: link text uses --primary indigo (#6366f1), which only reaches
+   ~3.5:1 on the dark surface ("View" buttons, "Manage Subjects ->", card
+   links). Brighter indigo for text links only - filled buttons keep their
+   own background/white-label pairing. */
+
+[data-theme="dark"] .page .card a,
+[data-theme="dark"] .page .card-link,
+[data-theme="dark"] .page a.card-link,
+[data-theme="dark"] .page a.inst-btn:not(.inst-btn-primary):not(.primary) {
+  color: #a5b4fc !important;
+}
+
+[data-theme="dark"] .page .inst-btn:not(.inst-btn-primary):not(.primary) {
+  color: #a5b4fc !important;
+}
+
 /* ---------- Generic card header used by HOD pages ---------- */
 
 .card-header {
