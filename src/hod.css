@@ -563,6 +563,8 @@ td.hod-actions-cell {
 [data-theme="dark"] .page .card a:not(.inst-btn):not(.primary),
 [data-theme="dark"] .page .card-link,
 [data-theme="dark"] .page a.card-link,
+[data-theme="dark"] .page a.link-link,
+[data-theme="dark"] .page .hod-division-chip,
 [data-theme="dark"] .page a.inst-btn:not(.inst-btn-primary):not(.primary):not(.inst-btn-danger):not(.inst-btn-outline) {
   color: #a5b4fc !important;
 }
