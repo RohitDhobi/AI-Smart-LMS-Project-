@@ -567,14 +567,15 @@ public class HODService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found with id " + studentId));
 
-        ensureStudentInDivisionCourse(student, division);
         requireCapacity(division, student);
+        ensureStudentInDivisionCourse(student, division);
 
         student.setDivision(division);
         userRepository.save(student);
 
         return toDivisionView(division);
     }
+
     /**
      * Bulk assignment: skips students that are already assigned, belong to a
      * different course, or would exceed the division capacity.
@@ -625,12 +626,12 @@ public class HODService {
                 continue;
             }
 
-            student.setDivision(division);
             if (student.getCourse() == null) {
                 // Course-less student: adopt the division's course so the
                 // assignment is consistent with the rest of the system.
                 ensureStudentInDivisionCourse(student, division);
             }
+            student.setDivision(division);
             userRepository.save(student);
             assigned++;
         }
@@ -719,6 +720,7 @@ public class HODService {
      *       which is what makes them assignable at all;</li>
      *   <li>student in a <b>different</b> course -&gt; rejected.</li>
      * </ul>
+     * The caller is responsible for saving the student afterwards.
      */
     private void ensureStudentInDivisionCourse(User student, Division division) {
         if (student.getRole() != Role.STUDENT) {
@@ -729,7 +731,6 @@ public class HODService {
         }
         if (student.getCourse() == null) {
             student.setCourse(division.getCourse());
-            userRepository.save(student);
 
             if (!enrollmentRepository.existsByUserAndCourse(
                     student, division.getCourse())) {
