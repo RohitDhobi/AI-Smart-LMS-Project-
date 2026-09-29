@@ -2,7 +2,6 @@ package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.dto.ExamSubmissionRequest;
 import com.aismartlms.backend.entity.Exam;
-import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.service.ExamApprovalService;
 import com.aismartlms.backend.service.ExamService;
@@ -254,6 +253,19 @@ public class ExamController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
         requireManageExam(id);
+
+        User user = access.requireCurrentUser();
+        Exam existing = examService.getExamById(id);
+
+        // Instructors can only delete exams they created (legacy exams with
+        // no recorded creator pass the course-assignment check above).
+        if (!access.isStaff(user)
+                && existing.getCreatedBy() != null
+                && !existing.getCreatedBy().equals(user.getId())) {
+            throw new AccessDeniedException(
+                    "You can only delete exams you created.");
+        }
+
         examService.deleteExam(id);
         return ResponseEntity.ok().build();
     }
