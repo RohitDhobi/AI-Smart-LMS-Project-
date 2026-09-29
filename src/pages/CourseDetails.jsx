@@ -201,6 +201,14 @@ function CourseDetails() {
           </div>
 
           <div>
+            <b>Semesters</b>
+            <span>
+              {course.totalSemesters ||
+                "—"}
+            </span>
+          </div>
+
+          <div>
             <b>Instructor</b>
             <span>
               {course.instructor ||

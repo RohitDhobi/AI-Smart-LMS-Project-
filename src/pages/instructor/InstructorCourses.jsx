@@ -74,6 +74,9 @@ export default function InstructorCourses() {
               <p>{c.description?.slice(0, 100)}...</p>
               <div className="inst-course-card-meta">
                 <span>📂 {c.category || "General"}</span>
+                {c.totalSemesters ? (
+                  <span>📅 {c.totalSemesters} Sem</span>
+                ) : null}
                 <span>👨‍🏫 {c.instructor || "You"}</span>
               </div>
               <div className="inst-course-card-footer">
