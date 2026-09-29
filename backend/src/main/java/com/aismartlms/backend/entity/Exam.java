@@ -153,11 +153,17 @@ public class Exam {
 
     // The course itself is write-only (lazy), so expose read-only ids/names
     // for the exam lists - "My Exams" and the HOD approvals table need them.
-    public Long getCourseId() {
+    // NOTE: method names must NOT be getCourseId()/getCourseName(): Spring Data
+    // would then treat "courseId" as a top-level entity attribute and fail to
+    // create findByCourseIdAndStatus(...). The @JsonProperty names keep the
+    // JSON shape stable (courseId / courseName).
+    @JsonProperty("courseId")
+    public Long getCourseRefId() {
         return course == null ? null : course.getId();
     }
 
-    public String getCourseName() {
+    @JsonProperty("courseName")
+    public String getCourseRefName() {
         return course == null ? null : course.getTitle();
     }
 }
