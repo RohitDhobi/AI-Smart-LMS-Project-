@@ -673,6 +673,51 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  // ===================================================
+  // EXAM APPROVAL WORKFLOW
+  //
+  // The backend re-checks every transition (ownership, assignment,
+  // HOD approval before publish) - hiding buttons is never enough.
+  // ===================================================
+
+  // "My Exams": exams created by the logged-in instructor.
+  myExams: () => apiRequest("/exams/mine"),
+
+  // DRAFT/REJECTED -> PENDING_HOD_APPROVAL
+  submitExamForApproval: (id) =>
+    apiRequest(`/exams/${id}/submit-for-approval`, { method: "POST" }),
+
+  // APPROVED -> PUBLISHED (403 until the HOD has approved)
+  publishExam: (id) =>
+    apiRequest(`/exams/${id}/publish`, { method: "POST" }),
+
+  // ADMIN only: override an exam's workflow status
+  adminSetExamStatus: (id, status) =>
+    apiRequest(`/exams/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }),
+
+  // HOD: exams waiting for a decision (optional status filter)
+  hodExamApprovals: (status) =>
+    apiRequest(
+      `/hod/exam-approvals${status ? `?status=${encodeURIComponent(status)}` : ""}`
+    ),
+
+  // HOD: full exam + question paper for the review screen
+  hodExamApprovalDetail: (id) => apiRequest(`/hod/exam-approvals/${id}`),
+
+  // HOD: approve decision (records approvedBy/approvedAt)
+  hodApproveExam: (id) =>
+    apiRequest(`/hod/exam-approvals/${id}/approve`, { method: "POST" }),
+
+  // HOD: reject decision - reason is mandatory (400 without one)
+  hodRejectExam: (id, reason) =>
+    apiRequest(`/hod/exam-approvals/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
+
   pendingCourses: () =>
     apiRequest("/admin/pending-courses"),
 
