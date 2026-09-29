@@ -596,6 +596,22 @@ function AdminCourseManagement() {
                 />
               </div>
 
+              <div className="form-field">
+                <label>Total Semesters</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={courseForm.totalSemesters}
+                  onChange={e =>
+                    setCourseForm({
+                      ...courseForm,
+                      totalSemesters: e.target.value
+                    })
+                  }
+                  placeholder="e.g. 6"
+                />
+              </div>
+
             </div>
 
             <div className="form-field">
@@ -635,6 +651,7 @@ function AdminCourseManagement() {
                 <tr>
                   <th>Code</th>
                   <th>Name</th>
+                  <th>Semesters</th>
                   <th>Subjects</th>
                   <th>Students</th>
                   <th>Actions</th>
@@ -662,6 +679,10 @@ function AdminCourseManagement() {
 
                     <td>
                       {course.courseName || course.title}
+                    </td>
+
+                    <td>
+                      {course.totalSemesters ?? "—"}
                     </td>
 
                     <td>
@@ -774,6 +795,21 @@ function AdminCourseManagement() {
                     setEditingCourse({
                       ...editingCourse,
                       duration: e.target.value
+                    })
+                  }
+                />
+              </div>
+
+              <div className="form-field">
+                <label>Total Semesters</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={editingCourse.totalSemesters ?? ""}
+                  onChange={e =>
+                    setEditingCourse({
+                      ...editingCourse,
+                      totalSemesters: e.target.value
                     })
                   }
                 />

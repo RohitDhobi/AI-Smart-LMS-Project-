@@ -126,6 +126,7 @@ export default function HODCoursesSubjects() {
                 <tr><td><strong>Category</strong></td><td>{detail.category || "General"}</td></tr>
                 <tr><td><strong>Difficulty</strong></td><td>{detail.difficulty || "Beginner"}</td></tr>
                 <tr><td><strong>Duration</strong></td><td>{detail.duration || "—"}</td></tr>
+                <tr><td><strong>Semesters</strong></td><td>{detail.totalSemesters ?? "—"}</td></tr>
                 <tr><td><strong>Price</strong></td><td>{detail.price ? `₹${detail.price}` : "Free"}</td></tr>
                 <tr><td><strong>Subjects</strong></td><td>{detail.subjectCount ?? 0}</td></tr>
                 <tr><td><strong>Students</strong></td><td>{detail.studentCount ?? 0}</td></tr>
@@ -220,6 +221,9 @@ export default function HODCoursesSubjects() {
                 <p>{c.description?.slice(0, 100)}...</p>
                 <div className="hod-course-meta">
                   <span>📂 {c.category || "General"}</span>
+                  {c.totalSemesters ? (
+                    <span>📅 {c.totalSemesters} Sem</span>
+                  ) : null}
                   <span>📖 {c.subjectCount ?? 0} subjects</span>
                   <span>⭐ {c.studentCount || 0} students</span>
                 </div>
