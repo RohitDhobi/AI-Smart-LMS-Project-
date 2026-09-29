@@ -6,6 +6,7 @@ export default function InstructorCourseDetails() {
   const { id } = useParams();
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [lessonForm, setLessonForm] = useState({ title: "", description: "", content: "", durationMinutes: 30 });
@@ -16,12 +17,14 @@ export default function InstructorCourseDetails() {
   async function loadData() {
     try {
       setLoading(true);
-      const [c, l] = await Promise.all([
+      const [c, l, s] = await Promise.all([
         api.instructorCourse(id).catch(() => api.course(id)),
         api.lessonsByCourse(id).catch(() => []),
+        api.courseSubjects(id).catch(() => []),
       ]);
       setCourse(c);
       setLessons(Array.isArray(l) ? l : []);
+      setSubjects(Array.isArray(s) ? s : []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -55,6 +58,59 @@ export default function InstructorCourseDetails() {
   // read everything here, but no management controls are rendered.
   const canManage = course.canManage !== false;
 
+  // ---------- semester system ----------
+  // Degree programs (BCA, MCA, ...) organise their subjects across
+  // semesters. When the course has semesters and its lessons belong to
+  // subjects, the lesson list is grouped Semester 1..N instead of one
+  // flat list. Lessons without a (semstered) subject fall back to a
+  // "General" group, and the flat list is kept as a fallback.
+  const totalSemesters = Number(course.totalSemesters) || 0;
+
+  const subjectById = new Map(
+    subjects
+      .filter(s => s && s.id != null)
+      .map(s => [Number(s.id), s])
+  );
+
+  const sortedLessons = [...lessons].sort(
+    (a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0)
+  );
+
+  const semesterGroups = Array.from(
+    { length: totalSemesters },
+    (_, i) => ({ semester: i + 1, lessons: [] })
+  );
+  const ungroupedLessons = [];
+
+  sortedLessons.forEach(l => {
+    const subject =
+      l.subjectId != null ? subjectById.get(Number(l.subjectId)) : null;
+    const semester = subject ? Number(subject.semester) : NaN;
+    const group = semesterGroups.find(g => g.semester === semester);
+
+    if (group) group.lessons.push({ lesson: l, subject });
+    else ungroupedLessons.push({ lesson: l, subject });
+  });
+
+  const grouped =
+    semesterGroups.length > 0 &&
+    semesterGroups.some(g => g.lessons.length > 0);
+
+  function lessonRow({ lesson: l, subject }, index) {
+    return (
+      <div key={l.id} className="inst-lesson-row card">
+        <div className="inst-lesson-number">{index + 1}</div>
+        <div className="inst-lesson-info">
+          <strong>{l.title}</strong>
+          <span>
+            {subject?.subjectName ? `${subject.subjectName} · ` : ""}
+            {l.description || "No description"} · {l.durationMinutes || 0} min
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="inst-page">
       <div className="inst-page-header">
@@ -83,6 +139,7 @@ export default function InstructorCourseDetails() {
         <div className="inst-info-item"><span className="inst-info-label">Difficulty</span><strong>{course.difficulty || "Beginner"}</strong></div>
         <div className="inst-info-item"><span className="inst-info-label">Price</span><strong>{course.price ? `₹${course.price}` : "Free"}</strong></div>
         <div className="inst-info-item"><span className="inst-info-label">Duration</span><strong>{course.duration || "—"}</strong></div>
+        <div className="inst-info-item"><span className="inst-info-label">Semesters</span><strong>{course.totalSemesters || "—"}</strong></div>
         <div className="inst-info-item"><span className="inst-info-label">Lessons</span><strong>{lessons.length}</strong></div>
         <div className="inst-info-item"><span className="inst-info-label">Status</span><strong className="inst-status-active">Active</strong></div>
       </div>
@@ -124,17 +181,45 @@ export default function InstructorCourseDetails() {
 
         {lessons.length === 0 ? (
           <div className="inst-empty">No lessons yet. Add your first lesson!</div>
-        ) : (
-          <div className="inst-lesson-list">
-            {lessons.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0)).map((l, i) => (
-              <div key={l.id} className="inst-lesson-row card">
-                <div className="inst-lesson-number">{i + 1}</div>
-                <div className="inst-lesson-info">
-                  <strong>{l.title}</strong>
-                  <span>{l.description || "No description"} · {l.durationMinutes || 0} min</span>
-                </div>
+        ) : grouped ? (
+          <div className="inst-semester-groups">
+            {semesterGroups.map(group => (
+              <div key={group.semester} className="inst-semester-group">
+                <h3 className="inst-semester-title">
+                  📘 Semester {group.semester}
+                  <span>
+                    {group.lessons.length} lesson{group.lessons.length === 1 ? "" : "s"}
+                  </span>
+                </h3>
+                {group.lessons.length === 0 ? (
+                  <div className="inst-empty">No lessons in this semester yet.</div>
+                ) : (
+                  <div className="inst-lesson-list">
+                    {group.lessons.map(lessonRow)}
+                  </div>
+                )}
               </div>
             ))}
+
+            {ungroupedLessons.length > 0 && (
+              <div className="inst-semester-group">
+                <h3 className="inst-semester-title">
+                  📗 General
+                  <span>
+                    {ungroupedLessons.length} lesson{ungroupedLessons.length === 1 ? "" : "s"}
+                  </span>
+                </h3>
+                <div className="inst-lesson-list">
+                  {ungroupedLessons.map(lessonRow)}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="inst-lesson-list">
+            {sortedLessons.map((l, i) =>
+              lessonRow({ lesson: l, subject: null }, i)
+            )}
           </div>
         )}
       </div>
