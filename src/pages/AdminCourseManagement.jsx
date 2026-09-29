@@ -44,7 +44,8 @@ function AdminCourseManagement() {
       courseCode: "",
       courseName: "",
       description: "",
-      duration: ""
+      duration: "",
+      totalSemesters: ""
     });
 
   const [editingCourse, setEditingCourse] =
@@ -199,7 +200,8 @@ function AdminCourseManagement() {
         courseCode: "",
         courseName: "",
         description: "",
-        duration: ""
+        duration: "",
+        totalSemesters: ""
       });
 
       setShowCourseForm(false);
@@ -222,15 +224,14 @@ function AdminCourseManagement() {
     try {
 
       setError("");
-      setNotice("");
-
-      await api.adminUpdateCourse(
+      setNotice("");        await api.adminUpdateCourse(
         editingCourse.id,
         {
           courseCode: editingCourse.courseCode,
           courseName: editingCourse.courseName,
           description: editingCourse.description,
           duration: editingCourse.duration,
+          totalSemesters: editingCourse.totalSemesters,
         }
       );
 
