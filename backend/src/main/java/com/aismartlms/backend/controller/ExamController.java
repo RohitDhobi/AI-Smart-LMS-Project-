@@ -51,12 +51,41 @@ public class ExamController {
     }
 
     /**
+     * Students only ever see exams that made it through the workflow:
+     * PUBLISHED (new flow) or a legacy live status (SCHEDULED/LIVE/COMPLETED)
+     * so exams created before this feature keep working. Staff and
+     * instructors see everything.
+     */
+    private boolean visibleToStudent(User user, Exam exam) {
+        if (user == null || access.isStaff(user) || access.isInstructor(user)) {
+            return true;
+        }
+        String status = exam.getStatus() == null
+                ? "" : exam.getStatus().trim().toUpperCase();
+        switch (status) {
+            case "DRAFT":
+            case "PENDING_HOD_APPROVAL":
+            case "REJECTED":
+            case "APPROVED":      // approved but not published yet
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * Students only ever receive the answer key while the exam is inside its
      * scheduled day/time slot - staff see everything, as before.
      */
     private Exam hidePaperFromStudents(Exam exam) {
         User user = access.currentUser();
-        if (user != null && !access.isStaff(user) && !access.isInstructor(user)) {
+        if (user == null) {
+            return exam;
+        }
+        if (!visibleToStudent(user, exam)) {
+            throw new AccessDeniedException("This exam has not been published yet.");
+        }
+        if (!access.isStaff(user) && !access.isInstructor(user)) {
             return examService.visibleToStudent(exam);
         }
         return exam;
@@ -64,8 +93,17 @@ public class ExamController {
 
     private List<Exam> hidePaperFromStudents(List<Exam> exams) {
         User user = access.currentUser();
-        if (user != null && !access.isStaff(user) && !access.isInstructor(user)) {
-            return examService.visibleToStudent(exams);
+        if (user == null) {
+            return exams;
+        }
+        if (!access.isStaff(user) && !access.isInstructor(user)) {
+            List<Exam> visible = new java.util.ArrayList<>();
+            for (Exam exam : exams) {
+                if (visibleToStudent(user, exam)) {
+                    visible.add(examService.visibleToStudent(exam));
+                }
+            }
+            return visible;
         }
         return exams;
     }
@@ -132,7 +170,7 @@ public class ExamController {
             @PathVariable Long id,
             @RequestBody ExamSubmissionRequest request) {
 
-        Exam exam = examService.getExamById(id);
+        Exam exam = hidePaperFromStudents(examService.getExamById(id));
         return ResponseEntity.ok(
                 examService.gradeSubmission(
                         exam,
