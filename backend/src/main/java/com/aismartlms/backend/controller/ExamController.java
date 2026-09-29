@@ -220,6 +220,20 @@ public class ExamController {
         // Instructors cannot smuggle a status change through a plain update:
         // publishing requires POST /{id}/publish (403 unless APPROVED).
         if (!access.isStaff(user)) {
+
+            // The paper is frozen while the HOD is reviewing it, and after
+            // it has gone live for students.
+            String current = existing.getStatus() == null
+                    ? "" : existing.getStatus().trim().toUpperCase();
+            if ("PENDING_HOD_APPROVAL".equals(current)) {
+                throw new AccessDeniedException(
+                        "This exam is awaiting HOD approval and cannot be edited.");
+            }
+            if ("PUBLISHED".equals(current) || "COMPLETED".equals(current)) {
+                throw new AccessDeniedException(
+                        "A published exam cannot be edited. Ask your HOD or an admin.");
+            }
+
             String incoming = exam.getStatus();
             if (incoming != null
                     && !incoming.equalsIgnoreCase(existing.getStatus())) {

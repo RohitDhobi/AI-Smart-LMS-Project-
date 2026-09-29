@@ -64,7 +64,6 @@ export default function InstructorExams() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [paperView, setPaperView] = useState(null);
-  const [expanded, setExpanded] = useState(null); // rejected feedback panel
 
   let viewPaper = null;
   try {
