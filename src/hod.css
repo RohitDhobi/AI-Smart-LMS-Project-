@@ -1072,3 +1072,44 @@ td.hod-actions-cell {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- Exam approval workflow statuses ---------- */
+
+.status-badge.status-draft {
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.status-badge.status-pending_hod_approval {
+  background: var(--warning-light, #fffbeb);
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.status-badge.status-rejected {
+  background: var(--danger-light);
+  color: var(--danger, #dc2626);
+  border-color: var(--danger-border, #fecaca);
+}
+
+.status-badge.status-approved {
+  background: var(--success-light);
+  color: #15803d;
+  border-color: var(--success-border, #bbf7d0);
+}
+
+.status-badge.status-published,
+.status-badge.status-scheduled {
+  background: var(--primary-light, #eff6ff);
+  color: var(--primary-dark, #1d4ed8);
+  border-color: var(--primary-border, #bfdbfe);
+}
+
+[data-theme="dark"] .status-badge.status-approved { color: var(--success, #16a34a); }
+[data-theme="dark"] .status-badge.status-published,
+[data-theme="dark"] .status-badge.status-scheduled { color: #60a5fa; }
+[data-theme="dark"] .status-badge.status-pending_hod_approval { color: #fbbf24; }
+
+/* Approval list page tweaks */
+.hod-exam-approvals .hod-table-wrap { overflow-x: auto; }
