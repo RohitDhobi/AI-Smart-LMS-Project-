@@ -150,4 +150,14 @@ public class Exam {
 
     public List<Question> getQuestions() { return questions; }
     public void setQuestions(List<Question> questions) { this.questions = questions; }
+
+    // The course itself is write-only (lazy), so expose read-only ids/names
+    // for the exam lists - "My Exams" and the HOD approvals table need them.
+    public Long getCourseId() {
+        return course == null ? null : course.getId();
+    }
+
+    public String getCourseName() {
+        return course == null ? null : course.getTitle();
+    }
 }
