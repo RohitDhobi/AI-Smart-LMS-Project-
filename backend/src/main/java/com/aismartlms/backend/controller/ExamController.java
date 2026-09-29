@@ -220,17 +220,28 @@ public class ExamController {
         // publishing requires POST /{id}/publish (403 unless APPROVED).
         if (!access.isStaff(user)) {
 
-            // The paper is frozen while the HOD is reviewing it, and after
-            // it has gone live for students.
+            // The paper is frozen while the HOD is reviewing it, once it
+            // is approved (so the approved content cannot be altered), and
+            // after it has gone live for students.
             String current = existing.getStatus() == null
                     ? "" : existing.getStatus().trim().toUpperCase();
             if ("PENDING_HOD_APPROVAL".equals(current)) {
                 throw new AccessDeniedException(
                         "This exam is awaiting HOD approval and cannot be edited.");
             }
+            if ("APPROVED".equals(current)) {
+                throw new AccessDeniedException(
+                        "This exam is approved and cannot be edited - publish it or ask your HOD.");
+            }
             if ("PUBLISHED".equals(current) || "COMPLETED".equals(current)) {
                 throw new AccessDeniedException(
                         "A published exam cannot be edited. Ask your HOD or an admin.");
+            }
+            if (!"DRAFT".equals(current) && !"REJECTED".equals(current)) {
+                // Legacy statuses (SCHEDULED/LIVE/...) predate the workflow.
+                // Staff handle those from the HOD panel.
+                throw new AccessDeniedException(
+                        "Only draft or rejected exams can be edited.");
             }
 
             String incoming = exam.getStatus();
