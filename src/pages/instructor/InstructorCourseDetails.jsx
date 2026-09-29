@@ -62,8 +62,8 @@ export default function InstructorCourseDetails() {
   // Degree programs (BCA, MCA, ...) organise their subjects across
   // semesters. When the course has semesters and its lessons belong to
   // subjects, the lesson list is grouped Semester 1..N instead of one
-  // flat list. Lessons without a (semstered) subject fall back to a
-  // "General" group, and the flat list is kept as a fallback.
+  // flat list. Lessons without a subject (or without a semester) fall
+  // back to a "General" group, and the flat list stays as a fallback.
   const totalSemesters = Number(course.totalSemesters) || 0;
 
   const subjectById = new Map(
