@@ -111,3 +111,100 @@ test("a network failure marks the backend down and serves the sample list", asyn
 
   _setBackendDown(false);
 });
+
+// =====================================================
+// EXAM APPROVAL WORKFLOW ENDPOINTS
+// =====================================================
+
+test("submitExamForApproval posts to the workflow endpoint", async () => {
+  stubStorage();
+  globalThis.localStorage.setItem("token", "jwt-1");
+  const calls = stubFetch(200, JSON.stringify({ id: 5, status: "PENDING_HOD_APPROVAL" }));
+
+  const result = await api.submitExamForApproval(5);
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exams/5/submit-for-approval`);
+  assert.equal(calls[0].options.method, "POST");
+  assert.equal(calls[0].options.headers.Authorization, "Bearer jwt-1");
+  assert.equal(result.status, "PENDING_HOD_APPROVAL");
+});
+
+test("publishExam posts to the publish endpoint", async () => {
+  stubStorage();
+  const calls = stubFetch(200, JSON.stringify({ id: 5, status: "PUBLISHED" }));
+
+  await api.publishExam(5);
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exams/5/publish`);
+  assert.equal(calls[0].options.method, "POST");
+});
+
+test("publishing an unapproved exam surfaces the backend 403 message", async () => {
+  stubStorage();
+  _setBackendDown(false);
+  stubFetch(403, JSON.stringify({
+    error: "Exam must be approved by HOD before publishing."
+  }));
+
+  await assert.rejects(
+    () => api.publishExam(7),
+    /Exam must be approved by HOD before publishing\./
+  );
+
+  // an auth failure must not flip the app into offline/mock mode
+  const calls = stubFetch(200, JSON.stringify([{ id: 1 }]));
+  assert.equal((await api.exams()).length, 1);
+  assert.equal(calls.length, 1);
+});
+
+test("hodRejectExam sends the mandatory rejection reason", async () => {
+  stubStorage();
+  const calls = stubFetch(200, JSON.stringify({ id: 9, status: "REJECTED" }));
+
+  await api.hodRejectExam(9, "Section C contains insufficient 3-mark questions.");
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/hod/exam-approvals/9/reject`);
+  assert.equal(calls[0].options.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    reason: "Section C contains insufficient 3-mark questions."
+  });
+});
+
+test("hodApproveExam posts to the approve endpoint", async () => {
+  stubStorage();
+  const calls = stubFetch(200, JSON.stringify({ id: 9, status: "APPROVED" }));
+
+  await api.hodApproveExam(9);
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/hod/exam-approvals/9/approve`);
+  assert.equal(calls[0].options.method, "POST");
+});
+
+test("hodExamApprovals encodes the status filter", async () => {
+  stubStorage();
+  const calls = stubFetch(200, "[]");
+
+  await api.hodExamApprovals("PENDING_HOD_APPROVAL");
+  assert.match(
+    calls[0].url,
+    /\/api\/hod\/exam-approvals\?status=PENDING_HOD_APPROVAL$/
+  );
+
+  const calls2 = stubFetch(200, "[]");
+  await api.hodExamApprovals();
+  assert.equal(calls2[0].url, `${"http://localhost:8080/api"}/hod/exam-approvals`);
+});
+
+test("myExams and adminSetExamStatus hit the right endpoints", async () => {
+  stubStorage();
+  const calls = stubFetch(200, "[]");
+
+  await api.myExams();
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exams/mine`);
+
+  const calls2 = stubFetch(200, JSON.stringify({ id: 3, status: "PUBLISHED" }));
+  await api.adminSetExamStatus(3, "PUBLISHED");
+  assert.equal(calls2[0].url, `${"http://localhost:8080/api"}/exams/3/status`);
+  assert.equal(calls2[0].options.method, "PUT");
+  assert.deepEqual(JSON.parse(calls2[0].options.body), { status: "PUBLISHED" });
+});
