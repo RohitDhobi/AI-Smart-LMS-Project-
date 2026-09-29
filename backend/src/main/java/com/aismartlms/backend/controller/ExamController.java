@@ -2,9 +2,12 @@ package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.dto.ExamSubmissionRequest;
 import com.aismartlms.backend.entity.Exam;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.service.ExamApprovalService;
 import com.aismartlms.backend.service.ExamService;
 import com.aismartlms.backend.service.InstructorAccessService;
+import com.aismartlms.backend.exception.AccessDeniedException;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +22,15 @@ import java.util.Map;
 public class ExamController {
 
     private final ExamService examService;
+    private final ExamApprovalService approvals;
     private final InstructorAccessService access;
 
     public ExamController(
             ExamService examService,
+            ExamApprovalService approvals,
             InstructorAccessService access) {
         this.examService = examService;
+        this.approvals = approvals;
         this.access = access;
     }
 
@@ -69,6 +75,41 @@ public class ExamController {
         return ResponseEntity.ok(hidePaperFromStudents(examService.getAllExams()));
     }
 
+    // =========================
+    // APPROVAL WORKFLOW (INSTRUCTOR SIDE)
+    //
+    // Students only ever receive published papers; everything below is
+    // re-verified on the server - the UI merely hides the buttons.
+    // =========================
+
+    /** "My Exams": exams created by the logged-in instructor (staff see all). */
+    @GetMapping("/mine")
+    public ResponseEntity<List<Exam>> getMyExams() {
+        User user = access.requireCurrentUser();
+        return ResponseEntity.ok(hidePaperFromStudents(approvals.myExams(user)));
+    }
+
+    /** DRAFT/REJECTED -> PENDING_HOD_APPROVAL. */
+    @PostMapping("/{id}/submit-for-approval")
+    public ResponseEntity<Exam> submitForApproval(@PathVariable Long id) {
+        return ResponseEntity.ok(approvals.submitForApproval(id));
+    }
+
+    /** APPROVED -> PUBLISHED. HTTP 403 before the HOD has approved. */
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<Exam> publish(@PathVariable Long id) {
+        return ResponseEntity.ok(approvals.publish(id));
+    }
+
+    /** ADMIN only: force an exam into any workflow status. */
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Exam> overrideStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(
+                approvals.overrideStatus(id, body == null ? null : body.get("status")));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Exam> getExamById(@PathVariable Long id) {
         return ResponseEntity.ok(hidePaperFromStudents(examService.getExamById(id)));
@@ -111,12 +152,43 @@ public class ExamController {
             access.requireCourseManage(target.getId());
         }
 
+        User user = access.requireCurrentUser();
+
+        // Instructors always start at DRAFT and own what they create:
+        // they cannot self-publish (the HOD approval gate enforces that).
+        if (access.isInstructor(user)) {
+            exam.setStatus(ExamApprovalService.DRAFT);
+            exam.setCreatedBy(user.getId());
+            exam.setCreatedByName(user.getName());
+        }
+
         return ResponseEntity.ok(examService.createExam(exam));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Exam> updateExam(@PathVariable Long id, @RequestBody Exam exam) {
         requireManageExam(id);
+
+        User user = access.requireCurrentUser();
+        Exam existing = examService.getExamById(id);
+
+        // Instructors cannot smuggle a status change through a plain update:
+        // publishing requires POST /{id}/publish (403 unless APPROVED).
+        if (!access.isStaff(user)) {
+            String incoming = exam.getStatus();
+            if (incoming != null
+                    && !incoming.equalsIgnoreCase(existing.getStatus())) {
+                if ("PUBLISHED".equalsIgnoreCase(incoming)
+                        || "APPROVED".equalsIgnoreCase(incoming)) {
+                    throw new AccessDeniedException(
+                            ExamApprovalService.NOT_APPROVED_MESSAGE);
+                }
+                throw new AccessDeniedException(
+                        "Exam status can only be changed through submit, approval or publishing.");
+            }
+            exam.setStatus(existing.getStatus());
+        }
+
         return ResponseEntity.ok(examService.updateExam(id, exam));
     }
 
