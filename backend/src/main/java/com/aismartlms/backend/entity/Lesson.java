@@ -166,12 +166,18 @@ public class Lesson {
     //
     // The Subject association itself is a @JsonBackReference and is never
     // written to the response. Exposing just the id lets the UI group a
-    // course's lessons by semester (GET /courses/{id}/subjects) without
-    // hydrating the lazy association: Hibernate resolves an id straight
-    // from the proxy, so this does not trigger a database round-trip.
+    // course's lessons by semester (GET /courses/{id}/subjects).
+    //
+    // Deliberately NOT a JavaBean getter (getSubjectId): Spring Data
+    // derives repository queries from get*/is* properties, and a
+    // "subjectId" property on Lesson would shadow the lesson.subject.id
+    // path used by ProgressRepository.findByUserEmailAndLessonSubjectId(...),
+    // breaking startup with "Unable to locate Attribute [subjectId]".
+    // Hibernate resolves the id straight from the lazy proxy, so this
+    // does not trigger a database round-trip.
 
     @JsonProperty("subjectId")
-    public Long getSubjectId() {
+    public Long currentSubjectId() {
         return subject == null ? null : subject.getId();
     }
 }
