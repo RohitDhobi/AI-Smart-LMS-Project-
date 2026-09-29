@@ -45,6 +45,7 @@ public class HODController {
     private final AIQuestionService aiQuestionService;
     private final com.aismartlms.backend.service.QuestionService questionService;
     private final com.aismartlms.backend.repository.ExamRepository examRepository;
+    private final com.aismartlms.backend.service.ExamApprovalService examApprovalService;
 
     public HODController(
             HODService hodService,
@@ -53,7 +54,8 @@ public class HODController {
             QuestionRepository questionRepository,
             AIQuestionService aiQuestionService,
             com.aismartlms.backend.service.QuestionService questionService,
-            com.aismartlms.backend.repository.ExamRepository examRepository) {
+            com.aismartlms.backend.repository.ExamRepository examRepository,
+            com.aismartlms.backend.service.ExamApprovalService examApprovalService) {
 
         this.hodService = hodService;
         this.assignmentRepository = assignmentRepository;
@@ -62,6 +64,7 @@ public class HODController {
         this.aiQuestionService = aiQuestionService;
         this.questionService = questionService;
         this.examRepository = examRepository;
+        this.examApprovalService = examApprovalService;
     }
 
     // =========================
@@ -296,6 +299,154 @@ public class HODController {
         }
 
         return result;
+    }
+
+    // =========================
+    // EXAM APPROVAL WORKFLOW (HOD SIDE)
+    //
+    // Re-checked on the server: HOD role, department scope, and
+    // "nobody approves their own exam" - never only in React.
+    // =========================
+
+    /** Exams waiting for a decision (+ optional ?status= filter). */
+    @GetMapping("/exam-approvals")
+    public List<Map<String, Object>> getExamApprovals(
+            Authentication authentication,
+            @RequestParam(value = "status", required = false) String status) {
+
+        requireHOD(authentication);
+        User hod = me(authentication);
+
+        List<com.aismartlms.backend.entity.Exam> exams =
+                examApprovalService.approvalsFor(hod, status);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (com.aismartlms.backend.entity.Exam exam : exams) {
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("id", exam.getId());
+            item.put("title", exam.getTitle());
+            item.put("description", exam.getDescription());
+            item.put("status", exam.getStatus());
+            item.put("duration", exam.getDurationMinutes());
+            item.put("totalMarks", exam.getTotalMarks());
+            item.put("passingMarks", exam.getPassingMarks());
+            item.put("date", exam.getStartTime());
+            item.put("startTime", exam.getStartTime());
+            item.put("endTime", exam.getEndTime());
+            item.put("subjectName", exam.getSubjectName());
+            item.put("createdBy", exam.getCreatedBy());
+            item.put("createdByName", exam.getCreatedByName());
+            item.put("submittedAt", exam.getSubmittedAt());
+            item.put("approvedBy", exam.getApprovedBy());
+            item.put("approvedByName", exam.getApprovedByName());
+            item.put("approvedAt", exam.getApprovedAt());
+            item.put("rejectionReason", exam.getRejectionReason());
+            item.put("publishedAt", exam.getPublishedAt());
+            item.put("hasQuestionPaper",
+                    exam.getQuestionPaper() != null
+                            && !exam.getQuestionPaper().isBlank());
+
+            if (exam.getCourse() != null) {
+                item.put("courseId", exam.getCourse().getId());
+                item.put("courseName", exam.getCourse().getTitle());
+            }
+
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** One exam in full for the review screen (incl. the question paper). */
+    @GetMapping("/exam-approvals/{id}")
+    public Map<String, Object> getExamApprovalDetail(
+            Authentication authentication,
+            @PathVariable Long id) {
+
+        requireHOD(authentication);
+        User hod = me(authentication);
+
+        com.aismartlms.backend.entity.Exam exam = examRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        // Department scope is re-checked here, not just on the list screen.
+        if (hod.getRole() == Role.HOD
+                && exam.getCourse() != null
+                && hod.getCourse() != null
+                && hod.getCourse().getId() != null
+                && !hod.getCourse().getId().equals(exam.getCourse().getId())) {
+            throw new AccessDeniedException(
+                    "This exam belongs to a course outside your department.");
+        }
+
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", exam.getId());
+        item.put("title", exam.getTitle());
+        item.put("description", exam.getDescription());
+        item.put("status", exam.getStatus());
+        item.put("duration", exam.getDurationMinutes());
+        item.put("totalMarks", exam.getTotalMarks());
+        item.put("passingMarks", exam.getPassingMarks());
+        item.put("negativeMarking", exam.getNegativeMarking());
+        item.put("negativeMarkValue", exam.getNegativeMarkValue());
+        item.put("date", exam.getStartTime());
+        item.put("startTime", exam.getStartTime());
+        item.put("endTime", exam.getEndTime());
+        item.put("subjectName", exam.getSubjectName());
+        item.put("createdBy", exam.getCreatedBy());
+        item.put("createdByName", exam.getCreatedByName());
+        item.put("submittedAt", exam.getSubmittedAt());
+        item.put("approvedBy", exam.getApprovedBy());
+        item.put("approvedByName", exam.getApprovedByName());
+        item.put("approvedAt", exam.getApprovedAt());
+        item.put("rejectionReason", exam.getRejectionReason());
+        item.put("publishedAt", exam.getPublishedAt());
+        item.put("questionPaper", exam.getQuestionPaper());
+        if (exam.getCourse() != null) {
+            item.put("courseId", exam.getCourse().getId());
+            item.put("courseName", exam.getCourse().getTitle());
+        }
+        return item;
+    }
+
+    /** HOD decision: APPROVED. */
+    @PostMapping("/exam-approvals/{id}/approve")
+    public ResponseEntity<Map<String, Object>> approveExam(
+            Authentication authentication,
+            @PathVariable Long id) {
+
+        requireHOD(authentication);
+        com.aismartlms.backend.entity.Exam exam = examApprovalService.approve(id);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("id", exam.getId());
+        result.put("status", exam.getStatus());
+        result.put("approvedBy", exam.getApprovedBy());
+        result.put("approvedByName", exam.getApprovedByName());
+        result.put("approvedAt", exam.getApprovedAt());
+        result.put("message", "Exam approved by HOD");
+        return ResponseEntity.ok(result);
+    }
+
+    /** HOD decision: REJECTED - reason is mandatory (400 without one). */
+    @PostMapping("/exam-approvals/{id}/reject")
+    public ResponseEntity<Map<String, Object>> rejectExam(
+            Authentication authentication,
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> body) {
+
+        requireHOD(authentication);
+        String reason = body == null ? null : body.get("reason");
+        com.aismartlms.backend.entity.Exam exam = examApprovalService.reject(id, reason);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("id", exam.getId());
+        result.put("status", exam.getStatus());
+        result.put("rejectionReason", exam.getRejectionReason());
+        result.put("message", "Exam rejected - feedback sent to instructor");
+        return ResponseEntity.ok(result);
     }
 
     // =========================
