@@ -170,7 +170,14 @@ public class ExamController {
             @PathVariable Long id,
             @RequestBody ExamSubmissionRequest request) {
 
-        Exam exam = hidePaperFromStudents(examService.getExamById(id));
+        Exam exam = examService.getExamById(id);
+
+        // Unpublished papers can never be sat - even with a direct POST.
+        if (!visibleToStudent(access.currentUser(), exam)) {
+            throw new AccessDeniedException(
+                    "This exam has not been published yet.");
+        }
+
         return ResponseEntity.ok(
                 examService.gradeSubmission(
                         exam,
