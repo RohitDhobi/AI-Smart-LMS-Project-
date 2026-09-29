@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api";
-import { getStoredUser } from "../../ui";
 
 // =====================================================
 // HOD - EXAM APPROVALS
@@ -63,8 +62,6 @@ export default function HODExamApprovals() {
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [decisionBusy, setDecisionBusy] = useState(false);
-
-  const user = getStoredUser();
 
   useEffect(() => { load(); }, [filter]);
 
