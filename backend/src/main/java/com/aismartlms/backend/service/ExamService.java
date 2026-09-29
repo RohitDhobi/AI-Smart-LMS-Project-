@@ -345,6 +345,14 @@ public class ExamService {
         existing.setEndTime(updated.getEndTime());
         existing.setStatus(updated.getStatus());
         existing.setQuestionPaper(updated.getQuestionPaper());
+
+        // Subject is only overwritten when the client actually sent one,
+        // so partial updates (e.g. schedule-only saves) keep their subject.
+        if (updated.getSubjectId() != null) {
+            existing.setSubjectId(updated.getSubjectId());
+            existing.setSubjectName(updated.getSubjectName());
+        }
+
         return examRepository.save(existing);
     }
 
