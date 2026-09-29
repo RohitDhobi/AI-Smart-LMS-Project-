@@ -2,6 +2,7 @@ package com.aismartlms.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.*;
 
 @Entity
@@ -157,5 +158,20 @@ public class Lesson {
 
     public void setSubject(Subject subject) {
         this.subject = subject;
+    }
+
+    // =========================
+    // SUBJECT ID (JSON only)
+    // =========================
+    //
+    // The Subject association itself is a @JsonBackReference and is never
+    // written to the response. Exposing just the id lets the UI group a
+    // course's lessons by semester (GET /courses/{id}/subjects) without
+    // hydrating the lazy association: Hibernate resolves an id straight
+    // from the proxy, so this does not trigger a database round-trip.
+
+    @JsonProperty("subjectId")
+    public Long getSubjectId() {
+        return subject == null ? null : subject.getId();
     }
 }

@@ -352,6 +352,7 @@ public class HODService {
             item.put("price", course.getPrice());
             item.put("duration", course.getDuration());
             item.put("status", course.getStatus());
+            item.put("totalSemesters", course.getTotalSemesters());
 
             List<Subject> courseSubjects = subjectRepository.findByCourseId(course.getId());
 
