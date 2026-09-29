@@ -46,6 +46,44 @@ public class Exam {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // =========================
+    // HOD APPROVAL WORKFLOW
+    //
+    // Status flow:
+    //   DRAFT -> PENDING_HOD_APPROVAL -> APPROVED -> PUBLISHED
+    //                    \-> REJECTED -> (edit) -> PENDING_HOD_APPROVAL
+    // =========================
+
+    /** Optional subject this exam belongs to (degree programs have subjects). */
+    private Long subjectId;
+
+    /** Denormalized subject name, kept for list/approval views. */
+    private String subjectName;
+
+    /** User id of the instructor who created the exam. */
+    private Long createdBy;
+
+    /** Denormalized creator name (list views never join the users table). */
+    private String createdByName;
+
+    /** When the instructor submitted the exam for HOD approval. */
+    private LocalDateTime submittedAt;
+
+    /** User id of the HOD (or admin) who approved the exam. */
+    private Long approvedBy;
+
+    /** Denormalized approver name - shown as "Approved By: ..." in the UI. */
+    private String approvedByName;
+
+    private LocalDateTime approvedAt;
+
+    /** Why the HOD rejected the exam (feedback for the instructor). */
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    /** When the instructor published the (approved) exam to students. */
+    private LocalDateTime publishedAt;
+
     // JSON-serialized AI-generated question paper (uploaded from AI Tools)
     @Column(columnDefinition = "TEXT")
     private String questionPaper;
@@ -84,6 +122,27 @@ public class Exam {
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Long getSubjectId() { return subjectId; }
+    public void setSubjectId(Long subjectId) { this.subjectId = subjectId; }
+    public String getSubjectName() { return subjectName; }
+    public void setSubjectName(String subjectName) { this.subjectName = subjectName; }
+    public Long getCreatedBy() { return createdBy; }
+    public void setCreatedBy(Long createdBy) { this.createdBy = createdBy; }
+    public String getCreatedByName() { return createdByName; }
+    public void setCreatedByName(String createdByName) { this.createdByName = createdByName; }
+    public LocalDateTime getSubmittedAt() { return submittedAt; }
+    public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
+    public Long getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(Long approvedBy) { this.approvedBy = approvedBy; }
+    public String getApprovedByName() { return approvedByName; }
+    public void setApprovedByName(String approvedByName) { this.approvedByName = approvedByName; }
+    public LocalDateTime getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public LocalDateTime getPublishedAt() { return publishedAt; }
+    public void setPublishedAt(LocalDateTime publishedAt) { this.publishedAt = publishedAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public String getQuestionPaper() { return questionPaper; }
