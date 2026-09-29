@@ -18,6 +18,7 @@ const hodMenuItems = [
     items: [
       { label: "Dashboard", path: "/hod", icon: LayoutDashboard, exact: true },
       { label: "Analytics", path: "/hod/analytics", icon: BarChart3 },
+      { label: "Exam Approvals", path: "/hod/exam-approvals", icon: ClipboardList },
     ],
   },
   {

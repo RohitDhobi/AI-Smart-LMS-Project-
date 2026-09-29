@@ -116,6 +116,7 @@ import HODDivisions from "./pages/hod/HODDivisions";
 import HODStudents from "./pages/hod/HODStudents";
 import HODQuestions from "./pages/hod/HODQuestions";
 import HODExams from "./pages/hod/HODExams";
+import HODExamApprovals from "./pages/hod/HODExamApprovals";
 import HODAnnouncements from "./pages/hod/HODAnnouncements";
 import HODSettings from "./pages/hod/HODSettings";
 
@@ -633,6 +634,7 @@ function App() {
         <Route path="exams" element={<HODExams />} />
         <Route path="exams/new" element={<HODExams />} />
         <Route path="exams/:id" element={<HODExams />} />
+        <Route path="exam-approvals" element={<HODExamApprovals />} />
         <Route path="announcements" element={<HODAnnouncements />} />
         <Route path="settings" element={<HODSettings />} />
       </Route>

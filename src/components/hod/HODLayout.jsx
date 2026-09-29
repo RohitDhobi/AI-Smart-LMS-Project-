@@ -9,6 +9,7 @@ const NAV = [
   { section: "MAIN", items: [
     { to: "/hod", icon: LayoutDashboard, label: "Dashboard", exact: true },
     { to: "/hod/analytics", icon: BarChart3, label: "Analytics" },
+    { to: "/hod/exam-approvals", icon: ClipboardList, label: "Exam Approvals" },
   ]},
   { section: "COURSES / SUBJECTS", items: [
     { to: "/hod/courses", icon: BookOpen, label: "Courses / Subjects" },
