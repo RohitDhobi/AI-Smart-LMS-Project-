@@ -819,6 +819,10 @@ function ExamManage({ examId }) {
                   onChange={(e) => setStatus(e.target.value)}
                 >
                   <option value="DRAFT">Draft</option>
+                  <option value="PENDING_HOD_APPROVAL">Pending HOD Approval</option>
+                  <option value="REJECTED">Rejected</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="PUBLISHED">Published</option>
                   <option value="SCHEDULED">Scheduled</option>
                   <option value="LIVE">Live</option>
                   <option value="COMPLETED">Completed</option>
