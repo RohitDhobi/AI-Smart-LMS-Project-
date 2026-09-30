@@ -8154,6 +8154,27 @@ a.course-card:hover {
   color:#64748b!important
 }
 
+/* Dark mode: the forced light-mode modal colors above make titles/question
+   text (light theme colors) disappear on the white body. Re-anchor the modal
+   on the theme variables so both modes stay readable. */
+[data-theme="dark"] .modal {
+  background:var(--surface)!important;
+  border-color:var(--border)!important
+}
+
+[data-theme="dark"] .modal-head {
+  border-bottom-color:var(--border)!important
+}
+
+[data-theme="dark"] .modal-head h3 {
+  color:var(--text)!important
+}
+
+[data-theme="dark"] .modal-close {
+  background:var(--surface-soft);
+  color:var(--text-secondary)!important
+}
+
 .flashcard-add textarea {
   background:#fff!important;
   border-color:#e2e8f0!important;
