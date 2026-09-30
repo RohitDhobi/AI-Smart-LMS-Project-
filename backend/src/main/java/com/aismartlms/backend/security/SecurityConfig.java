@@ -190,6 +190,28 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /** No/expired JWT -> 401 with a message the frontend can act on. */
+    private AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(
+                    "{\"error\":\"Unauthorized. Please login again.\"}");
+        };
+    }
+
+    /** Authenticated but not allowed -> 403 with a message, never empty. */
+    private AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(
+                    "{\"error\":\"Access denied. You don't have permission.\"}");
+        };
+    }
+
     // =========================================================
     // CORS CONFIGURATION
     // =========================================================
