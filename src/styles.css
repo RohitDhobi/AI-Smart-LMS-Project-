@@ -8171,7 +8171,6 @@ a.course-card:hover {
 }
 
 [data-theme="dark"] .modal-close {
-  background:var(--surface-soft);
   color:var(--text-secondary)!important
 }
 
