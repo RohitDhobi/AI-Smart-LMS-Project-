@@ -126,7 +126,12 @@ export async function apiRequest(endpoint, options = {}) {
 
   if (!response.ok) {
     if (response.status === 401) {
+      // The session is gone server-side (expired/invalid JWT, deleted user).
+      // Drop the whole session, not just the token: keeping "user" around
+      // left the shell rendering a logged-in sidebar while every request
+      // failed, i.e. a zombie session.
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
       const authMessage =
         typeof data === "string"
@@ -134,6 +139,17 @@ export async function apiRequest(endpoint, options = {}) {
           : data?.message ||
             data?.error ||
             null;
+
+      // Send the user back to login instead of leaving them on a page that
+      // can never load again. Skipped on the auth pages themselves so a
+      // failed login attempt still shows its own error message.
+      if (
+        typeof window !== "undefined" &&
+        window.location &&
+        !/^\/(login|register|staff-login)\/?$/.test(window.location.pathname)
+      ) {
+        window.location.assign("/login");
+      }
 
       throw new Error(
         authMessage || "Unauthorized. Please login again."
