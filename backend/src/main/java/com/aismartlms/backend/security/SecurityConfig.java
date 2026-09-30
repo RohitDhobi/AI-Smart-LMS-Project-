@@ -24,7 +24,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -164,6 +168,17 @@ public class SecurityConfig {
 
                     // Everything else requires JWT
                     .anyRequest().authenticated()
+                .and()
+
+                // Anonymous / over-privileged requests must be reported as
+                // real HTTP errors with a JSON body. Without this,
+                // Http403ForbiddenEntryPoint answered every unauthenticated
+                // request with a bare 403 and no body, so the SPA could not
+                // tell "your session expired" apart from a genuine
+                // permission problem and showed "Access denied" forever.
+                .exceptionHandling()
+                    .authenticationEntryPoint(authenticationEntryPoint())
+                    .accessDeniedHandler(accessDeniedHandler())
                 .and()
 
                 // JWT filter
