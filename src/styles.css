@@ -8299,6 +8299,22 @@ a.course-card:hover {
   background:#eff6ff!important
 }
 
+/* Dark mode: the forced light-mode tint above turns inline-styled elements
+   (e.g. the selected exam-option pill) white while their text keeps the dark
+   theme's light colour, making the text unreadable. Re-anchor them on the
+   theme variable so they get the dark variant instead. */
+[data-theme="dark"] [style*="var(--primary-light)"] {
+  background:var(--primary-light)!important
+}
+
+[data-theme="dark"] [style*="var(--surface-soft)"] {
+  background:var(--surface-soft)!important
+}
+
+[data-theme="dark"] [style*="var(--border)"] {
+  border-color:var(--border)!important
+}
+
 [style*="var(--text-muted)"] {
   color:#94a3b8!important
 }
