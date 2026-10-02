@@ -115,7 +115,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[Request + Authorization: Bearer x] --> B{Header present and Bearer?}
+    A["Request + Authorization: Bearer x"] --> B{Header present and Bearer?}
     B -->|no| Z[Continue unauthenticated → 401 JSON entry point]
     B -->|yes| C[JwtService.extractEmail token]
     C -->|bad/expired signature| D[SecurityContext cleared → 401]
