@@ -31,6 +31,13 @@ export default function HODDivisions({ mode }) {
     return <DivisionList courseId={id} />;
   }
 
+  // `/hod/divisions/new` is declared as a LITERAL route (not `divisions/:id`),
+  // so useParams() is empty there - match on the pathname instead. Otherwise
+  // the create link only changes the URL while the list view stays on screen.
+  if (location.pathname.endsWith("/new")) {
+    return <DivisionForm divisionId={null} />;
+  }
+
   if (!id) return <DivisionList courseId={null} />;
   if (id === "new") return <DivisionForm divisionId={null} />;
   if (location.pathname.endsWith("/students")) {
