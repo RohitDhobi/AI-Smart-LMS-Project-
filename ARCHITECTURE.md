@@ -68,11 +68,6 @@ Gamification (client-side XP/badges/streak) · 3D showcase pages.
 
 ```mermaid
 flowchart TD
-    S[Student] --> FE
-    I[Instructor] --> FE
-    H[HOD] --> FE
-    A[Admin] --> FE
-
     subgraph FE["React Frontend (Vite :5173)"]
         FE1["src/api.js — fetch + JWT"]
         FE2["Role panels: /dashboard /instructor /hod /admin"]
@@ -80,8 +75,6 @@ flowchart TD
         FE1 --- FE2
         FE1 --- FE3
     end
-
-    FE -->|HTTP  JSON  Authorization: Bearer JWT| BE
 
     subgraph BE["Spring Boot Backend (:8080)"]
         SEC["JwtAuthenticationFilter + SecurityConfig"]
@@ -91,16 +84,20 @@ flowchart TD
         SEC --> CTRL --> SVC --> REPO
     end
 
-    BE --> DB[(MySQL: ai_smart_lms)]
-
-    subgraph AI["AI layer (no external API today)"]
+    subgraph AIL["AI layer (no external API today)"]
         AI1["AIQuestionService (rule/template engine)"]
         AI2["Keyword study-assistant in AdvancedFeatureController"]
         AI3["Rule-based recommender / weak-topic / learning-path"]
     end
-    SVC --> AI
 
-    AI -. "PLANNED / NOT IMPLEMENTED" .-> GEM["External LLM API (Gemini)"]
+    S[Student] --> FE
+    I[Instructor] --> FE
+    H[HOD] --> FE
+    A[Admin] --> FE
+    FE -->|HTTP JSON + Authorization: Bearer JWT| BE
+    SVC --> AIL
+    AIL -. "PLANNED / NOT IMPLEMENTED" .-> GEM["External LLM API (Gemini)"]
+    BE --> DB[(MySQL: ai_smart_lms)]
 ```
 
 ### What each component actually is
@@ -178,17 +175,18 @@ There is **no Redux/Zustand/Context store**. State comes from three places:
 
 ```mermaid
 flowchart LR
-    subgraph Browser
+    subgraph Browser["Browser"]
         P[Page component] --> API["src/api.js<br/>apiRequest()"]
         API --> LS[("localStorage<br/>token + user")]
         API --> LB[Local modules<br/>gamification / flashcards]
         API --> LLAIE["src/ai-question-engine.js<br/>(local fallback)"]
     end
-    API -->|Bearer JWT| SB
 
     subgraph SB["Spring Boot :8080"]
         SEC[Security filter] --> C[Controller] --> S[Service] --> R[Repository]
     end
+
+    API -->|Bearer JWT| SEC
     R --> DB[(MySQL)]
 ```
 
