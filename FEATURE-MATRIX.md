@@ -247,11 +247,11 @@ Reading the matrix above (one row = one feature):
   certificate instructor endpoints (no role check), audit-logs page, admin/HOD settings pages,
   gamification/flashcards/leaderboard (localStorage only), the coding judge, and the
   client-side route guard.
-- **9 rows are `PLANNED / NOT IMPLEMENTED`** — Python AI service, TensorFlow, Gemini text,
+- **8 rows are `PLANNED / NOT IMPLEMENTED`** — Python AI service, TensorFlow, Gemini text,
   Gemini voice, non-MCQ persisted questions, email/push notifications, question approval,
-  audit logging, plus AI submission feedback.
-- **4 rows are `NOT FOUND`** — standalone question-bank entity, CI/CD, container deployment
-  and persisted AI submission feedback.
+  audit logging.
+- **4 rows are `NOT FOUND`** — standalone question-bank entity, AI submission feedback,
+  CI/CD, container deployment.
 
 ---
 
