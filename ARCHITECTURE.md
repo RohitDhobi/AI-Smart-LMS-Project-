@@ -249,7 +249,7 @@ com.aismartlms.backend
 └── service/                         # 19 @Service classes
 ```
 
-### Controllers (all 22)
+### Controllers (19 `@RestController` + 1 `@RestControllerAdvice`)
 
 | Controller | Base path | Responsibility |
 |---|---|---|
@@ -274,13 +274,13 @@ com.aismartlms.backend
 | `CodingPracticeController` | `/api/coding` | problems, run/submit, submissions, `ai-assist`, admin problem CRUD |
 | `ApiExceptionHandler` | `@RestControllerAdvice` | `RuntimeException` → **400**, `AccessDeniedException` → **403** |
 
-### Services (all 21)
+### Services (19 `@Service` classes in `service/`)
 
 `AuthService` · `CourseService` · `EnrollmentService` · `ProgressService` · `LessonService` ·
 `QuestionService` · `QuizAttemptService` · `ExamService` · **`ExamApprovalService`** ·
 **`HODService`** · **`InstructorAccessService`** · `AIQuestionService` · `AssignmentService` ·
 `AttendanceService` · `ResourceService` · `FileStorageService` · `DiscussionService` ·
-`InstructorCertificateService` · `CodingPracticeService` · `AuthService` + `JwtService` (security).
+`InstructorCertificateService` · `CodingPracticeService` · plus `JwtService` in `security/`.
 
 ### Actual request flow
 
