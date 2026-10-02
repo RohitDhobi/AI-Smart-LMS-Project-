@@ -235,16 +235,23 @@
 
 ---
 
-## 19. Counts
+## 19. Distribution
 
-| Status | Count (features listed above) |
-|---|---|
-| IMPLEMENTED | 74 |
-| PARTIALLY IMPLEMENTED | 20 |
-| PLANNED / NOT IMPLEMENTED | 9 |
-| NOT FOUND | 4 |
+Reading the matrix above (one row = one feature):
 
-> Counts are approximate and refer to the rows of this matrix, not to lines of code.
+- The **large majority** of rows are `IMPLEMENTED` — auth, roles, curriculum, enrolment,
+  progress, quizzes, the exam approval workflow, HOD assignment/division management,
+  admin user management, reviews, wishlist, certificates, in-app notifications, analytics,
+  assignments, attendance, resources, discussions and the shell/packaging layers.
+- A **small but important group** is `PARTIALLY IMPLEMENTED` — question-bank metadata,
+  certificate instructor endpoints (no role check), audit-logs page, admin/HOD settings pages,
+  gamification/flashcards/leaderboard (localStorage only), the coding judge, and the
+  client-side route guard.
+- **9 rows are `PLANNED / NOT IMPLEMENTED`** — Python AI service, TensorFlow, Gemini text,
+  Gemini voice, non-MCQ persisted questions, email/push notifications, question approval,
+  audit logging, plus AI submission feedback.
+- **4 rows are `NOT FOUND`** — standalone question-bank entity, CI/CD, container deployment
+  and persisted AI submission feedback.
 
 ---
 
