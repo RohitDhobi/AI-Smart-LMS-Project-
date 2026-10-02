@@ -97,7 +97,7 @@ flowchart TD
     FE -->|HTTP JSON + Authorization: Bearer JWT| BE
     SVC --> AIL
     AIL -. "PLANNED / NOT IMPLEMENTED" .-> GEM["External LLM API (Gemini)"]
-    BE --> DB[(MySQL: ai_smart_lms)]
+    BE --> DB[("MySQL: ai_smart_lms")]
 ```
 
 ### What each component actually is
@@ -187,7 +187,7 @@ flowchart LR
     end
 
     API -->|Bearer JWT| SEC
-    R --> DB[(MySQL)]
+    R --> DB[("MySQL")]
 ```
 
 ### Actual frontend folder structure (important parts)
@@ -405,14 +405,14 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     U[User] --> FE[React frontend]
-    FE --> API[src/api.js + JWT]
+    FE --> API["src/api.js + JWT"]
     API --> SEC{Spring Security}
     SEC -->|not authenticated| E401[401 JSON]
     SEC -->|ok| C[Controller]
     C --> S[Service]
     S --> AI["AI service<br/>(rule-based)"]
     S --> R[Repository]
-    R --> DB[(MySQL)]
+    R --> DB[("MySQL")]
     DB --> R --> S --> C --> FE --> U
 ```
 
