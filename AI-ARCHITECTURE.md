@@ -157,7 +157,7 @@ flowchart TD
     IAT -->|"local generateQuestions then POST /api/exams"| BE
     HQ -->|"POST /api/hod/questions/generate"| BE
     LP -->|"GET /api/ai/learning-path"| BE
-    AN -->|"GET /api/ai/recommendations | weak-topics | quiz-recommendations"| BE
+    AN -->|"GET /api/ai/recommendations, weak-topics, quiz-recommendations"| BE
     ADM -->|"local presentation + /api/analytics/admin"| BE
     AA -.->|offline| EN
     BE --> AQS
