@@ -70,7 +70,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Instructor signs up] --> B{valid name/email/password>=6?}
+    A[Instructor signs up] --> B{"valid name / email / password length >= 6?"}
     B -->|no| C[400 with message]
     B -->|yes| D{email free?}
     D -->|no| E[400 Email already registered]
@@ -265,7 +265,7 @@ flowchart TD
     B --> C["Add question paper<br/>- AI Tools upload → exam.questionPaper JSON<br/>- or edit via PUT /api/exams/:id"]
     C --> D["Submit for approval<br/>POST /api/exams/:id/submit-for-approval<br/>submittedAt = now, rejectionReason cleared"]
     D --> E["PENDING_HOD_APPROVAL<br/>(paper frozen: edits rejected)"]
-    E --> F{HOD review<br/>GET /api/hod/exam-approvals/:id}
+    E --> F{"HOD review<br/>GET /api/hod/exam-approvals/:id"}
     F -->|Reject + reason| G["REJECTED"]
     G --> H["Instructor edits<br/>(allowed only in DRAFT / REJECTED)"]
     H --> D
