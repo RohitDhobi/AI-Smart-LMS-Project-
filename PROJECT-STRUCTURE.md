@@ -138,13 +138,13 @@ backend/
     │   ├── java/com/aismartlms/backend/
     │   │   ├── BackendApplication.java        # Spring Boot entry point
     │   │   ├── config/DataSeeder.java         # CommandLineRunner: seeds degrees/subjects/lessons/users/divisions/assignments
-    │   │   ├── controller/                    # 22 @RestController classes
+    │   │   ├── controller/                    # 19 @RestController classes + 1 @RestControllerAdvice
     │   │   ├── dto/                           # request/response objects (AuthResponse, RegisterRequest, ...)
-    │   │   ├── entity/                        # 30 JPA entities + Role enum
+    │   │   ├── entity/                        # 27 JPA entities + Role enum
     │   │   ├── exception/AccessDeniedException.java   # → HTTP 403
     │   │   ├── repository/                    # 27 JpaRepository interfaces
     │   │   ├── security/                      # SecurityConfig, JwtAuthenticationFilter, JwtService
-    │   │   └── service/                       # 21 @Service classes (incl. AIQuestionService,
+    │   │   └── service/                       # 19 @Service classes (incl. AIQuestionService,
     │   │                                      #   ExamApprovalService, HODService, InstructorAccessService)
     │   └── resources/
     │       └── application.properties         # MySQL + port 8080 + JPA + upload config
