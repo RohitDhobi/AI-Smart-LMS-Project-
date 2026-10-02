@@ -48,7 +48,7 @@ flowchart TD
     C --> CS[CSRF disabled]
     CS --> SM[Session: STATELESS]
     SM --> Q{Path}
-    Q -->|"/api/auth/register" | "/api/auth/register/instructor" | "/api/auth/login"| P1[permitAll]
+    Q -->|"/api/auth/register", "/api/auth/register/instructor", "/api/auth/login"| P1[permitAll]
     Q -->|"/api/courses" and its semester/subject sub-paths| P1
     Q -->|/actuator/**| P1
     Q -->|everything else| A[authenticated]
