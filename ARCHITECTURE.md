@@ -48,7 +48,7 @@ It lets four kinds of people work in the same system:
 | Database | **MySQL** (`ai_smart_lms`), schema via Hibernate `ddl-auto=update` | Persistence | `backend/src/main/resources/application.properties` |
 | ORM | **Hibernate / JPA** (`javax.persistence`) | Entity mapping | `backend/.../entity/*` |
 | Authentication | **JWT (JJWT 0.11.5)** + **BCrypt** | Stateless login | `security/JwtService.java`, `SecurityConfig.java` |
-| Build (backend) | **Maven** (`backend/mmvnw`) | Build/run | `backend/pom.xml`, `backend/run.bat` |
+| Build (backend) | **Maven** (`backend/mvnw` wrapper) | Build/run | `backend/pom.xml`, `backend/run.bat` |
 | Tests | JUnit 5 (backend), Node test runner (frontend) | Tests | `backend/src/test/*`, `src/*.test.js` |
 
 ### Main modules (as implemented)
@@ -643,7 +643,7 @@ kept only on the Spring Boot side.
 
 ---
 
-# 12. Viva Questions & Answers (25, based on this project)
+# 12. Viva Questions & Answers (25 + 1 bonus, based on this project)
 
 **1. What is the tech stack of your project?**
 React 19 + Vite 7 SPA, Spring Boot 2.7.18 on Java 21, MySQL with Hibernate/JPA, JWT + BCrypt security; Electron/Capacitor wrap the same frontend for desktop/mobile.
