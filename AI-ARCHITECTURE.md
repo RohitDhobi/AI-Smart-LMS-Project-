@@ -144,15 +144,6 @@ flowchart TD
         ADM["admin/AdminAIAssistant · AdminAIAnalytics · AdminAIInsights"]
     end
 
-    AA -->|"POST /api/ai/study-assistant"| BE
-    AA -->|"POST /api/ai/generate-questions"| BE
-    IAT -->|"local generateQuestions → POST /api/exams"| BE
-    HQ -->|"POST /api/hod/questions/generate"| BE
-    LP -->|"GET /api/ai/learning-path"| BE
-    AN -->|"GET /api/ai/recommendations · weak-topics · quiz-recommendations"| BE
-    ADM -->|"local presentation + /api/analytics/admin"| BE
-    AA -.->|offline| EN
-
     subgraph BE["Spring Boot"]
         AFC["AdvancedFeatureController<br/>/api/ai/*"]
         AQS["AIQuestionService"]
@@ -160,6 +151,15 @@ flowchart TD
         CPS["CodingPracticeService"]
         EXS["ExamService (grades paper JSON)"]
     end
+
+    AA -->|"POST /api/ai/study-assistant"| BE
+    AA -->|"POST /api/ai/generate-questions"| BE
+    IAT -->|"local generateQuestions then POST /api/exams"| BE
+    HQ -->|"POST /api/hod/questions/generate"| BE
+    LP -->|"GET /api/ai/learning-path"| BE
+    AN -->|"GET /api/ai/recommendations | weak-topics | quiz-recommendations"| BE
+    ADM -->|"local presentation + /api/analytics/admin"| BE
+    AA -.->|offline| EN
     BE --> AQS
 ```
 
