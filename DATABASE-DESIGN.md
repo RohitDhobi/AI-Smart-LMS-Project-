@@ -173,7 +173,7 @@ erDiagram
 
 #### `QuizAttempt` → `quiz_attempts`
 `id` PK · `quiz` ManyToOne not null · `user` ManyToOne (nullable) · `score` · `totalMarks` ·
-`percentage` · `passed` · `attemptAt` `attemptedAt`.
+`percentage` · `passed` · `attemptedAt` (not null).
 
 ---
 
