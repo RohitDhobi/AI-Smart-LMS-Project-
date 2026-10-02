@@ -96,10 +96,12 @@ src/
 │   ├── AdminDashboard.jsx, AdminCourseManagement.jsx, AdminTeachers.jsx, AdminStudents.jsx
 │   ├── InstructorDashboard.jsx
 │   │
-│   ├── instructor/            # ★ INSTRUCTOR PANEL (InstructorLayout + 20 pages incl. InstructorAITools)
+│   ├── instructor/            # ★ INSTRUCTOR PANEL (22 files: InstructorLayout + screens incl. InstructorAITools)
 │   ├── hod/                   # ★ HOD PANEL (dashboard, assignments, courses/subjects, divisions,
 │   │                          #    students, questions, exams, exam-approvals, announcements, analytics, settings)
-│   ├── admin/                 # ★ ADMIN PANEL (27 pages incl. AdminAIAssistant/Analytics/Insights)
+│   ├── admin/                 # ★ ADMIN PANEL (23 pages incl. AdminAIAssistant/Analytics/Insights; 4 more admin
+│   │                          #    screens live directly in pages/: AdminDashboard, AdminCourseManagement,
+│   │                          #    AdminTeachers, AdminStudents)
 │   └── three/                 # 3D scenes: Stats3D, Badges3D, CourseCards3D, Classroom3D
 │
 └── utils/confetti.js          # celebration effects (canvas-confetti)
