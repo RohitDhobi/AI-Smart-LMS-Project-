@@ -13,7 +13,7 @@ Derived **only** from the JPA entities in
   programs + subjects + starter lessons, the default accounts, divisions and default
   instructor assignments.
 
-**Entity count: 30 entities + 1 enum (`Role`).**
+**Entity count: 27 `@Entity` classes + 1 enum (`Role`).**
 
 ---
 
