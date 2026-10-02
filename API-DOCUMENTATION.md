@@ -1,6 +1,6 @@
 # AI-Smart-LMS — API Documentation
 
-Extracted directly from the 22 `@RestController` classes under
+Extracted directly from the 19 `@RestController` classes (plus one `@RestControllerAdvice`) under
 `backend/src/main/java/com/aismartlms/backend/controller/`.
 No endpoint is listed here unless it exists in the source.
 
