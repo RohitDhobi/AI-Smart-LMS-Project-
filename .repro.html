@@ -8,6 +8,18 @@
   <div class="hod-form">
     <div class="hod-form-row"><label>Email Notifications</label><input type="checkbox" class="hod-checkbox" checked></div>
     <div class="hod-form-row"><label>Assignment Reminders</label><input type="checkbox" class="hod-checkbox"></div>
+    <div class="hod-form-row"><label>Name</label><input class="hod-input" placeholder="Your name"></div>
   </div>
 </div>
+<script>
+window.addEventListener('load', () => {
+  const out=[];
+  document.querySelectorAll('.hod-form-row').forEach((row,i)=>{
+    const l=row.querySelector('label').getBoundingClientRect();
+    const c=row.querySelector('input').getBoundingClientRect();
+    out.push('row'+i+' label[x='+Math.round(l.x)+',y='+Math.round(l.y)+'] input[x='+Math.round(c.x)+',y='+Math.round(c.y)+',w='+Math.round(c.width)+',h='+Math.round(c.height)+'] sameLine='+(Math.abs((l.y+l.height/2)-(c.y+c.height/2))<8));
+  });
+  document.body.insertAdjacentHTML('beforeend','<pre id="res">'+out.join(' | ')+'</pre>');
+});
+</script>
 </body></html>
