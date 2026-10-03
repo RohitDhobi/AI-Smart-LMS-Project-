@@ -1,0 +1,26 @@
+<!doctype html><html><head>
+<link rel="stylesheet" href="src/styles.css">
+<link rel="stylesheet" href="src/hod.css">
+</head><body>
+<div class="card" style="width:660px;margin:20px auto">
+  <div class="card-header"><h2>Notifications</h2><span class="card-sub">Enable email and in-app notifications.</span></div>
+  <div class="hod-form">
+    <div class="hod-form-row"><label>Email Notifications</label><input type="checkbox" class="hod-checkbox" checked></div>
+    <div class="hod-form-row"><label>Course Updates</label><input type="checkbox" class="hod-checkbox" checked></div>
+    <div class="hod-form-row"><label>Assignment Reminders</label><input type="checkbox" class="hod-checkbox"></div>
+    <div class="hod-form-row"><label>Name</label><input class="hod-input" placeholder="Your name"></div>
+  </div>
+</div>
+<script>
+window.addEventListener('load', () => {
+  const out = [];
+  document.querySelectorAll('.hod-form-row').forEach((row, i) => {
+    const l = row.querySelector('label').getBoundingClientRect();
+    const c = row.querySelector('input').getBoundingClientRect();
+    const cs = getComputedStyle(row);
+    out.push({i, rowX: Math.round(row.getBoundingClientRect().x), rowW: Math.round(row.getBoundingClientRect().width), labelX: Math.round(l.x), cbX: Math.round(c.x), cbW: Math.round(c.width), dir: cs.flexDirection, align: cs.alignItems, disp: cs.display});
+  });
+  const d = document.createElement('pre'); d.id='res'; d.textContent = JSON.stringify(out, null, 1); document.body.appendChild(d);
+});
+</script>
+</body></html>
