@@ -9,11 +9,11 @@
 | Document | Contents |
 |---|---|
 | **ARCHITECTURE.md** (this file) | Overview, stack, system architecture, request flow, deployment, presentation & viva material |
-| [WORKFLOWS.md](./WORKFLOWS.md) | Student / Instructor / HOD / Admin / Exam / Question-Bank workflows |
-| [API-DOCUMENTATION.md](./API-DOCUMENTATION.md) | Every REST endpoint actually present in the controllers |
-| [DATABASE-DESIGN.md](./DATABASE-DESIGN.md) | All JPA entities, fields, relationships, ER diagram |
-| [AI-ARCHITECTURE.md](./AI-ARCHITECTURE.md) | Real AI features + the PLANNED Gemini architecture |
-| [SECURITY.md](./SECURITY.md) | JWT, BCrypt, CORS, role rules, security observations |
+| [WORKFLOWS.md](../02-Workflows/WORKFLOWS.md) | Student / Instructor / HOD / Admin / Exam / Question-Bank workflows |
+| [API-DOCUMENTATION.md](../03-API/API-DOCUMENTATION.md) | Every REST endpoint actually present in the controllers |
+| [DATABASE-DESIGN.md](../04-Database/DATABASE-DESIGN.md) | All JPA entities, fields, relationships, ER diagram |
+| [AI-ARCHITECTURE.md](../05-AI/AI-ARCHITECTURE.md) | Real AI features + the PLANNED Gemini architecture |
+| [SECURITY.md](../06-Security/SECURITY.md) | JWT, BCrypt, CORS, role rules, security observations |
 | [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) | Real folder/file tree with purpose of each folder |
 | [FEATURE-MATRIX.md](./FEATURE-MATRIX.md) | Feature × status × where it lives |
 
@@ -314,7 +314,7 @@ Every exam-workflow and instructor-assignment decision is re-made on the server
 
 # 5. Database Architecture
 
-Full detail lives in [DATABASE-DESIGN.md](./DATABASE-DESIGN.md). Summary:
+Full detail lives in [DATABASE-DESIGN.md](../04-Database/DATABASE-DESIGN.md). Summary:
 
 - **27 JPA entities** + `Role` enum, mapped to MySQL tables (snake_case names declared with `@Table`).
 - Schema is produced by **`spring.jpa.hibernate.ddl-auto=update`** — no Flyway/Liquibase migration files.
@@ -346,7 +346,7 @@ Headline relationships (verified in the entity sources):
 
 # 6. Authentication & Security (summary)
 
-Full detail in [SECURITY.md](./SECURITY.md).
+Full detail in [SECURITY.md](../06-Security/SECURITY.md).
 
 **Roles found in the code:** `Role` enum = `STUDENT`, `INSTRUCTOR`, `HOD`, `ADMIN` (exactly four).
 

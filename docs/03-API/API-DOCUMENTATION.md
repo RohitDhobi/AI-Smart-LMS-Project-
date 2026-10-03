@@ -379,4 +379,4 @@ Recorded here for transparency — **documented, not changed**, per the request:
 5. `PUT /api/discussions/{id}/solve` and `/like` — no ownership check.
 6. `POST /api/auth/forgot-password` and `/reset-password` — reachable only *with* a JWT.
 
-See [SECURITY.md](./SECURITY.md) → *Security Observations*.
+See [SECURITY.md](../06-Security/SECURITY.md) → *Security Observations*.
