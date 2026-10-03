@@ -683,7 +683,23 @@ td.hod-actions-cell {
 .hod-checkbox {
   width: auto;
   height: auto;
+  flex: 0 0 auto;
   accent-color: var(--primary);
+}
+
+/* Checkbox rows: label on the left, checkbox on the right.
+   Without this the row is a column flex container, the checkbox input
+   stretches to full row width, and Chrome paints the native checkbox
+   widget floating in the middle of the row. */
+.hod-form-row:has(> .hod-checkbox) {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hod-form-row:has(> .hod-checkbox) label {
+  margin-bottom: 0;
 }
 
 .hod-assign-edit,
