@@ -14,12 +14,11 @@ for(let y=0;y<h;y++){const f=raw[pos++];for(let x=0;x<stride;x++){const v=raw[po
  if(f===0)out=v;else if(f===1)out=v+a;else if(f===2)out=v+b;else if(f===3)out=v+((a+b)>>1);else out=v+paeth(a,b,c);
  px[y*stride+x]=out&255;}}
 function P(x,y){const i=y*stride+x*bpp;return [px[i],px[i+1],px[i+2]];}
-console.log('depth',bit,'type',type,'size',w,h);
-console.log('body bg(5,170)',P(5,170),' card bg(90,170)',P(90,170),' (90,60)',P(90,60));
-// unchecked checkbox expected around y=180..193, box x=78..685
-for(let y=176;y<=196;y+=4){
-  let seg='';
-  for(let x=70;x<700;x+=1){const p=P(x,y);const bright=(p[0]+p[1]+p[2])>330; // white-ish widget
-    if(bright)seg+=x+',';}
-  console.log('y='+y+' brightX:', seg? seg.split(',').slice(0,8).join(' ')+' ... last: '+seg.split(',').slice(-3).join(' ') : 'none');
+// labels are dark text on white; exclude label area (x<200 above y=165). Check checkbox band y=178..195.
+// Card spans x=70..730, white bg. Find dark/colored pixels per row in that band.
+for(let y=177;y<=197;y++){
+  let minx=1e9,maxx=-1,n=0;
+  for(let x=72;x<700;x++){const p=P(x,y);
+    if(p[0]<235||p[1]<235||p[2]<235){if(x<minx)minx=x;if(x>maxx)maxx=x;n++;}}
+  if(n>0)console.log('y='+y+' nonWhite x=['+minx+'..'+maxx+'] n='+n+' sample='+P(minx,y));
 }
