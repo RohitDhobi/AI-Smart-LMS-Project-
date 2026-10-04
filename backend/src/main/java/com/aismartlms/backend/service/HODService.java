@@ -186,6 +186,33 @@ public class HODService {
             assignment.setStatus("ACTIVE");
         }
 
+        // Semester + academic year the HOD picked in the assignment form.
+        Long semesterId = request.getSemesterId();
+
+        if (semesterId == null && subjectId != null) {
+            // Default to the semester the subject belongs to.
+            Subject subject = subjectRepository.findById(subjectId).orElse(null);
+            if (subject != null && subject.getSemester() != null && courseId != null) {
+                semesterId = semesterRepository
+                        .findByCourseIdAndSemesterNumber(courseId, subject.getSemester())
+                        .map(Semester::getId)
+                        .orElse(null);
+            }
+        }
+
+        assignment.setAcademicYearId(resolveAcademicYearId(request.getAcademicYearId()));
+
+        if (semesterId != null) {
+            Semester semester = semesterRepository.findById(semesterId)
+                    .orElseThrow(() -> new RuntimeException("Semester not found"));
+
+            if (courseId != null && !courseId.equals(semester.getCourseId())) {
+                throw new RuntimeException("The selected semester does not belong to this course");
+            }
+
+            assignment.setSemesterId(semester.getId());
+        }
+
         return assignmentRepository.save(assignment);
     }
 
@@ -262,6 +289,19 @@ public class HODService {
             assignment.setStatus(request.getStatus().toUpperCase());
         }
 
+        // Update the semester / academic year scope when the form supplies them.
+        if (request.getSemesterId() != null) {
+            Semester semester = semesterRepository.findById(request.getSemesterId())
+                    .orElseThrow(() -> new RuntimeException("Semester not found"));
+            assignment.setSemesterId(semester.getId());
+        }
+
+        if (request.getAcademicYearId() != null) {
+            AcademicYear year = academicYearRepository.findById(request.getAcademicYearId())
+                    .orElseThrow(() -> new RuntimeException("Academic year not found"));
+            assignment.setAcademicYearId(year.getId());
+        }
+
         return assignmentRepository.save(assignment);
     }
 
@@ -296,6 +336,106 @@ public class HODService {
             throw new RuntimeException("Assignment not found");
         }
         assignmentRepository.deleteById(id);
+    }
+
+    // =========================
+    // ACADEMIC STRUCTURE: SEMESTERS / ACADEMIC YEARS
+    // =========================
+
+    /** All semesters, or only those of one course (drop-down source). */
+    public List<Map<String, Object>> getSemesters(Long courseId) {
+
+        List<Semester> list = courseId != null
+                ? semesterRepository.findByCourseIdOrderBySemesterNumberAsc(courseId)
+                : semesterRepository.findAllByOrderByCourseIdAscSemesterNumberAsc();
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Semester semester : list) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", semester.getId());
+            item.put("semesterNumber", semester.getSemesterNumber());
+            item.put("label", "Semester " + semester.getSemesterNumber());
+            item.put("courseId", semester.getCourseId());
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** All academic years, newest first (drop-down source + filter). */
+    public List<Map<String, Object>> getAcademicYears() {
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (AcademicYear year : academicYearRepository.findAllByOrderByYearNameDesc()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", year.getId());
+            item.put("yearName", year.getYearName());
+            item.put("active", year.isActive());
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    /** The HOD may add the next academic year (e.g. 2027-2028). */
+    @Transactional
+    public Map<String, Object> createAcademicYear(String yearName, Boolean active) {
+
+        if (yearName == null || !yearName.trim().matches("\\d{4}-\\d{4}")) {
+            throw new RuntimeException("Academic year must look like 2025-2026");
+        }
+
+        String normalized = yearName.trim();
+
+        if (academicYearRepository.findByYearName(normalized).isPresent()) {
+            throw new RuntimeException("That academic year already exists");
+        }
+
+        boolean makeActive = Boolean.TRUE.equals(active);
+
+        if (makeActive) {
+            academicYearRepository.findAll().forEach(existing -> {
+                if (existing.isActive()) {
+                    existing.setActive(false);
+                    academicYearRepository.save(existing);
+                }
+            });
+        }
+
+        AcademicYear saved = academicYearRepository.save(new AcademicYear(normalized, makeActive));
+
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", saved.getId());
+        item.put("yearName", saved.getYearName());
+        item.put("active", saved.isActive());
+        return item;
+    }
+
+    /** Display name of an academic year, or null when unset/unknown. */
+    private String yearName(Long academicYearId) {
+        if (academicYearId == null) {
+            return null;
+        }
+        return academicYearRepository.findById(academicYearId)
+                .map(AcademicYear::getYearName)
+                .orElse(null);
+    }
+
+    /**
+     * Academic year to store on an assignment: the one the HOD picked,
+     * otherwise the currently active year, otherwise null.
+     */
+    private Long resolveAcademicYearId(Long requested) {
+        if (requested != null) {
+            AcademicYear year = academicYearRepository.findById(requested)
+                    .orElseThrow(() -> new RuntimeException("Academic year not found"));
+            return year.getId();
+        }
+        return academicYearRepository.findFirstByActiveTrue()
+                .map(AcademicYear::getId)
+                .orElse(null);
     }
 
     // =========================
@@ -398,11 +538,10 @@ public class HODService {
             String courseName = subject.getCourse() == null ? null : subject.getCourse().getCourseName();
 
             item.put("courseId", courseId);
-            item.put("courseName", courseName);
-
-            // Instructor assigned to this subject by the HOD, if any.
+            item.put("courseName", courseName);            // Instructor assigned to this subject by the HOD, if any.
             String assigned = null;
             Long assignedInstructorId = null;
+            InstructorCourseAssignment assignmentRow = null;
 
             if (courseId != null) {
 
@@ -413,8 +552,7 @@ public class HODService {
                     // Fall back to the course-wide row. Subject-level rows for
                     // OTHER subjects of this course must never leak in here,
                     // otherwise changing one subject would rewrite the whole course.
-                    List<InstructorCourseAssignment> courseRows =
-                            assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
+                    List<InstructorCourseAssignment> courseRows = assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
 
                     rows = courseRows.stream()
                             .filter(r -> !isSubjectScoped(r))
@@ -426,7 +564,8 @@ public class HODService {
                 }
 
                 if (!rows.isEmpty()) {
-                    assignedInstructorId = rows.get(0).getInstructorId();
+                    assignmentRow = rows.get(0);
+                    assignedInstructorId = assignmentRow.getInstructorId();
                     assigned = userRepository.findById(assignedInstructorId)
                             .map(User::getName)
                             .orElse(null);
@@ -435,6 +574,16 @@ public class HODService {
 
             item.put("assignedInstructor", assigned);
             item.put("assignedInstructorId", assignedInstructorId);
+
+            // Semester / academic-year context for the assignment table columns.
+            item.put("assignmentId", assignmentRow == null ? null : assignmentRow.getId());
+            item.put("assignmentStatus", assignmentRow == null ? null : assignmentRow.getStatus());
+            item.put("assignmentSemesterId",
+                    assignmentRow == null ? null : assignmentRow.getSemesterId());
+            item.put("academicYearId",
+                    assignmentRow == null ? null : assignmentRow.getAcademicYearId());
+            item.put("academicYear",
+                    assignmentRow == null ? null : yearName(assignmentRow.getAcademicYearId()));
 
             result.add(item);
         }
@@ -876,6 +1025,16 @@ public class HODService {
                 ? null
                 : DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(a.getAssignedAt()));
 
+        // Semester / academic year columns of the assignment table.
+        v.setSemesterId(a.getSemesterId());
+        v.setAcademicYearId(a.getAcademicYearId());
+        v.setAcademicYear(yearName(a.getAcademicYearId()));
+
+        if (a.getSemesterId() != null) {
+            semesterRepository.findById(a.getSemesterId())
+                    .ifPresent(s -> v.setSemesterNumber(s.getSemesterNumber()));
+        }
+
         // Resolve the instructor user name.
         User instructor = courseRepository.findUserById(a.getInstructorId()).orElse(null);
         if (instructor != null) {
@@ -894,6 +1053,12 @@ public class HODService {
                 if (subject != null) {
                     v.setSubjectId(subject.getId());
                     v.setSubjectName(subject.getSubjectName());
+
+                    // Legacy rows have no semesterId: fall back to the
+                    // semester the subject itself belongs to.
+                    if (v.getSemesterNumber() == null) {
+                        v.setSemesterNumber(subject.getSemester());
+                    }
                 }
             }
         }
