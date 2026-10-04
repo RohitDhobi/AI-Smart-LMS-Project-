@@ -7202,7 +7202,7 @@ a.course-card:hover {
 }
 
 [data-theme=dark] svg circle[stroke="#e8edf3"] {
-  stroke: #1e293b !important;
+  stroke: #334155 !important;
 }
 
 /* Progress bars */
@@ -7792,8 +7792,9 @@ a.course-card:hover {
   border-bottom:1px solid #e2e8f0!important
 }
 
+/* NOTE: no background here - the Analytics donut paints its conic-gradient
+   progress ring with an inline style, which !important would erase. */
 .donut {
-  background:#f1f5f9!important;
   box-shadow: 0 0 20px rgba(124, 58, 237, 0.15), 0 0 40px rgba(168, 85, 247, 0.08) !important
 }
 
@@ -12644,9 +12645,10 @@ a.analytics-stat:hover {
   50% { border-color: rgba(192,132,252,0.25); transform: scale(1.05) }
 }
 
-/* Donut chart background */
+/* Donut chart background (no !important: the quiz-score donut carries its
+   conic-gradient progress ring as an inline style and must win through) */
 [data-theme="dark"] .donut {
-  background: #1a2744 !important;
+  background: #1a2744;
   box-shadow: 0 0 24px rgba(168, 85, 247, 0.2), 0 0 48px rgba(124, 58, 237, 0.12) !important;
 }
 

@@ -295,9 +295,16 @@ public class CourseManagementController {
             items.add(subjectWithProgress(subject, myProgress));
         }
 
-        double overall = items.stream()
-                .mapToDouble(item ->
-                        ((Number) item.get("progressPercentage")).doubleValue())
+        // Overall progress = average across ALL of the student's lesson
+        // progress rows - the exact metric /api/analytics/student reports, so
+        // the dashboard ring and the Analytics page can never disagree.
+        // (Averaging only the subject rows showed 0% whenever the student had
+        // studied lessons that are not attached to a subject.)
+        double overall = myProgress.stream()
+                .mapToInt(p ->
+                        p.getProgressPercentage() == null
+                                ? 0
+                                : p.getProgressPercentage())
                 .average()
                 .orElse(0.0);
 

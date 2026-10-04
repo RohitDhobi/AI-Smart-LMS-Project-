@@ -210,7 +210,7 @@ function Dashboard() {
         <Link to="/analytics" className="dash-v2-stat-card dash-v2-stat-link">
           <div className="dash-v2-stat-icon green">✅</div>
           <div className="dash-v2-stat-info">
-            <span className="dash-v2-stat-label">Lessons Completed</span>
+            <span className="dash-v2-stat-label">Avg Progress</span>
             <strong className="dash-v2-stat-value">{overallProgress}%</strong>
             <span className="dash-v2-stat-change up">{completed} courses completed</span>
           </div>
