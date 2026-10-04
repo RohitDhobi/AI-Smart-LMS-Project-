@@ -5,6 +5,7 @@ import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Division;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.repository.AcademicYearRepository;
 import com.aismartlms.backend.repository.AnnouncementRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.DivisionRepository;
@@ -13,6 +14,7 @@ import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
 import com.aismartlms.backend.repository.QuizRepository;
+import com.aismartlms.backend.repository.SemesterRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
 
@@ -66,10 +68,13 @@ class HODServiceDivisionTest {
         users = mock(UserRepository.class);
         AnnouncementRepository announcements = mock(AnnouncementRepository.class);
         divisions = mock(DivisionRepository.class);
+        SemesterRepository semesters = mock(SemesterRepository.class);
+        AcademicYearRepository academicYears = mock(AcademicYearRepository.class);
 
         service = new HODService(
                 assignments, courses, enrollments, quizzes, exams,
-                questions, subjects, users, announcements, divisions);
+                questions, subjects, users, announcements, divisions,
+                semesters, academicYears);
 
         Course bca = new Course();
         bca.setId(BCA_COURSE_ID);
