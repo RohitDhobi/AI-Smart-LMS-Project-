@@ -107,6 +107,7 @@ export default function InstructorMySubjects() {
                 <div className="inst-course-card-meta">
                   <span>📂 {c.category || "General"}</span>
                   <span>📖 {c.subjectCount ?? 0} subjects</span>
+                  {c.academicYear ? <span>📅 {c.academicYear}</span> : null}
                 </div>
                 <div className="inst-course-card-footer">
                   <span className="inst-link">Open Course →</span>
@@ -139,6 +140,7 @@ export default function InstructorMySubjects() {
                 <div className="inst-course-card-meta">
                   <span>🏛️ {s.courseName || "—"}</span>
                   <span>🗓️ Semester {s.semester ?? "—"}</span>
+                  {s.academicYear ? <span>📅 {s.academicYear}</span> : null}
                 </div>
                 <div className="inst-course-card-footer">
                   <span className="inst-link">Open Course →</span>
