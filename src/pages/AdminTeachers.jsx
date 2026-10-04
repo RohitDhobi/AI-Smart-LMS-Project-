@@ -6,6 +6,7 @@ import { sanitizePhone, phoneError } from "../utils/phone";
 
 function AdminTeachers() {
   const [users, setUsers] = useState([]);
+  const [assignments, setAssignments] = useState([]); // read-only, from /api/hod/assignments
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,6 +47,11 @@ function AdminTeachers() {
         ? userList.filter((u) => u.role === "INSTRUCTOR")
         : [];
       setUsers(instructors);
+
+      // Instructor assignments (Course | Semester | Academic Year) - read-only
+      // for admins; the HOD remains the only one who can assign/change/remove.
+      const assignmentList = await api.hodAssignments().catch(() => []);
+      setAssignments(Array.isArray(assignmentList) ? assignmentList : []);
     } catch (e) {
       setError(e.message || "Unable to load users.");
     } finally {
@@ -139,6 +145,22 @@ function AdminTeachers() {
 
   const activeCount = users.filter((u) => u.active).length;
   const inactiveCount = users.filter((u) => !u.active).length;
+
+  // Group assignment rows by instructor: { instructorId: [HODAssignmentView, ...] }
+  const assignmentsByInstructor = assignments.reduce((acc, a) => {
+    const key = Number(a.instructorId);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(a);
+    return acc;
+  }, {});
+
+  function assignmentLine(a) {
+    const subject = a.subjectName || "All subjects";
+    const course = a.courseCode || a.courseName || "—";
+    const sem = a.semesterNumber != null ? `Sem ${a.semesterNumber}` : "Sem —";
+    const year = a.academicYear || "—";
+    return `${subject} — ${course} | ${sem} | ${year}`;
+  }
 
   if (loading) return <Loading />;
 
@@ -327,6 +349,7 @@ function AdminTeachers() {
                     <th>Name</th>
                     <th>Login ID (Email)</th>
                     <th>Phone</th>
+                    <th>Assignments (Course | Sem | Year)</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -338,6 +361,19 @@ function AdminTeachers() {
                       <td><strong>{user.name}</strong></td>
                       <td>🔑 {user.email}</td>
                       <td>{user.phone || "—"}</td>
+                      <td>
+                        {(assignmentsByInstructor[Number(user.id)] || []).length === 0 ? (
+                          <span style={{ color: "var(--text-muted)" }}>—</span>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            {assignmentsByInstructor[Number(user.id)].map((a) => (
+                              <span key={a.id} style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>
+                                {assignmentLine(a)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                       <td>
                         <span className={`role-badge ${user.active ? "role-instructor" : "role-admin"}`}>
                           {user.active ? "Active" : "Inactive"}
@@ -384,6 +420,16 @@ function AdminTeachers() {
                       <span className="mobile-detail-label">Status</span>
                       <span className={`mobile-user-status ${user.active ? "active" : "inactive"}`}>
                         {user.active ? "● Active" : "● Inactive"}
+                      </span>
+                    </div>
+                    <div className="mobile-user-detail">
+                      <span className="mobile-detail-label">Assignments</span>
+                      <span className="mobile-detail-value">
+                        {(assignmentsByInstructor[Number(user.id)] || []).length === 0
+                          ? "—"
+                          : assignmentsByInstructor[Number(user.id)]
+                              .map(assignmentLine)
+                              .join(" · ")}
                       </span>
                     </div>
                   </div>
