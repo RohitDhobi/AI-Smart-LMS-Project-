@@ -108,7 +108,23 @@ function SubjectLearning() {
               lessonIds.has(Number(item.lesson?.id))
             );
 
-        setProgressList(subjectLessons);
+        // Merge instead of overwrite: the auto-start of the first lesson may
+        // resolve before or after this fetch.
+        setProgressList(current => {
+          const merged = [...subjectLessons];
+          for (const row of current) {
+            if (
+              !merged.some(
+                item =>
+                  Number(item.lesson?.id) ===
+                  Number(row.lesson?.id)
+              )
+            ) {
+              merged.push(row);
+            }
+          }
+          return merged;
+        });
 
       } catch (e) {
         setProgressList([]);
@@ -168,10 +184,15 @@ function SubjectLearning() {
         const started =
           await api.startLesson(lesson.id);
 
-        setProgressList(current => [
-          ...current,
-          started
-        ]);
+        setProgressList(current =>
+          current.some(
+            item =>
+              Number(item.lesson?.id) ===
+              Number(lesson.id)
+          )
+            ? current
+            : [...current, started]
+        );
 
       } catch (e) {
 
