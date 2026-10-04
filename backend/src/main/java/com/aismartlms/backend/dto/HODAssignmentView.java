@@ -7,6 +7,10 @@ public class HODAssignmentView {
     private Long instructorId;
     private Long courseId;
     private Long subjectId;
+    private Long semesterId;
+    private Integer semesterNumber;
+    private Long academicYearId;
+    private String academicYear;
     private Long assignedBy;
     private String assignedByEmail;
     private String assignedByRole;
@@ -48,6 +52,38 @@ public class HODAssignmentView {
 
     public void setSubjectId(Long subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public Long getSemesterId() {
+        return semesterId;
+    }
+
+    public void setSemesterId(Long semesterId) {
+        this.semesterId = semesterId;
+    }
+
+    public Integer getSemesterNumber() {
+        return semesterNumber;
+    }
+
+    public void setSemesterNumber(Integer semesterNumber) {
+        this.semesterNumber = semesterNumber;
+    }
+
+    public Long getAcademicYearId() {
+        return academicYearId;
+    }
+
+    public void setAcademicYearId(Long academicYearId) {
+        this.academicYearId = academicYearId;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
     }
 
     public String getInstructorName() {

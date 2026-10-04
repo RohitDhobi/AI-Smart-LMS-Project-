@@ -10,6 +10,8 @@ public class HODRequest {
     private Long instructorId;
     private Long courseId;
     private Long subjectId;
+    private Long semesterId;
+    private Long academicYearId;
     private Long assignedBy;
     private String status;
 
@@ -38,6 +40,22 @@ public class HODRequest {
 
     public void setSubjectId(Long subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public Long getSemesterId() {
+        return semesterId;
+    }
+
+    public void setSemesterId(Long semesterId) {
+        this.semesterId = semesterId;
+    }
+
+    public Long getAcademicYearId() {
+        return academicYearId;
+    }
+
+    public void setAcademicYearId(Long academicYearId) {
+        this.academicYearId = academicYearId;
     }
 
     public Long getAssignedBy() {

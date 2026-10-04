@@ -28,6 +28,12 @@ public class InstructorCourseAssignment {
 
     private Long subjectId;
 
+    /** Semester this assignment is scoped to (see the semesters table). */
+    private Long semesterId;
+
+    /** Academic year this assignment belongs to (see the academic_years table). */
+    private Long academicYearId;
+
     /** User id of the HOD (or admin) who made the assignment. */
     private Long assignedBy;
 
@@ -64,6 +70,12 @@ public class InstructorCourseAssignment {
 
     public Long getSubjectId() { return subjectId; }
     public void setSubjectId(Long subjectId) { this.subjectId = subjectId; }
+
+    public Long getSemesterId() { return semesterId; }
+    public void setSemesterId(Long semesterId) { this.semesterId = semesterId; }
+
+    public Long getAcademicYearId() { return academicYearId; }
+    public void setAcademicYearId(Long academicYearId) { this.academicYearId = academicYearId; }
 
     public Long getAssignedBy() { return assignedBy; }
     public void setAssignedBy(Long assignedBy) { this.assignedBy = assignedBy; }
