@@ -37,6 +37,12 @@ export default function HODSettings() {
   }
 
   async function handleUpdateProfile() {
+    setError("");
+    const digits = phone.replace(/\D/g, "");
+    if (phone.trim() && (digits.length < 7 || digits.length > 15)) {
+      setError("Invalid phone number: enter 7–15 digits, optionally starting with +.");
+      return;
+    }
     setSaving(true);
     try {
       const data = await api.updateProfile({ name, phone, gender }).catch(() => null);
@@ -93,7 +99,14 @@ export default function HODSettings() {
           </div>
           <div className="hod-form-row">
             <label>Phone</label>
-            <input className="hod-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" />
+            <input
+              className="hod-input"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/[^\d+\-\s]/g, "").slice(0, 18))}
+              maxLength={18}
+              inputMode="tel"
+              placeholder="Phone (7–15 digits)"
+            />
           </div>
           <div className="hod-form-row">
             <label>Gender</label>
