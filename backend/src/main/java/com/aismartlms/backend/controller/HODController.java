@@ -532,6 +532,43 @@ public class HODController {
     }
 
     // =========================
+    // ACADEMIC STRUCTURE: SEMESTERS / ACADEMIC YEARS
+    // =========================
+
+    /** Semesters drop-down: /api/hod/semesters or /api/hod/semesters?courseId=3 */
+    @GetMapping("/semesters")
+    public List<Map<String, Object>> getSemesters(
+            @RequestParam(required = false) Long courseId,
+            Authentication authentication) {
+
+        requireHOD(authentication);
+        return hodService.getSemesters(courseId);
+    }
+
+    /** Academic-year drop-down + the Academic Year search filter. */
+    @GetMapping("/academic-years")
+    public List<Map<String, Object>> getAcademicYears(Authentication authentication) {
+        requireHOD(authentication);
+        return hodService.getAcademicYears();
+    }
+
+    /** Add the next academic year (body = { "yearName": "2027-2028", "active": false }). */
+    @PostMapping("/academic-years")
+    public Map<String, Object> createAcademicYear(
+            Authentication authentication,
+            @RequestBody Map<String, Object> body) {
+
+        requireHOD(authentication);
+
+        Object yearName = body.get("yearName");
+        Object active = body.get("active");
+
+        return hodService.createAcademicYear(
+                yearName == null ? null : String.valueOf(yearName),
+                active instanceof Boolean ? (Boolean) active : null);
+    }
+
+    // =========================
     // DIVISIONS / SECTIONS (BCA Div A, B, C)
     // =========================
 

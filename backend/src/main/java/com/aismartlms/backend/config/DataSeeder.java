@@ -1,15 +1,19 @@
 package com.aismartlms.backend.config;
 
+import com.aismartlms.backend.entity.AcademicYear;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Division;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Lesson;
 import com.aismartlms.backend.entity.Role;
+import com.aismartlms.backend.entity.Semester;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.repository.AcademicYearRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.DivisionRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
+import com.aismartlms.backend.repository.SemesterRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
 
@@ -29,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Seeds the degree programs (BCA, MBA, ...) with their semesters and
@@ -46,6 +51,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final InstructorCourseAssignmentRepository assignments;
     private final DivisionRepository divisionRepository;
+    private final SemesterRepository semesters;
+    private final AcademicYearRepository academicYears;
     private final DataSource dataSource;
 
     @Value("${app.seed-data:true}")
@@ -58,6 +65,8 @@ public class DataSeeder implements CommandLineRunner {
             PasswordEncoder passwordEncoder,
             InstructorCourseAssignmentRepository assignments,
             DivisionRepository divisionRepository,
+            SemesterRepository semesters,
+            AcademicYearRepository academicYears,
             DataSource dataSource) {
 
         this.courses = courses;
@@ -66,6 +75,8 @@ public class DataSeeder implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
         this.assignments = assignments;
         this.divisionRepository = divisionRepository;
+        this.semesters = semesters;
+        this.academicYears = academicYears;
         this.dataSource = dataSource;
     }
 
@@ -92,6 +103,10 @@ public class DataSeeder implements CommandLineRunner {
         seedDivisions();
 
         seedDefaultAssignments();
+
+        seedAcademicStructure();
+
+        backfillAssignmentAcademicFields();
     }
 
     // =========================================================
