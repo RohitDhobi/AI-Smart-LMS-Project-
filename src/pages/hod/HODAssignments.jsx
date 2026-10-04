@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../../api";
-import {
-  Users, Pencil, Trash2, PlusCircle, RefreshCw, Search, X
-} from "lucide-react";
+import { Pencil, Trash2, PlusCircle, RefreshCw, X } from "lucide-react";
 
 /**
  * HOD - Instructor Assignment (spec section 3)
  *
- * Table:  Subject/Course | Assigned Instructor | Status | Action
+ * Table:  Subject | Course | Semester | Academic Year | Assigned Instructor | Status | Action
+ *
+ * Filters: free-text search + Course / Semester / Academic Year / Instructor
+ * dropdowns. The assignment form lets the HOD pick
+ * Course + Semester + Academic Year + Subject + Instructor.
  *
  * Backed by the real /api/hod/* endpoints. The backend independently
  * enforces these assignments with HTTP 403, so hiding buttons here is a
@@ -18,14 +19,32 @@ export default function HODAssignments() {
   const [rows, setRows] = useState([]);            // subject-level rows
   const [instructors, setInstructors] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [semesters, setSemesters] = useState([]);  // {id, semesterNumber, courseId}
+  const [years, setYears] = useState([]);          // {id, yearName, active}
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
 
-  // Modal state: { mode: "assign" | "change", row }
+  // Search filters: Course / Semester / Academic Year / Instructor
+  const [filters, setFilters] = useState({
+    courseId: "",
+    semester: "",
+    academicYearId: "",
+    instructorId: "",
+  });
+
+  // Modal state: { mode: "assign" | "change" | "create", row? }
   const [modal, setModal] = useState(null);
-  const [selectedInstructor, setSelectedInstructor] = useState("");
+
+  // Shared assignment form state
+  const [form, setForm] = useState({
+    instructorId: "",
+    courseId: "",
+    subjectId: "",
+    semesterId: "",
+    academicYearId: "",
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { loadAll(); }, []);
@@ -36,15 +55,20 @@ export default function HODAssignments() {
       setError("");
       setNotice("");
 
-      const [subjectList, instructorList, courseList] = await Promise.all([
-        api.hodSubjects().catch(() => []),
-        api.hodInstructors().catch(() => []),
-        api.hodCourses().catch(() => []),
-      ]);
+      const [subjectList, instructorList, courseList, semesterList, yearList] =
+        await Promise.all([
+          api.hodSubjects().catch(() => []),
+          api.hodInstructors().catch(() => []),
+          api.hodCourses().catch(() => []),
+          api.hodSemesters().catch(() => []),
+          api.hodAcademicYears().catch(() => []),
+        ]);
 
       setRows(Array.isArray(subjectList) ? subjectList : []);
       setInstructors(Array.isArray(instructorList) ? instructorList : []);
       setCourses(Array.isArray(courseList) ? courseList : []);
+      setSemesters(Array.isArray(semesterList) ? semesterList : []);
+      setYears(Array.isArray(yearList) ? yearList : []);
 
     } catch (e) {
       setError(e.message || "Unable to load assignments.");
@@ -53,37 +77,170 @@ export default function HODAssignments() {
     }
   }
 
+  // ---------------------------------------------------------------
+  // Filters
+  // ---------------------------------------------------------------
+
+  const semesterOptions = useMemo(() => {
+    const numbers = [
+      ...new Set(rows.map((r) => Number(r.semester)).filter((n) => n > 0)),
+    ];
+    return numbers.sort((a, b) => a - b);
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (r) =>
+
+    return rows.filter((r) => {
+      if (filters.courseId && Number(r.courseId) !== Number(filters.courseId)) {
+        return false;
+      }
+      if (filters.semester && Number(r.semester) !== Number(filters.semester)) {
+        return false;
+      }
+      if (
+        filters.academicYearId &&
+        Number(r.academicYearId) !== Number(filters.academicYearId)
+      ) {
+        return false;
+      }
+      if (
+        filters.instructorId &&
+        Number(r.assignedInstructorId) !== Number(filters.instructorId)
+      ) {
+        return false;
+      }
+      if (!q) return true;
+
+      return (
         (r.subjectName || "").toLowerCase().includes(q) ||
         (r.courseName || "").toLowerCase().includes(q) ||
-        (r.assignedInstructor || "").toLowerCase().includes(q)
+        (r.assignedInstructor || "").toLowerCase().includes(q) ||
+        (r.academicYear || "").toLowerCase().includes(q) ||
+        (r.semester ? `sem ${r.semester}`.includes(q) : false)
+      );
+    });
+  }, [rows, search, filters]);
+
+  const hasFilters =
+    Boolean(search.trim()) ||
+    Boolean(
+      filters.courseId ||
+        filters.semester ||
+        filters.academicYearId ||
+        filters.instructorId
     );
-  }, [rows, search]);
+
+  function clearFilters() {
+    setSearch("");
+    setFilters({ courseId: "", semester: "", academicYearId: "", instructorId: "" });
+  }
+
+  // ---------------------------------------------------------------
+  // Assignment form helpers
+  // ---------------------------------------------------------------
+
+  function semestersForCourse(courseId) {
+    if (!courseId) return semesters;
+    return semesters.filter((s) => Number(s.courseId) === Number(courseId));
+  }
+
+  function semesterIdFor(row) {
+    if (row.assignmentSemesterId) return String(row.assignmentSemesterId);
+    const match = semesters.find(
+      (s) =>
+        Number(s.courseId) === Number(row.courseId) &&
+        Number(s.semesterNumber) === Number(row.semester)
+    );
+    return match ? String(match.id) : "";
+  }
+
+  const activeYearId = () => {
+    const active = years.find((y) => y.active);
+    return active ? String(active.id) : "";
+  };
 
   function openAssign(row) {
     setModal({ mode: "assign", row });
-    setSelectedInstructor("");
+    setForm({
+      instructorId: "",
+      courseId: String(row.courseId ?? ""),
+      subjectId: String(row.id),
+      semesterId: semesterIdFor(row),
+      academicYearId: row.academicYearId
+        ? String(row.academicYearId)
+        : activeYearId(),
+    });
   }
 
   function openChange(row) {
     setModal({ mode: "change", row });
-    setSelectedInstructor(row.assignedInstructorId ? String(row.assignedInstructorId) : "");
+    setForm({
+      instructorId: row.assignedInstructorId
+        ? String(row.assignedInstructorId)
+        : "",
+      courseId: String(row.courseId ?? ""),
+      subjectId: String(row.id),
+      semesterId: semesterIdFor(row),
+      academicYearId: row.academicYearId
+        ? String(row.academicYearId)
+        : activeYearId(),
+    });
+  }
+
+  function openCreate() {
+    setModal({ mode: "create" });
+    setForm({
+      instructorId: "",
+      courseId: "",
+      subjectId: "",
+      semesterId: "",
+      academicYearId: activeYearId(),
+    });
   }
 
   function closeModal() {
     setModal(null);
-    setSelectedInstructor("");
+    setForm({ instructorId: "", courseId: "", subjectId: "", semesterId: "", academicYearId: "" });
+  }
+
+  function setField(name, value) {
+    setForm((f) => {
+      const next = { ...f, [name]: value };
+
+      // Cascading resets: picking a course/semester re-scopes subject + semester.
+      if (name === "courseId") {
+        if (f.semesterId) next.semesterId = "";
+        next.subjectId = "";
+      }
+      if (name === "semesterId" && modal && modal.mode === "create") {
+        next.subjectId = "";
+      }
+
+      return next;
+    });
   }
 
   async function handleSave(e) {
     e.preventDefault();
     if (!modal) return;
-    if (!selectedInstructor) {
+
+    const isCreate = modal.mode === "create";
+
+    if (!form.instructorId) {
       setError("Select an instructor first.");
+      return;
+    }
+
+    const courseId = isCreate ? form.courseId : modal.row.courseId;
+    const subjectId = isCreate ? form.subjectId : modal.row.id;
+
+    if (!courseId) {
+      setError("Select a course first.");
+      return;
+    }
+    if (!subjectId) {
+      setError("Select a subject first.");
       return;
     }
 
@@ -92,9 +249,11 @@ export default function HODAssignments() {
       setError("");
 
       const body = {
-        instructorId: Number(selectedInstructor),
-        courseId: modal.row.courseId,
-        subjectId: modal.row.id,
+        instructorId: Number(form.instructorId),
+        courseId: Number(courseId),
+        subjectId: Number(subjectId),
+        semesterId: form.semesterId ? Number(form.semesterId) : null,
+        academicYearId: form.academicYearId ? Number(form.academicYearId) : null,
       };
 
       const instructorName =
@@ -103,7 +262,13 @@ export default function HODAssignments() {
 
       let savedMsg = "";
 
-      if (modal.mode === "assign") {
+      if (isCreate) {
+        await api.hodCreateAssignment(body);
+        const subject = rows.find((r) => Number(r.id) === body.subjectId);
+        savedMsg = `Assigned ${instructorName} to ${
+          subject?.subjectName || "the subject"
+        }.`;
+      } else if (modal.mode === "assign") {
         await api.hodCreateAssignment(body);
         savedMsg = `Assigned ${modal.row.subjectName} successfully.`;
       } else {
@@ -200,6 +365,22 @@ export default function HODAssignments() {
     }
   }
 
+  // ---------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------
+
+  const createSubjects = useMemo(() => {
+    if (!form.courseId) return [];
+    return rows.filter(
+      (r) =>
+        Number(r.courseId) === Number(form.courseId) &&
+        (!form.semesterId || Number(r.semester) === Number(
+          semesters.find((s) => Number(s.id) === Number(form.semesterId))
+            ?.semesterNumber
+        ))
+    );
+  }, [rows, form.courseId, form.semesterId, semesters]);
+
   return (
     <div className="page hod-assignments">
       <div className="page-heading">
@@ -207,19 +388,93 @@ export default function HODAssignments() {
         <p>Assign instructors to courses/subjects and manage their access.</p>
       </div>
 
-      {/* Filters */}
+      {/* Filters: text search + Course / Semester / Academic Year / Instructor */}
       <div className="hod-filters">
         <input
-          className="hod-input"
+          className="hod-input hod-filter-search"
           placeholder="🔍 Search by subject, course or instructor..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        <select
+          className="hod-input hod-filter-select"
+          value={filters.courseId}
+          onChange={(e) => setFilters((f) => ({ ...f, courseId: e.target.value }))}
+          aria-label="Filter by course"
+        >
+          <option value="">All Courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.courseCode || c.courseName || c.title}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="hod-input hod-filter-select"
+          value={filters.semester}
+          onChange={(e) => setFilters((f) => ({ ...f, semester: e.target.value }))}
+          aria-label="Filter by semester"
+        >
+          <option value="">All Semesters</option>
+          {semesterOptions.map((n) => (
+            <option key={n} value={n}>
+              Semester {n}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="hod-input hod-filter-select"
+          value={filters.academicYearId}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, academicYearId: e.target.value }))
+          }
+          aria-label="Filter by academic year"
+        >
+          <option value="">All Academic Years</option>
+          {years.map((y) => (
+            <option key={y.id} value={y.id}>
+              {y.yearName}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="hod-input hod-filter-select"
+          value={filters.instructorId}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, instructorId: e.target.value }))
+          }
+          aria-label="Filter by instructor"
+        >
+          <option value="">All Instructors</option>
+          {instructors.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.name}
+            </option>
+          ))}
+        </select>
+
+        {hasFilters && (
+          <button
+            type="button"
+            className="inst-btn inst-btn-small"
+            onClick={clearFilters}
+            title="Clear all filters"
+          >
+            <X size={13} /> Clear
+          </button>
+        )}
       </div>
 
       {/* Action Buttons */}
       <div className="hod-actions">
-        <button className="inst-btn inst-btn-primary" onClick={loadAll}>
+        <button className="inst-btn inst-btn-primary" onClick={openCreate}>
+          <PlusCircle size={15} /> New Assignment
+        </button>
+        <button className="inst-btn inst-btn-secondary" onClick={loadAll}>
           <RefreshCw size={15} /> Refresh
         </button>
         <span className="hod-sub" style={{ marginTop: 0 }}>
@@ -237,14 +492,21 @@ export default function HODAssignments() {
         <div className="card hod-empty">
           <div className="empty-icon">👥</div>
           <h3>No subjects found</h3>
-          <p>Subjects will appear here once courses are created.</p>
+          <p>
+            {hasFilters
+              ? "No subjects match the current filters."
+              : "Subjects will appear here once courses are created."}
+          </p>
         </div>
       ) : (
         <div className="hod-table-wrap">
           <table className="hod-table">
             <thead>
               <tr>
-                <th>Subject / Course</th>
+                <th>Subject</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Academic Year</th>
                 <th>Assigned Instructor</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -257,7 +519,26 @@ export default function HODAssignments() {
                   <tr key={row.id}>
                     <td>
                       <strong>{row.subjectName || "Unnamed"}</strong>
-                      <span className="hod-sub">{row.courseName || "No course"}</span>
+                      {row.subjectCode && (
+                        <span className="hod-sub">{row.subjectCode}</span>
+                      )}
+                    </td>
+                    <td>
+                      <span>{row.courseName || "No course"}</span>
+                    </td>
+                    <td>
+                      {row.semester ? (
+                        <span>Semester {row.semester}</span>
+                      ) : (
+                        <span className="hod-sub" style={{ marginTop: 0 }}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {row.academicYear ? (
+                        <span>{row.academicYear}</span>
+                      ) : (
+                        <span className="hod-sub" style={{ marginTop: 0 }}>—</span>
+                      )}
                     </td>
                     <td>
                       {assigned ? (
@@ -306,28 +587,137 @@ export default function HODAssignments() {
         </div>
       )}
 
-      {/* Assign / Change modal */}
+      {/* Assign / Change / Create modal */}
       {modal && (
         <div className="inst-modal-overlay" onClick={closeModal}>
           <div className="inst-modal" onClick={(e) => e.stopPropagation()}>
             <h2>
-              {modal.mode === "assign" ? "Assign Instructor" : "Change Instructor"}
+              {modal.mode === "assign"
+                ? "Assign Instructor"
+                : modal.mode === "change"
+                ? "Change Instructor"
+                : "New Assignment"}
             </h2>
-            <p>
-              <strong>{modal.row.subjectName}</strong>
-              <br />
-              <span className="hod-sub" style={{ marginTop: 2 }}>
-                {modal.row.courseName}
-              </span>
-            </p>
+
+            {modal.mode !== "create" ? (
+              <p>
+                <strong>{modal.row.subjectName}</strong>
+                <br />
+                <span className="hod-sub" style={{ marginTop: 2 }}>
+                  {modal.row.courseName} | Sem {modal.row.semester || "?"} |{" "}
+                  {modal.row.academicYear || "—"}
+                </span>
+              </p>
+            ) : (
+              <p>
+                <span className="hod-sub" style={{ marginTop: 0 }}>
+                  Pick a course, semester, academic year, subject and instructor.
+                </span>
+              </p>
+            )}
 
             <form onSubmit={handleSave}>
+              {modal.mode === "create" && (
+                <>
+                  <div className="inst-form-group" style={{ marginTop: 14 }}>
+                    <label>Course</label>
+                    <select
+                      className="inst-select"
+                      value={form.courseId}
+                      onChange={(e) => setField("courseId", e.target.value)}
+                      required
+                    >
+                      <option value="">Select a course...</option>
+                      {courses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.courseCode ? `${c.courseCode} — ` : ""}
+                          {c.courseName || c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="inst-form-group" style={{ marginTop: 14 }}>
+                    <label>Semester</label>
+                    <select
+                      className="inst-select"
+                      value={form.semesterId}
+                      onChange={(e) => setField("semesterId", e.target.value)}
+                    >
+                      <option value="">Any semester</option>
+                      {semestersForCourse(form.courseId).map((s) => (
+                        <option key={s.id} value={s.id}>
+                          Semester {s.semesterNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="inst-form-group" style={{ marginTop: 14 }}>
+                    <label>Subject</label>
+                    <select
+                      className="inst-select"
+                      value={form.subjectId}
+                      onChange={(e) => setField("subjectId", e.target.value)}
+                      required
+                      disabled={!form.courseId}
+                    >
+                      <option value="">
+                        {form.courseId
+                          ? "Select a subject..."
+                          : "Select a course first..."}
+                      </option>
+                      {createSubjects.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.subjectName} — Sem {s.semester}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <div className="inst-form-group" style={{ marginTop: 14 }}>
+                <label>Academic Year</label>
+                <select
+                  className="inst-select"
+                  value={form.academicYearId}
+                  onChange={(e) => setField("academicYearId", e.target.value)}
+                >
+                  <option value="">Any academic year</option>
+                  {years.map((y) => (
+                    <option key={y.id} value={y.id}>
+                      {y.yearName}
+                      {y.active ? " (current)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {modal.mode !== "create" && (
+                <div className="inst-form-group" style={{ marginTop: 14 }}>
+                  <label>Semester</label>
+                  <select
+                    className="inst-select"
+                    value={form.semesterId}
+                    onChange={(e) => setField("semesterId", e.target.value)}
+                  >
+                    <option value="">Any semester</option>
+                    {semestersForCourse(modal.row.courseId).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        Semester {s.semesterNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="inst-form-group" style={{ marginTop: 14 }}>
                 <label>Instructor</label>
                 <select
                   className="inst-select"
-                  value={selectedInstructor}
-                  onChange={(e) => setSelectedInstructor(e.target.value)}
+                  value={form.instructorId}
+                  onChange={(e) => setField("instructorId", e.target.value)}
                   required
                 >
                   <option value="">Select an instructor...</option>
@@ -352,7 +742,11 @@ export default function HODAssignments() {
                   className="inst-btn inst-btn-primary"
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : modal.mode === "assign" ? "Assign" : "Save Changes"}
+                  {saving
+                    ? "Saving..."
+                    : modal.mode === "change"
+                    ? "Save Changes"
+                    : "Assign"}
                 </button>
               </div>
             </form>
