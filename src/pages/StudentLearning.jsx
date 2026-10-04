@@ -116,6 +116,20 @@ function StudentLearning() {
 
   const [totalSemesters, setTotalSemesters] = useState(0);
 
+  // ---------- academic year (current) ----------
+
+  const [academicYear, setAcademicYear] = useState("");
+
+  useEffect(() => {
+    api
+      .academicYears()
+      .then((list) => {
+        const active = (Array.isArray(list) ? list : []).find((y) => y.active);
+        setAcademicYear(active?.yearName || "");
+      })
+      .catch(() => {});
+  }, []);
+
 
   useEffect(() => {
 
@@ -998,6 +1012,25 @@ function StudentLearning() {
               </button>
             ))}
           </div>
+          {academicYear && (
+            <span
+              style={{
+                marginLeft: "auto",
+                fontSize: 13,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              }}
+            >
+              📅 Academic Year {academicYear}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ── ACADEMIC YEAR (when the course has no semester tabs) ── */}
+      {totalSemesters === 0 && academicYear && (
+        <div style={{ marginBottom: 16, fontSize: 13, fontWeight: 600 }}>
+          📅 Academic Year {academicYear}
         </div>
       )}
 
