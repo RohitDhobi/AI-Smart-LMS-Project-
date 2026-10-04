@@ -4,6 +4,7 @@ import com.aismartlms.backend.entity.*;
 import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.*;
 import com.aismartlms.backend.service.InstructorAccessService;
+import com.aismartlms.backend.util.PhoneValidator;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -1194,6 +1195,10 @@ public class CourseManagementController {
             user.setName(str(body.get("name")));
         }
         if (body.containsKey("phone")) {
+            String phoneError = PhoneValidator.errorOrNull(str(body.get("phone")));
+            if (phoneError != null) {
+                throw new RuntimeException(phoneError);
+            }
             user.setPhone(str(body.get("phone")));
         }
         if (body.containsKey("gender")) {

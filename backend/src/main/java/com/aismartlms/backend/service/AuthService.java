@@ -11,6 +11,7 @@ import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.UserRepository;
 import com.aismartlms.backend.security.JwtService;
+import com.aismartlms.backend.util.PhoneValidator;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,12 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+
+        // Reject malformed phone numbers before touching the database
+        String phoneError = PhoneValidator.errorOrNull(request.getPhone());
+        if (phoneError != null) {
+            return new AuthResponse(phoneError, null);
+        }
 
         // Check whether email already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -149,6 +156,12 @@ public class AuthService {
      */
     @Transactional
     public AuthResponse registerInstructor(RegisterRequest request) {
+
+        // Reject malformed phone numbers before touching the database
+        String phoneError = PhoneValidator.errorOrNull(request.getPhone());
+        if (phoneError != null) {
+            return new AuthResponse(phoneError, null);
+        }
 
         if (request.getName() == null || request.getName().isBlank()) {
             return new AuthResponse("Name is required", null);

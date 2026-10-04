@@ -3,6 +3,7 @@ package com.aismartlms.backend.controller;
 import com.aismartlms.backend.entity.*;
 import com.aismartlms.backend.repository.*;
 import com.aismartlms.backend.service.AIQuestionService;
+import com.aismartlms.backend.util.PhoneValidator;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -427,6 +428,10 @@ public class AdvancedFeatureController {
         }
 
         if (body.containsKey("phone")) {
+            String phoneError = PhoneValidator.errorOrNull(body.get("phone"));
+            if (phoneError != null) {
+                throw new RuntimeException(phoneError);
+            }
             user.setPhone(body.get("phone"));
         }
 
