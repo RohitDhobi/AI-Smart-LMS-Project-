@@ -652,28 +652,6 @@ export default function HODAssignments() {
                       ))}
                     </select>
                   </div>
-
-                  <div className="inst-form-group" style={{ marginTop: 14 }}>
-                    <label>Subject</label>
-                    <select
-                      className="inst-select"
-                      value={form.subjectId}
-                      onChange={(e) => setField("subjectId", e.target.value)}
-                      required
-                      disabled={!form.courseId}
-                    >
-                      <option value="">
-                        {form.courseId
-                          ? "Select a subject..."
-                          : "Select a course first..."}
-                      </option>
-                      {createSubjects.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.subjectName} — Sem {s.semester}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </>
               )}
 
@@ -711,6 +689,30 @@ export default function HODAssignments() {
                   ))}
                 </select>
               </div>
+
+              {modal.mode === "create" && (
+                <div className="inst-form-group" style={{ marginTop: 14 }}>
+                  <label>Subject</label>
+                  <select
+                    className="inst-select"
+                    value={form.subjectId}
+                    onChange={(e) => setField("subjectId", e.target.value)}
+                    required
+                    disabled={!form.courseId}
+                  >
+                    <option value="">
+                      {form.courseId
+                        ? "Select a subject..."
+                        : "Select a course first..."}
+                    </option>
+                    {createSubjects.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.subjectName} — Sem {s.semester}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="inst-form-group" style={{ marginTop: 14 }}>
                 <label>Instructor</label>
