@@ -6,6 +6,7 @@ import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.repository.AcademicYearRepository;
 import com.aismartlms.backend.repository.AnnouncementRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.DivisionRepository;
@@ -14,6 +15,7 @@ import com.aismartlms.backend.repository.ExamRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
 import com.aismartlms.backend.repository.QuizRepository;
+import com.aismartlms.backend.repository.SemesterRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
 
@@ -62,10 +64,13 @@ class HODServiceAssignmentTest {
         users = mock(UserRepository.class);
         AnnouncementRepository announcements = mock(AnnouncementRepository.class);
         DivisionRepository divisions = mock(DivisionRepository.class);
+        SemesterRepository semesters = mock(SemesterRepository.class);
+        AcademicYearRepository academicYears = mock(AcademicYearRepository.class);
 
         service = new HODService(
                 assignments, courses, enrollments, quizzes, exams,
-                questions, subjects, users, announcements, divisions);
+                questions, subjects, users, announcements, divisions,
+                semesters, academicYears);
 
         when(assignments.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }

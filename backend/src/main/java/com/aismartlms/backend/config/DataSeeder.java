@@ -727,6 +727,101 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // =========================================================
+    // ACADEMIC STRUCTURE: SEMESTERS + ACADEMIC YEARS
+    //
+    // Source for the Semester / Academic Year columns and filters on the
+    // HOD "Instructor Assignment" page.
+    // =========================================================
+
+    private void seedAcademicStructure() {
+
+        // 1..N semesters for every degree program (BCA -> 6, MCA -> 4, ...).
+        int createdSemesters = 0;
+
+        for (Course course : courses.findAll()) {
+
+            int total = course.getTotalSemesters() != null && course.getTotalSemesters() > 0
+                    ? course.getTotalSemesters()
+                    : 6;
+
+            for (int number = 1; number <= total; number++) {
+                if (semesters.findByCourseIdAndSemesterNumber(course.getId(), number).isEmpty()) {
+                    semesters.save(new Semester(number, course.getId()));
+                    createdSemesters++;
+                }
+            }
+        }
+
+        if (createdSemesters > 0) {
+            log.info("DataSeeder: seeded {} course semesters", createdSemesters);
+        }
+
+        // Academic years: the previous + the current one (e.g. 2025-2026,
+        // 2026-2027 with 2026-2027 active). Never overwrites existing years.
+        if (academicYears.count() == 0) {
+
+            int current = Year.now().getValue();
+
+            academicYears.save(new AcademicYear(
+                    (current - 1) + "-" + current, false));
+            academicYears.save(new AcademicYear(
+                    current + "-" + (current + 1), true));
+
+            log.info(
+                    "DataSeeder: seeded academic years {}-{} (active) and {}-{}",
+                    current - 1, current, current, current + 1
+            );
+        }
+    }
+
+    /**
+     * Give pre-existing assignment rows an academic year (the active one) and,
+     * where the row is subject-scoped, the matching semester. Idempotent:
+     * only rows with missing fields are written.
+     */
+    private void backfillAssignmentAcademicFields() {
+
+        AcademicYear activeYear = academicYears.findFirstByActiveTrue().orElse(null);
+        int updated = 0;
+
+        for (InstructorCourseAssignment row : assignments.findAll()) {
+
+            Long semesterBefore = row.getSemesterId();
+            Long yearBefore = row.getAcademicYearId();
+
+            if (row.getAcademicYearId() == null && activeYear != null) {
+                row.setAcademicYearId(activeYear.getId());
+            }
+
+            if (row.getSemesterId() == null
+                    && row.getSubjectId() != null && row.getSubjectId() != 0L
+                    && row.getCourseId() != null) {
+
+                subjects.findById(row.getSubjectId()).ifPresent(subject -> {
+                    if (subject.getSemester() != null) {
+                        semesters.findByCourseIdAndSemesterNumber(
+                                        row.getCourseId(), subject.getSemester())
+                                .ifPresent(semester -> row.setSemesterId(semester.getId()));
+                    }
+                });
+            }
+
+            if (!Objects.equals(semesterBefore, row.getSemesterId())
+                    || !Objects.equals(yearBefore, row.getAcademicYearId())) {
+                assignments.save(row);
+                updated++;
+            }
+        }
+
+        if (updated > 0) {
+            log.info(
+                    "DataSeeder: backfilled semester/academic year on {} assignments",
+                    updated
+            );
+        }
+    }
+
+    // =========================================================
     // SUBJECT DEFINITIONS
     // Each row: { semester, nameIndex1, nameIndex2, ... }
     // =========================================================
