@@ -30,6 +30,7 @@ public class CourseManagementController {
     private final WishlistRepository wishlists;
     private final CertificateRepository certificates;
     private final AssignmentRepository assignmentRepository;
+    private final AcademicYearRepository academicYears;
     private final InstructorAccessService access;
 
     public CourseManagementController(
@@ -45,6 +46,7 @@ public class CourseManagementController {
             WishlistRepository wishlists,
             CertificateRepository certificates,
             AssignmentRepository assignmentRepository,
+            AcademicYearRepository academicYears,
             InstructorAccessService access) {
 
         this.users = users;
@@ -59,6 +61,7 @@ public class CourseManagementController {
         this.wishlists = wishlists;
         this.certificates = certificates;
         this.assignmentRepository = assignmentRepository;
+        this.academicYears = academicYears;
         this.access = access;
     }
 
@@ -448,6 +451,19 @@ public class CourseManagementController {
         java.util.Set<Long> courseIds = access.manageableCourseIds(user.getId());
         java.util.Set<Long> subjectIds = access.manageableSubjectIds(user.getId());
 
+        // The HOD's assignment rows for this instructor: they carry the
+        // Semester + Academic Year scope shown on the "My Subjects" page.
+        Map<Long, InstructorCourseAssignment> bySubject = new HashMap<>();
+        Map<Long, InstructorCourseAssignment> byCourse = new HashMap<>();
+
+        for (InstructorCourseAssignment row : access.activeAssignments(user.getId())) {
+            if (row.getSubjectId() != null && row.getSubjectId() != 0L) {
+                bySubject.putIfAbsent(row.getSubjectId(), row);
+            } else if (row.getCourseId() != null) {
+                byCourse.putIfAbsent(row.getCourseId(), row);
+            }
+        }
+
         List<Map<String, Object>> assignedSubjects = new ArrayList<>();
         List<Map<String, Object>> assignedCourses = new ArrayList<>();
 
@@ -456,16 +472,26 @@ public class CourseManagementController {
             Subject s = subjects.findById(subjectId).orElse(null);
             if (s == null) continue;
 
+            Long courseId = s.getCourse() == null ? null : s.getCourse().getId();
+
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", s.getId());
             item.put("subjectCode", s.getSubjectCode());
             item.put("subjectName", s.getSubjectName());
             item.put("description", s.getDescription());
             item.put("semester", s.getSemester());
-            item.put("courseId", s.getCourse() == null ? null : s.getCourse().getId());
+            item.put("courseId", courseId);
             item.put("courseName", s.getCourse() == null ? null : s.getCourse().getCourseName());
             item.put("level", "SUBJECT");
             item.put("canManage", true);
+
+            // Semester / academic year the HOD assigned for this subject.
+            InstructorCourseAssignment scope =
+                    bySubject.get(s.getId());
+            if (scope == null && courseId != null) {
+                scope = byCourse.get(courseId); // course-wide assignment covers it
+            }
+            putAssignmentScope(item, scope);
 
             assignedSubjects.add(item);
         }
@@ -489,6 +515,8 @@ public class CourseManagementController {
             item.put("level", "COURSE");
             item.put("canManage", true);
 
+            putAssignmentScope(item, byCourse.get(c.getId()));
+
             assignedCourses.add(item);
         }
 
@@ -500,6 +528,52 @@ public class CourseManagementController {
         response.put("totalAssigned", assignedCourses.size() + assignedSubjects.size());
 
         return response;
+    }
+
+    /** Adds the Semester / Academic Year scope of an assignment row to a view item. */
+    private void putAssignmentScope(
+            Map<String, Object> item, InstructorCourseAssignment row) {
+
+        if (row == null) {
+            item.put("academicYearId", null);
+            item.put("academicYear", null);
+            item.put("assignmentSemesterId", null);
+            return;
+        }
+
+        item.put("academicYearId", row.getAcademicYearId());
+        item.put("academicYear", row.getAcademicYearId() == null
+                ? null
+                : academicYears.findById(row.getAcademicYearId())
+                        .map(AcademicYear::getYearName)
+                        .orElse(null));
+        item.put("assignmentSemesterId", row.getSemesterId());
+    }
+
+    // =========================================================
+    // ACADEMIC YEAR - open to every signed-in user (students included)
+    // GET /api/academic-years
+    //
+    // Read-only: drives the "Academic Year" context shown on student
+    // course/subject pages. HODs manage the years via /api/hod/academic-years.
+    // =========================================================
+
+    @GetMapping("/academic-years")
+    public List<Map<String, Object>> academicYears(Authentication authentication) {
+
+        me(authentication); // any signed-in user
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (AcademicYear year : academicYears.findAllByOrderByYearNameDesc()) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", year.getId());
+            item.put("yearName", year.getYearName());
+            item.put("active", year.isActive());
+            result.add(item);
+        }
+
+        return result;
     }
 
     // =========================================================

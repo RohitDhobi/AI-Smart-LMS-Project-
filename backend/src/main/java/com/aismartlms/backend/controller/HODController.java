@@ -81,10 +81,11 @@ public class HODController {
     // INSTRUCTOR ASSIGNMENT LIST (SECTION 3)
     // =========================
 
-    /** Return the full assignment table: Subject/Course | Assigned Instructor | Status | Action */
+    /** Return the full assignment table: Subject/Course | Assigned Instructor | Status | Action.
+     *  Read access is open to HOD and ADMIN (writes stay HOD-only). */
     @GetMapping("/assignments")
     public java.util.List<HODAssignmentView> getAssignments(Authentication authentication) {
-        requireHOD(authentication);
+        requireHODOrAdmin(authentication);
         return hodService.getAllAssignments();
     }
 
@@ -93,7 +94,7 @@ public class HODController {
     public java.util.List<HODAssignmentView> getAssignmentsByInstructor(
             @PathVariable Long instructorId,
             Authentication authentication) {
-        requireHOD(authentication);
+        requireHODOrAdmin(authentication);
         return hodService.getAssignmentsByInstructorId(instructorId);
     }
 
