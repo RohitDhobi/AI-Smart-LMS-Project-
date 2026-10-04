@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { Loading, Empty, Page } from "../ui";
+import { sanitizePhone, phoneError } from "../utils/phone";
 
 function AdminTeachers() {
   const [users, setUsers] = useState([]);
@@ -54,6 +55,11 @@ function AdminTeachers() {
 
   async function handleCreate(e) {
     e.preventDefault();
+    const phoneErr = phoneError(form.phone);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
     try {
       setSaving(true);
       setError("");
@@ -249,7 +255,9 @@ function AdminTeachers() {
                 <label>Phone</label>
                 <input
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => setForm({ ...form, phone: sanitizePhone(e.target.value) })}
+                  maxLength={18}
+                  inputMode="tel"
                   placeholder="Phone number (optional)"
                 />
               </div>

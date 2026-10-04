@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Loading, Empty, Page } from "../ui";
+import { sanitizePhone, phoneError } from "../utils/phone";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -83,6 +84,11 @@ function AdminDashboard() {
 
   async function handleCreateInstructor(e) {
     e.preventDefault();
+    const phoneErr = phoneError(instructorForm.phone);
+    if (phoneErr) {
+      setInstructorError(phoneErr);
+      return;
+    }
     try {
       setInstructorLoading(true);
       setInstructorError("");
@@ -217,7 +223,7 @@ function AdminDashboard() {
               <input required value={instructorForm.name} onChange={(e) => setInstructorForm({ ...instructorForm, name: e.target.value })} placeholder="Full Name *" />
               <input type="email" required value={instructorForm.email} onChange={(e) => setInstructorForm({ ...instructorForm, email: e.target.value })} placeholder="Email *" />
               <input type="password" required minLength={6} value={instructorForm.password} onChange={(e) => setInstructorForm({ ...instructorForm, password: e.target.value })} placeholder="Password *" />
-              <input value={instructorForm.phone} onChange={(e) => setInstructorForm({ ...instructorForm, phone: e.target.value })} placeholder="Phone (optional)" />
+              <input value={instructorForm.phone} onChange={(e) => setInstructorForm({ ...instructorForm, phone: sanitizePhone(e.target.value) })} maxLength={18} inputMode="tel" placeholder="Phone (optional)" />
             </div>
             <div style={{ display: "flex", gap: 12 }}>
               <input value={instructorForm.bio} onChange={(e) => setInstructorForm({ ...instructorForm, bio: e.target.value })} placeholder="Bio (optional)" style={{ flex: 1 }} />
