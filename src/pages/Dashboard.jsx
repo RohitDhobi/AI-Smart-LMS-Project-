@@ -17,12 +17,15 @@ function Dashboard() {
 
   // AI Tutor chat state
   const [aiInput, setAiInput] = useState("");
-  const [aiMessages, setAiMessages] = useState([
-    {
-      role: "assistant",
-      text: "Hi Priya! 👋 I'm your AI learning assistant. What would you like to learn today?"
-    }
-  ]);
+  const [aiMessages, setAiMessages] = useState(() => {
+    const name = (getStoredUser()?.name || "Student").split(" ")[0];
+    return [
+      {
+        role: "assistant",
+        text: `Hi ${name}! 👋 I'm your AI learning assistant. What would you like to learn today?`
+      }
+    ];
+  });
   const [aiLoading, setAiLoading] = useState(false);
 
   const user = getStoredUser();
