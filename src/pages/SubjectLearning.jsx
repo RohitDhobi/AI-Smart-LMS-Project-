@@ -79,7 +79,11 @@ function SubjectLearning() {
       setLessons(sortedLessons);
 
       if (sortedLessons.length > 0) {
-        setSelectedLesson(sortedLessons[0]);
+        // Use openLesson (not just setSelectedLesson) so the auto-selected
+        // first lesson registers a progress row - otherwise clicking
+        // "Mark Lesson Complete" right away failed with
+        // "Progress not found. Start the lesson first."
+        openLesson(sortedLessons[0]);
       }
 
       // existing per-lesson progress
