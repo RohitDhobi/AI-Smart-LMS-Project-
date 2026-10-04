@@ -5,6 +5,15 @@ import { getStoredUser } from "../../ui";
 import { Users, BookOpen, Settings, LogOut, Bell, User, Lock, Eye, EyeOff } from "lucide-react";
 import { sanitizePhone, phoneError } from "../../utils/phone";
 
+// Normalizes the dateOfBirth returned by the API for <input type="date">.
+function toDateInputValue(value) {
+  if (Array.isArray(value)) {
+    const [y, m, d] = value;
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  return typeof value === "string" ? value.slice(0, 10) : "";
+}
+
 export default function HODSettings() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +22,8 @@ export default function HODSettings() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
+  const [dob, setDob] = useState("");
+  const [bio, setBio] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,6 +41,8 @@ export default function HODSettings() {
       setName(data?.name || "");
       setPhone(data?.phone || "");
       setGender(data?.gender || "");
+      setDob(toDateInputValue(data?.dateOfBirth));
+      setBio(data?.bio || "");
     } catch (e) {
       setError(e.message || "Unable to load profile.");
     } finally {
@@ -39,6 +52,10 @@ export default function HODSettings() {
 
   async function handleUpdateProfile() {
     setError("");
+    if (name.trim().length < 2) {
+      setError("Name must be at least 2 characters.");
+      return;
+    }
     const phoneErr = phoneError(phone);
     if (phoneErr) {
       setError(phoneErr);
@@ -46,7 +63,13 @@ export default function HODSettings() {
     }
     setSaving(true);
     try {
-      const data = await api.updateProfile({ name, phone, gender }).catch(() => null);
+      const data = await api.updateProfile({
+        name: name.trim(),
+        phone,
+        gender,
+        dateOfBirth: dob || null,
+        bio,
+      }).catch(() => null);
       if (data) setProfile(data);
       setMsg("Profile updated.");
     } catch (e) {
@@ -74,6 +97,13 @@ export default function HODSettings() {
     }
   }
 
+  const dirty =
+    name !== (profile?.name || "") ||
+    phone !== (profile?.phone || "") ||
+    gender !== (profile?.gender || "") ||
+    dob !== toDateInputValue(profile?.dateOfBirth) ||
+    bio !== (profile?.bio || "");
+
   return (
     <div className="page hod-settings">
       <div className="page-heading">
@@ -88,6 +118,7 @@ export default function HODSettings() {
       <div className="card">
         <div className="card-header">
           <h2>👤 Profile</h2>
+          <span className="status-badge status-active">{profile?.role || "HOD"}</span>
         </div>
         <div className="hod-form">
           <div className="hod-form-row">
@@ -97,6 +128,7 @@ export default function HODSettings() {
           <div className="hod-form-row">
             <label>Email</label>
             <input className="hod-input" value={profile?.email || ""} disabled placeholder="Email" />
+            <span className="card-sub">Contact an admin to change your email.</span>
           </div>
           <div className="hod-form-row">
             <label>Phone</label>
@@ -118,8 +150,29 @@ export default function HODSettings() {
               <option value="Other">Other</option>
             </select>
           </div>
+          <div className="hod-form-row">
+            <label>Date of Birth</label>
+            <input
+              className="hod-input"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+            />
+          </div>
+          <div className="hod-form-row">
+            <label>Bio</label>
+            <textarea
+              className="hod-input"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              maxLength={300}
+              rows={3}
+              placeholder="Short bio (optional)"
+            />
+          </div>
           <div className="hod-form-actions">
-            <button className="inst-btn primary" onClick={handleUpdateProfile} disabled={saving}>
+            <button className="inst-btn primary" onClick={handleUpdateProfile} disabled={saving || !dirty}>
               <User size={16} /> {saving ? "Saving..." : "Save Profile"}
             </button>
           </div>
