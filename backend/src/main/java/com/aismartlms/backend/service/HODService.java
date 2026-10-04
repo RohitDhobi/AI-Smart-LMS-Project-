@@ -1047,6 +1047,7 @@ public class HODService {
         if (course != null) {
             v.setCourseId(course.getId());
             v.setCourseName(course.getTitle());
+            v.setCourseCode(course.getCourseCode());
             // Also grab the subject name if this points at a subject.
             if (a.getSubjectId() != null && a.getSubjectId() != 0L) {
                 Subject subject = courseRepository.findSubjectById(a.getSubjectId()).orElse(null);
