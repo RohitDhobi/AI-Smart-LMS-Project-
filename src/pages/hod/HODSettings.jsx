@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { getStoredUser } from "../../ui";
 import { Users, BookOpen, Settings, LogOut, Bell, User, Lock, Eye, EyeOff } from "lucide-react";
+import { sanitizePhone, phoneError } from "../../utils/phone";
 
 export default function HODSettings() {
   const [profile, setProfile] = useState(null);
@@ -38,9 +39,9 @@ export default function HODSettings() {
 
   async function handleUpdateProfile() {
     setError("");
-    const digits = phone.replace(/\D/g, "");
-    if (phone.trim() && (digits.length < 7 || digits.length > 15)) {
-      setError("Invalid phone number: enter 7–15 digits, optionally starting with +.");
+    const phoneErr = phoneError(phone);
+    if (phoneErr) {
+      setError(phoneErr);
       return;
     }
     setSaving(true);
@@ -102,7 +103,7 @@ export default function HODSettings() {
             <input
               className="hod-input"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/[^\d+\-\s]/g, "").slice(0, 18))}
+              onChange={(e) => setPhone(sanitizePhone(e.target.value))}
               maxLength={18}
               inputMode="tel"
               placeholder="Phone (7–15 digits)"

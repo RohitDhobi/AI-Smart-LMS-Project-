@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { sanitizePhone, phoneError } from "../utils/phone";
 
 function Register() {
 
@@ -120,6 +121,13 @@ function Register() {
       setError(
         "Password and confirm password do not match."
       );
+      return;
+    }
+
+    const phoneErr = phoneError(phone);
+
+    if (phoneErr) {
+      setError(phoneErr);
       return;
     }
 
@@ -333,8 +341,10 @@ function Register() {
               <input
                 value={phone}
                 onChange={e =>
-                  setPhone(e.target.value)
+                  setPhone(sanitizePhone(e.target.value))
                 }
+                maxLength={18}
+                inputMode="tel"
                 placeholder="Enter your phone number"
               />
             </div>

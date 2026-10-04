@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../api";
 import { Loading, Page } from "../../ui";
 import { getTheme, applyTheme } from "../../gamification";
+import { sanitizePhone, phoneError } from "../../utils/phone";
 
 export default function AdminSettings() {
   const [theme, setTheme] = useState(() => getTheme());
@@ -10,6 +11,7 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
 
   useEffect(() => { loadProfile(); }, []);
@@ -26,9 +28,15 @@ export default function AdminSettings() {
 
   async function handleSave(e) {
     e.preventDefault();
+    const phoneErr = phoneError(form.phone);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
     try {
       setSaving(true);
       setSuccess("");
+      setError("");
       await api.updateProfile(form);
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
@@ -53,6 +61,7 @@ export default function AdminSettings() {
       </div>
 
       {success && <div className="notice">{success}</div>}
+      {error && <div className="error">{error}</div>}
 
       <div className="admin-two-col">
         {/* Profile Settings */}
@@ -69,7 +78,7 @@ export default function AdminSettings() {
             </div>
             <div className="form-field" style={{ marginBottom: 16 }}>
               <label>Phone</label>
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhone(e.target.value) })} maxLength={18} inputMode="tel" />
             </div>
             <button className="primary" type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save Changes"}

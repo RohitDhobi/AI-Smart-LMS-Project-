@@ -3,6 +3,7 @@ import { getStoredUser } from "../../ui";
 import { api } from "../../api";
 import { getTheme, applyTheme } from "../../gamification";
 import InstructorPage from "./InstructorPage";
+import { sanitizePhone, phoneError } from "../../utils/phone";
 
 export default function InstructorSettings() {
   const user = getStoredUser();
@@ -34,6 +35,11 @@ export default function InstructorSettings() {
   const [error, setError] = useState("");
 
   async function handleSaveProfile() {
+    const phoneErr = phoneError(profile.phone);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
     try {
       setSaving(true);
       setError("");
@@ -142,7 +148,8 @@ export default function InstructorSettings() {
                       <input
                         type="tel"
                         value={profile.phone}
-                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        onChange={(e) => setProfile({ ...profile, phone: sanitizePhone(e.target.value) })}
+                        maxLength={18}
                         placeholder="+91 98765 43210"
                       />
                     </div>

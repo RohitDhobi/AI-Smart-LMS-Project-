@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../api";
 import { Loading } from "../ui";
 import { getTheme, applyTheme } from "../gamification";
+import { sanitizePhone, phoneError } from "../utils/phone";
 
 export default function StudentSettings() {
   const [theme, setTheme] = useState(() => getTheme());
@@ -30,6 +31,11 @@ export default function StudentSettings() {
 
   async function handleSave(e) {
     e.preventDefault();
+    const phoneErr = phoneError(form.phone);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
     try {
       setSaving(true);
       setSuccess("");
@@ -87,7 +93,9 @@ export default function StudentSettings() {
               <label>Phone</label>
               <input
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => setForm({ ...form, phone: sanitizePhone(e.target.value) })}
+                maxLength={18}
+                inputMode="tel"
               />
             </div>
             <button className="primary" type="submit" disabled={saving}>
