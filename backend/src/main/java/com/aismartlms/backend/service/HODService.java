@@ -5,14 +5,17 @@ import com.aismartlms.backend.dto.HODDashboardView;
 import com.aismartlms.backend.dto.HODRequest;
 import com.aismartlms.backend.dto.DivisionRequest;
 import com.aismartlms.backend.dto.DivisionResponse;
+import com.aismartlms.backend.entity.AcademicYear;
 import com.aismartlms.backend.entity.Announcement;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Division;
 import com.aismartlms.backend.entity.Enrollment;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Role;
+import com.aismartlms.backend.entity.Semester;
 import com.aismartlms.backend.entity.Subject;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.repository.AcademicYearRepository;
 import com.aismartlms.backend.repository.AnnouncementRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.DivisionRepository;
@@ -21,6 +24,7 @@ import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.QuestionRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.QuizRepository;
+import com.aismartlms.backend.repository.SemesterRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
 import com.aismartlms.backend.repository.UserRepository;
 import com.aismartlms.backend.exception.AccessDeniedException;
@@ -48,6 +52,8 @@ public class HODService {
     private final UserRepository userRepository;
     private final AnnouncementRepository announcementRepository;
     private final DivisionRepository divisionRepository;
+    private final SemesterRepository semesterRepository;
+    private final AcademicYearRepository academicYearRepository;
 
     public HODService(
             InstructorCourseAssignmentRepository assignmentRepository,
@@ -59,7 +65,9 @@ public class HODService {
             SubjectRepository subjectRepository,
             UserRepository userRepository,
             AnnouncementRepository announcementRepository,
-            DivisionRepository divisionRepository) {
+            DivisionRepository divisionRepository,
+            SemesterRepository semesterRepository,
+            AcademicYearRepository academicYearRepository) {
 
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
@@ -71,6 +79,8 @@ public class HODService {
         this.userRepository = userRepository;
         this.announcementRepository = announcementRepository;
         this.divisionRepository = divisionRepository;
+        this.semesterRepository = semesterRepository;
+        this.academicYearRepository = academicYearRepository;
     }
 
     // =========================
