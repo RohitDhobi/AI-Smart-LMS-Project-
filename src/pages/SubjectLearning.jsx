@@ -36,6 +36,19 @@ function SubjectLearning() {
   const [notice, setNotice] =
     useState("");
 
+  // Current academic year (context chip in the page header)
+  const [academicYear, setAcademicYear] = useState("");
+
+  useEffect(() => {
+    api
+      .academicYears()
+      .then((list) => {
+        const active = (Array.isArray(list) ? list : []).find((y) => y.active);
+        setAcademicYear(active?.yearName || "");
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     loadSubject();
   }, [id]);
@@ -282,7 +295,8 @@ function SubjectLearning() {
     <Page
       title={subject.subjectName}
       subtitle={
-        `${subject.courseCode || ""}`
+        `${subject.courseCode || ""}` +
+        (academicYear ? ` · 📅 Academic Year ${academicYear}` : "")
       }
     >
 

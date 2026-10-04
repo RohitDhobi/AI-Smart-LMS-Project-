@@ -786,6 +786,9 @@ export const api = {
   hodSemesters: (courseId) =>
     apiRequest(courseId ? `/hod/semesters?courseId=${courseId}` : "/hod/semesters"),
 
+  // Current academic year - open to every signed-in user (students too)
+  academicYears: () => apiRequest("/academic-years"),
+
   hodAcademicYears: () => apiRequest("/hod/academic-years"),
 
   hodCreateAcademicYear: (body) =>
