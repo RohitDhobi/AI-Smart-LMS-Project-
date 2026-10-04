@@ -778,6 +778,22 @@ export const api = {
 
   hodSubjects: () => apiRequest("/hod/subjects"),
 
+  // ---------------------------------------------------
+  // Academic structure: Semester / Academic Year columns,
+  // filters and the Instructor Assignment form
+  // ---------------------------------------------------
+
+  hodSemesters: (courseId) =>
+    apiRequest(courseId ? `/hod/semesters?courseId=${courseId}` : "/hod/semesters"),
+
+  hodAcademicYears: () => apiRequest("/hod/academic-years"),
+
+  hodCreateAcademicYear: (body) =>
+    apiRequest("/hod/academic-years", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
   hodStudents: () => apiRequest("/hod/students"),
 
   // ---------------------------------------------------
