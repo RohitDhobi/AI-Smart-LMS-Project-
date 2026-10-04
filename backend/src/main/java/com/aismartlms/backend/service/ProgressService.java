@@ -104,17 +104,18 @@ public class ProgressService {
             );
         }
 
-        // Find existing progress
+        // Find existing progress. If there is none, the student jumped
+        // straight to "Mark Lesson Complete" (e.g. the first lesson is
+        // auto-selected on the subject page without an explicit start), so
+        // create the row instead of rejecting the update.
         Progress progress =
                 progressRepository
                         .findByUserEmailAndLessonId(
                                 email,
                                 lessonId
                         )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Progress not found. Start the lesson first."
-                                )
+                        .orElseGet(() ->
+                                startLesson(email, lessonId)
                         );
 
         // Update percentage
