@@ -677,23 +677,6 @@ export default function HODAssignments() {
                 </>
               )}
 
-              <div className="inst-form-group" style={{ marginTop: 14 }}>
-                <label>Academic Year</label>
-                <select
-                  className="inst-select"
-                  value={form.academicYearId}
-                  onChange={(e) => setField("academicYearId", e.target.value)}
-                >
-                  <option value="">Any academic year</option>
-                  {years.map((y) => (
-                    <option key={y.id} value={y.id}>
-                      {y.yearName}
-                      {y.active ? " (current)" : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {modal.mode !== "create" && (
                 <div className="inst-form-group" style={{ marginTop: 14 }}>
                   <label>Semester</label>
@@ -711,6 +694,23 @@ export default function HODAssignments() {
                   </select>
                 </div>
               )}
+
+              <div className="inst-form-group" style={{ marginTop: 14 }}>
+                <label>Academic Year</label>
+                <select
+                  className="inst-select"
+                  value={form.academicYearId}
+                  onChange={(e) => setField("academicYearId", e.target.value)}
+                >
+                  <option value="">Any academic year</option>
+                  {years.map((y) => (
+                    <option key={y.id} value={y.id}>
+                      {y.yearName}
+                      {y.active ? " (current)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="inst-form-group" style={{ marginTop: 14 }}>
                 <label>Instructor</label>
