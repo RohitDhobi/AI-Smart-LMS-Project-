@@ -1129,3 +1129,26 @@ td.hod-actions-cell {
 
 /* Approval list page tweaks */
 .hod-exam-approvals .hod-table-wrap { overflow-x: auto; }
+
+/* ---------- Instructor Assignment filter bar ---------- */
+.hod-filters .hod-input.hod-filter-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: none;
+}
+
+.hod-filters select.hod-input.hod-filter-select {
+  width: auto;
+  min-width: 150px;
+  max-width: 210px;
+  cursor: pointer;
+}
+
+.hod-assignments .hod-table th,
+.hod-assignments .hod-table td {
+  white-space: nowrap;
+}
+
+.hod-assignments .hod-table td strong {
+  display: block;
+}
