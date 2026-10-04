@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../api";
 import { getGamification, getBadges, syncGamificationWithBackend } from "../gamification";
 import { Loading } from "../ui";
+import { sanitizePhone, phoneError } from "../utils/phone";
 
 function Profile() {
 
@@ -93,6 +94,13 @@ function Profile() {
   ) {
 
     event.preventDefault();
+
+    const phoneErr = phoneError(profile?.phone);
+
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
 
     try {
 
@@ -232,12 +240,14 @@ function Profile() {
               profile?.phone ||
               ""
             }
+            maxLength={18}
+            inputMode="tel"
             onChange={e =>
               setProfile(
                 current => ({
                   ...current,
                   phone:
-                    e.target.value
+                    sanitizePhone(e.target.value)
                 })
               )
             }
