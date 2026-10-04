@@ -160,6 +160,7 @@ export default function HODCoursesSubjects() {
                     <strong>{s.subjectName}</strong>
                     <span>
                       Semester {s.semester ?? "—"}
+                      {s.academicYear ? ` · ${s.academicYear}` : ""}
                       {s.assignedInstructor
                         ? ` · 👨‍🏫 ${s.assignedInstructor}`
                         : " · Not Assigned"}
@@ -266,6 +267,7 @@ export default function HODCoursesSubjects() {
                   <strong>{s.subjectName}</strong>
                   <span>
                     {s.courseName || "No course"} · Semester {s.semester}
+                    {s.academicYear ? ` · ${s.academicYear}` : ""}
                     {s.assignedInstructor ? ` · 👨‍🏫 ${s.assignedInstructor}` : ""}
                   </span>
                 </div>
