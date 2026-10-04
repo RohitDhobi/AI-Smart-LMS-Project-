@@ -2153,6 +2153,39 @@ public class AdvancedFeatureController {
                     "- AOP: Cross-cutting concerns (logging, security)\n\n" +
                     "Getting started: @SpringBootApplication, @RestController, @Service, @Repository.";
 
+        } else if (lowerQuestion.contains("java") && !lowerQuestion.contains("javascript")) {
+            answer = "Java is an object-oriented, platform-independent language (\"write once, run anywhere\") that runs on the JVM.\n\n" +
+                    "Core concepts:\n" +
+                    "- OOP: Encapsulation, Inheritance, Polymorphism, Abstraction\n" +
+                    "- Data types, operators and control flow (if/switch/loops)\n" +
+                    "- Collections: List, Set, Map (ArrayList, HashSet, HashMap)\n" +
+                    "- Exception handling: try/catch/finally, checked vs unchecked\n" +
+                    "- Threads: implements Runnable, synchronized blocks\n" +
+                    "- Java 8+: lambda expressions, streams, Optional\n\n" +
+                    "Tooling:\n" +
+                    "- JDK vs JRE vs JVM\n" +
+                    "- Build tools: Maven / Gradle\n" +
+                    "- JUnit for testing\n\n" +
+                    "Getting started: install a JDK, write a Main class, practice small programs (pattern printing, arrays, file I/O), then move to collections and Spring Boot.";
+
+        } else if (lowerQuestion.contains("programming in c")
+                || lowerQuestion.contains("c programming")
+                || lowerQuestion.contains("c program")
+                || lowerQuestion.contains("c language")
+                || lowerQuestion.contains("c++")
+                || lowerQuestion.trim().equals("c")
+                || lowerQuestion.trim().matches("what is c\\b[?.!]*")) {
+            answer = "C is a lightweight, powerful procedural language - the foundation of modern programming.\n\n" +
+                    "Core concepts:\n" +
+                    "- Data types, operators, control flow (if/else, for, while)\n" +
+                    "- Functions, scope and storage classes (auto, static, extern)\n" +
+                    "- Arrays and strings (char arrays, null-terminated)\n" +
+                    "- Pointers: & and *, pointer arithmetic, dynamic memory (malloc/free)\n" +
+                    "- Structures and unions for custom data types\n" +
+                    "- File handling: fopen / fread / fwrite / fclose\n\n" +
+                    "Why it matters: operating systems, Java and Python are all built on C - understanding pointers and memory makes every other language easier. (C++ extends C with classes, templates and the STL.)\n\n" +
+                    "Practice: small programs first - sum of digits, matrix multiplication, student records with structs - then build a linked list.";
+
         } else if (lowerQuestion.contains("react") || lowerQuestion.contains("javascript") || lowerQuestion.contains("frontend") || lowerQuestion.contains("web")) {
             answer = "React is a JavaScript library for building user interfaces, maintained by Meta.\n\n" +
                     "Core concepts:\n" +
@@ -2283,6 +2316,27 @@ public class AdvancedFeatureController {
                     "- Responsive: Media queries for different screen sizes\n\n" +
                     "Modern CSS: CSS Variables, Container Queries, :has() selector, and utility frameworks like Tailwind.";
 
+        } else if (lowerQuestion.contains("software engineering")
+                || lowerQuestion.contains("sdlc")
+                || lowerQuestion.contains("agile")
+                || lowerQuestion.contains("software testing")
+                || lowerQuestion.contains("unit test")
+                || lowerQuestion.contains("test case")
+                || lowerQuestion.contains("tdd")) {
+            answer = "Software Engineering is the practice of designing, building and maintaining software systematically and reliably.\n\n" +
+                    "SDLC phases:\n" +
+                    "1. Requirement analysis - what the system must do\n" +
+                    "2. Design - architecture, data models, UI\n" +
+                    "3. Implementation - coding\n" +
+                    "4. Testing - unit, integration, system, acceptance\n" +
+                    "5. Deployment & maintenance - release, monitor, update\n\n" +
+                    "Methodologies:\n" +
+                    "- Waterfall: sequential phases, hard to change late\n" +
+                    "- Agile/Scrum: short sprints, daily standups, working software every sprint\n\n" +
+                    "Testing levels: Unit -> Integration -> System -> Regression\n" +
+                    "Extras: UML diagrams, version control, code review, CI/CD.\n\n" +
+                    "Tip: practice writing test cases first (TDD) - it catches bugs while code is still simple.";
+
         } else if (lowerQuestion.contains("design pattern")) {
             answer = "Design Patterns are reusable solutions to common software design problems.\n\n" +
                     "Creational patterns:\n" +
@@ -2314,9 +2368,9 @@ public class AdvancedFeatureController {
                     "3. Work through one small example end-to-end.\n" +
                     "4. Practice: solve 2-3 related problems or build something tiny with it.\n" +
                     "5. Explain it back in your own words - if you can teach it, you know it.\n\n" +
-                    "I answer instantly on: OOP, SQL, Java, Spring, React, JavaScript, Python, algorithms/DSA, " +
-                    "data structures, APIs, OS, networking, git, HTML/CSS, machine learning and design patterns. " +
-                    "Ask about one of those for a detailed answer - or your administrator can enable full AI mode.";
+                    "I answer instantly on: OOP, SQL, Java, C, Spring, React, JavaScript, Python, algorithms/DSA, " +
+                    "data structures, APIs, OS, networking, git, HTML/CSS, machine learning, software engineering " +
+                    "and design patterns. Ask about one of those for a detailed answer - or your administrator can enable full AI mode.";
         }
 
         return Map.of(
