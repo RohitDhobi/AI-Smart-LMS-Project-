@@ -92,14 +92,20 @@ function SubjectLearning() {
         const myProgress =
           await api.myProgress();
 
+        // Match by THIS subject's lesson ids. The old filter used
+        // item.lesson.subject.id, but Lesson.subject is a Jackson back-reference
+        // and is never serialized - so every row was dropped and the page
+        // always reopened at 0% even though completions were saved.
+        const lessonIds = new Set(
+          sortedLessons.map(lesson => Number(lesson.id))
+        );
+
         const subjectLessons =
           (Array.isArray(myProgress)
             ? myProgress
             : [])
             .filter(item =>
-              item.lesson?.subject?.id != null &&
-              Number(item.lesson.subject.id) ===
-                Number(id)
+              lessonIds.has(Number(item.lesson?.id))
             );
 
         setProgressList(subjectLessons);
