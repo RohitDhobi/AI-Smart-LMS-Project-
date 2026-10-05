@@ -40,8 +40,13 @@ function Analytics() {
 
   // Full weak-topics list — this page is where the dashboard's
   // Weak Topics "View All" link (to="/analytics") lands, so it has to
-  // show every weak topic, not just the 3 the dashboard card fits.
+  // use the SAME source as that card (quiz weak topics, then subjects
+  // that are behind on progress) and show every entry, not just the 3
+  // the card has room for.
   const [weakTopics, setWeakTopics] =
+    useState([]);
+
+  const [subjects, setSubjects] =
     useState([]);
 
   useEffect(() => {
@@ -51,6 +56,16 @@ function Analytics() {
       .then(r =>
         setWeakTopics(
           Array.isArray(r) ? r : []
+        )
+      )
+
+      .catch(() => {});
+
+    api.mySubjects()
+
+      .then(r =>
+        setSubjects(
+          Array.isArray(r?.subjects) ? r.subjects : []
         )
       )
 
@@ -143,6 +158,57 @@ function Analytics() {
       suffix: "%"
     }
   ];
+
+  // Same rules as the dashboard card (Dashboard.jsx): quiz-based weak
+  // topics win; if the API has none, fall back to subjects below 80%
+  // progress. The card slices that list to 3 — this page shows all.
+  const quizWeak = weakTopics.map(w => {
+
+    const score =
+      Math.round(
+        Number(
+          w.score ||
+          w.percentage ||
+          w.progressPercentage ||
+          0
+        ) || 0
+      );
+
+    return {
+      name: w.topic || w.name || w.subjectName || "Topic",
+      score,
+      priority:
+        (Number(w.score || w.percentage || 50) || 0) < 50
+          ? "High"
+          : "Medium",
+      recommendation:
+        w.recommendation ||
+        "Review this topic and retry the quiz."
+    };
+
+  });
+
+  const behindSubjects = subjects
+
+    .filter(s => (s.progressPercentage || 0) < 80)
+
+    .map(s => {
+
+      const score = Math.round(s.progressPercentage || 0);
+
+      return {
+        name: s.subjectName || s.name || "Subject",
+        score,
+        priority: score < 60 ? "High" : "Medium",
+        recommendation:
+          "Work on this subject — it is still below 80% progress."
+      };
+
+    });
+
+  const weakFromQuiz = quizWeak.length > 0;
+
+  const displayWeak = weakFromQuiz ? quizWeak : behindSubjects;
 
   return (
 
