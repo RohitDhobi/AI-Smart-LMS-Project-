@@ -38,6 +38,27 @@ function Analytics() {
   }, []);
 
 
+  // Full weak-topics list — this page is where the dashboard's
+  // Weak Topics "View All" link (to="/analytics") lands, so it has to
+  // show every weak topic, not just the 3 the dashboard card fits.
+  const [weakTopics, setWeakTopics] =
+    useState([]);
+
+  useEffect(() => {
+
+    api.weakTopics()
+
+      .then(r =>
+        setWeakTopics(
+          Array.isArray(r) ? r : []
+        )
+      )
+
+      .catch(() => {});
+
+  }, []);
+
+
   const [weekly, setWeekly] =
     useState(() =>
       getWeeklyActivity()
@@ -346,6 +367,111 @@ function Analytics() {
       </section>
 
       </div>
+
+      {/* =============================================
+          ALL WEAK TOPICS — target of the dashboard's
+          Weak Topics "View All" link
+      ============================================= */}
+
+      <section className="card analytics-weak-topics">
+
+        <div className="dash-panel-head">
+
+          <h3>⚠️ Weak Topics</h3>
+
+          <p className="section-note">
+
+            {weakTopics.length > 0
+              ? `${weakTopics.length} topic${weakTopics.length === 1 ? "" : "s"} scored below 60% — review these first.`
+              : "Quizzes scored below 60%."}
+
+          </p>
+
+        </div>
+
+        {weakTopics.length === 0 ? (
+
+          <p className="dash-empty">
+
+            No weak topics found. Great job! 🎉
+
+          </p>
+
+        ) : (
+
+          <div className="weak-list">
+
+            {weakTopics.map((topic, i) => {
+
+              const rawScore =
+                Number(
+                  topic.score ??
+                  topic.percentage ??
+                  topic.progressPercentage ??
+                  0
+                ) || 0;
+
+              const score = Math.round(rawScore);
+
+              const priority = score < 50 ? "High" : "Medium";
+
+              return (
+
+                <div
+                  className="weak-item"
+                  key={topic.topic || topic.name || i}
+                >
+
+                  <div className="weak-item-head">
+
+                    <strong>
+
+                      {i + 1}. {topic.topic || topic.name || topic.subjectName || "Topic"}
+
+                    </strong>
+
+                    <span>
+
+                      {score}%
+
+                    </span>
+
+                  </div>
+
+                  <div className="progress score-bar">
+
+                    <span
+                      style={{
+                        width: `${Math.min(100, Math.max(0, score))}%`
+                      }}
+                    />
+
+                  </div>
+
+                  <p>
+
+                    <span className={`dash-v2-weak-badge ${priority.toLowerCase()}`}>
+
+                      {priority} Priority
+
+                    </span>
+
+                    {topic.recommendation ||
+                      "Review this topic and retry the quiz."}
+
+                  </p>
+
+                </div>
+
+              );
+
+            })}
+
+          </div>
+
+        )}
+
+      </section>
 
     </div>
   );
