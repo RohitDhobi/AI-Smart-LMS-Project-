@@ -3475,6 +3475,12 @@ a.course-card:hover {
   color:var(--text-secondary)
 }
 
+.weak-item .dash-v2-weak-badge {
+  display:inline-block;
+  margin-right:8px;
+  vertical-align:middle
+}
+
 .quiz-recs {
   display:flex;
   flex-direction:column;
