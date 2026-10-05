@@ -3909,7 +3909,11 @@ a.course-card:hover {
   display:grid;
   grid-template-columns:1fr 320px;
   gap:18px;
-  align-items:start
+  align-items:start;
+  /* Without this the taller card in the row (Quiz Performance has
+     margin-bottom:0) ends exactly where the next section starts — 0px
+     of breathing room above the Weak Topics card. */
+  margin-bottom:20px
 }
 
 .quiz-score-panel {
