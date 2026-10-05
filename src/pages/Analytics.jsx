@@ -447,15 +447,17 @@ function Analytics() {
 
           <p className="section-note">
 
-            {weakTopics.length > 0
-              ? `${weakTopics.length} topic${weakTopics.length === 1 ? "" : "s"} scored below 60% — review these first.`
-              : "Quizzes scored below 60%."}
+            {displayWeak.length === 0
+              ? "Quizzes scored below 60%."
+              : weakFromQuiz
+                ? `${displayWeak.length} topic${displayWeak.length === 1 ? "" : "s"} scored below 60% — review these first.`
+                : `${displayWeak.length} subject${displayWeak.length === 1 ? "" : "s"} below 80% progress — catch up on these.`}
 
           </p>
 
         </div>
 
-        {weakTopics.length === 0 ? (
+        {displayWeak.length === 0 ? (
 
           <p className="dash-empty">
 
@@ -467,32 +469,24 @@ function Analytics() {
 
           <div className="weak-list">
 
-            {weakTopics.map((topic, i) => {
+            {displayWeak.map((topic, i) => {
 
-              const rawScore =
-                Number(
-                  topic.score ??
-                  topic.percentage ??
-                  topic.progressPercentage ??
-                  0
-                ) || 0;
+              const score = topic.score;
 
-              const score = Math.round(rawScore);
-
-              const priority = score < 50 ? "High" : "Medium";
+              const priority = topic.priority;
 
               return (
 
                 <div
                   className="weak-item"
-                  key={topic.topic || topic.name || i}
+                  key={topic.name || i}
                 >
 
                   <div className="weak-item-head">
 
                     <strong>
 
-                      {i + 1}. {topic.topic || topic.name || topic.subjectName || "Topic"}
+                      {i + 1}. {topic.name}
 
                     </strong>
 
@@ -522,8 +516,7 @@ function Analytics() {
 
                     </span>
 
-                    {topic.recommendation ||
-                      "Review this topic and retry the quiz."}
+                    {topic.recommendation}
 
                   </p>
 
