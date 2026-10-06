@@ -292,8 +292,8 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | POST | `/api/wishlist/{courseId}` | Save a course (idempotent; unique user+course row) | JWT | Any |
 | DELETE | `/api/wishlist/{courseId}` | Remove a saved course | JWT | Any |
 | GET | `/api/wishlist` | Own wishlist (`courseId`, `title`, `category`) | JWT | Any |
-| POST | `/api/courses/{courseId}/reviews` | Post a rating + comment (one per user per course) | JWT | Any |
-| GET | `/api/courses/{courseId}/reviews` | Reviews of a course | JWT | Any |
+| POST | `/api/courses/{courseId}/reviews` | Post/update own rating (1–5, clamped) + comment; **enrolment in the course required** (`400 "Enroll in course first"`); upserts the single user+course row | JWT | Any enrolled student |
+| GET | `/api/courses/{courseId}/reviews` | Course reviews + average rating | JWT | Any |
 
 ---
 
