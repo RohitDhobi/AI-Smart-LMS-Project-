@@ -219,7 +219,8 @@ class HODServiceAssignmentTest {
         List<Map<String, Object>> view = service.getSubjects();
 
         assertEquals("Prof. Rajesh Kumar", view.get(0).get("assignedInstructor"));
-        assertEquals(19L, view.get(0).get("assignedInstructorId"));
+        assertEquals(20L, view.get(0).get("assignedInstructorId"));   // Prof. Rajesh Kumar
+        assertEquals(19L, view.get(0).get("assignmentId"));           // newest row wins
     }
 
     @Test
