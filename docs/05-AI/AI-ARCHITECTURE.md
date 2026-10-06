@@ -1,23 +1,17 @@
 # AI-Smart-LMS — AI Architecture
 
-> **Headline finding (verified across the whole repository):**
-> **No machine-learning model, no Python service, no TensorFlow runtime and no external AI/LLM
-> API is used anywhere in this project.** Every feature labelled "AI" today is **rule-based
-> Java/JavaScript logic** — keyword matching, curated question banks, string templates and simple
-> aggregates over the student's own data.
+> **What this document covers:** only AI features that exist in the source code today.
 >
-> Everything that does *not* exist yet is marked **PLANNED / NOT IMPLEMENTED**.
-
-### Evidence used for this conclusion
-
-- A repository-wide search for `gemini | openai | gpt | tensorflow | langchain | ollama |
-  RestTemplate | WebClient | HttpURLConnection | api_key` returns **no HTTP client and no API key
-  anywhere in `backend/src/main/java` or `src/`**. The only `TensorFlow` hits are *words inside
-  answer text* and a UI footer string.
-- `backend/pom.xml` contains no AI/ML/HTTP-client dependency (Web, Data JPA, Security,
-  Validation, Actuator, DevTools, MySQL, Lombok, JJWT, tests only).
-- `package.json` contains no AI SDK.
-- There is **no `ai-service/`, no Python file, no `.env`** in the repository.
+> **Verified findings:**
+> - There is **no machine-learning model, no Python service and no TensorFlow runtime** anywhere
+>   in the repository (no `ai-service/` folder, no Python file, no ML dependency in
+>   `backend/pom.xml` or `package.json`).
+> - There **is** an outbound HTTP call to an **OpenAI-compatible chat-completions API** in the
+>   backend, used by the study assistant. It is **optional and disabled by default**: it only
+>   runs when `app.ai.api-key` is set in `backend/src/main/resources/application.properties`
+>   (all three `app.ai.*` lines are commented out in the committed file).
+> - Everything else labelled "AI" is **rule-based Java/JavaScript logic** — keyword matching,
+>   curated question banks, string templates and simple aggregates over the student's own data.
 
 ---
 
@@ -25,21 +19,21 @@
 
 | # | Feature | Status | Implementation type |
 |---|---|---|---|
-| 1 | AI Question Generator (server) | **IMPLEMENTED** | Curated banks + string templates |
-| 2 | AI Question Generator (HOD, persists) | **IMPLEMENTED** | Same engine + `QuestionService` save |
-| 3 | AI Question Generator (browser fallback) | **IMPLEMENTED** | `src/ai-question-engine.js` (same idea, local) |
+| 1 | AI Question Generator (server) | **IMPLEMENTED** | Curated banks + string templates (`AIQuestionService`) |
+| 2 | AI Question Generator (HOD, persists into a quiz) | **IMPLEMENTED** | Same engine + `QuestionService` save |
+| 3 | AI Question Generator (browser fallback) | **IMPLEMENTED** | `src/ai-question-engine.js` (local, offline) |
 | 4 | Instructor AI Tools (question paper builder) | **IMPLEMENTED** | Fully local generator inside `InstructorAITools.jsx` |
-| 5 | AI Study Assistant | **IMPLEMENTED** | Keyword router → canned answers (`"mode":"simple-ai"`) |
-| 6 | AI Course Recommendations | **IMPLEMENTED** | Keyword overlap ranking over DB data |
-| 7 | AI Weak Topic Detection | **IMPLEMENTED** | `percentage < 60` filter over `QuizAttempt` |
-| 8 | AI Learning Path | **IMPLEMENTED** | Completion check over `Progress` |
-| 9 | AI Quiz Recommendations | **IMPLEMENTED** | Derived from #7 |
-| 10 | Coding AI Assist (hint/explain/complexity/debug) | **IMPLEMENTED** | Templates + stored `hintsJson` |
-| 11 | Admin AI Assistant / AI Analytics / AI Insights pages | **PARTIALLY IMPLEMENTED** | UI present; presentation-side logic over local/server data |
-| 12 | Python (FastAPI) AI micro-service | **PLANNED / NOT IMPLEMENTED** | Claimed in a footer string only |
-| 13 | TensorFlow / trained ML model | **PLANNED / NOT IMPLEMENTED** | Mentioned in text only |
-| 14 | Gemini text integration | **PLANNED / NOT IMPLEMENTED** | §5 below |
-| 15 | Gemini Live voice assistant | **PLANNED / NOT IMPLEMENTED** | §5 below |
+| 5 | AI Study Assistant — offline knowledge base | **IMPLEMENTED** | Keyword router → canned answers (`"mode":"simple-ai"`) |
+| 6 | AI Study Assistant — external LLM mode | **IMPLEMENTED but disabled by default** | `java.net.http.HttpClient` → OpenAI-compatible `/chat/completions` when `app.ai.api-key` is configured (`"mode":"ai"`) |
+| 7 | AI Course Recommendations | **IMPLEMENTED** | Keyword overlap ranking over DB data |
+| 8 | AI Weak Topic Detection | **IMPLEMENTED** | `percentage < 60` filter over `QuizAttempt` |
+| 9 | AI Learning Path | **IMPLEMENTED** | Completion check over `Progress` |
+| 10 | AI Quiz Recommendations | **IMPLEMENTED** | Derived from #8 |
+| 11 | Coding AI Assist (hint / explain / complexity / debug) | **IMPLEMENTED** | Templates + stored `hintsJson` |
+| 12 | Admin AI Assistant / AI Analytics / AI Insights pages | **IMPLEMENTED (UI)** | Presentation logic over the same server endpoints and local data |
+| 13 | Python (FastAPI) AI micro-service | **NOT IMPLEMENTED** | Claimed in a UI footer string only; no Python source in the repo |
+| 14 | TensorFlow / trained ML model | **NOT IMPLEMENTED** | Words inside answer text only; no dependency, no model file |
+| 15 | Voice assistant / speech recognition | **NOT IMPLEMENTED** | No `getUserMedia`, no speech API, no streaming audio in the source |
 
 ---
 
@@ -63,14 +57,34 @@
 
 ### 2.2 AI Study Assistant — `POST /api/ai/study-assistant`
 
+Two modes, decided at request time by `AdvancedFeatureController`:
+
+```
+request { question }
+   │
+   ├─ 1. askFullAI(question)          ← runs ONLY when app.ai.api-key is non-blank
+   │      POST {app.ai.base-url}/chat/completions
+   │      headers: Authorization: Bearer <app.ai.api-key>
+   │      body: { model: app.ai.model, messages:[system,user], max_tokens:600, temperature:0.4 }
+   │      timeout: 25 s
+   │      ├─ HTTP 2xx + non-empty content → return { question, answer, mode: "ai" }
+   │      └─ any failure (no key, timeout, bad key, non-2xx) → fall through
+   │
+   └─ 2. offline knowledge base       ← default behaviour with the committed config
+          lowerQuestion.contains(...) chain over 16 keyword groups
+          → { question, answer, mode: "simple-ai" }
+```
+
 | Aspect | Detail |
 |---|---|
-| **Input** | `{ question: string }` |
-| **Processing** | `lowerQuestion.contains(...)` chain over **16 keyword groups**: `dependency injection` · `jwt`/`json web token` · `jpa`/`hibernate` · `oop`/`object oriented` · `sql`/`database`/`dbms` · `spring` · `react`/`javascript`/`frontend`/`web` · `algorithm`/`data structure`/`dsa` · `api`/`rest`/`endpoint` · `python` · `network`/`tcp`/`http`/`osi` · `operating system`/` os `/`thread`/`process` · `machine learning`/`ai `/`artificial intelligence`/`neural network`/`deep learning` · `git`/`version control` · `html`/`css` · `design pattern` → else a generic fallback |
-| **Output** | `{ question, answer, mode: "simple-ai" }` — the `mode` field itself declares it is the simple rule-based mode |
-| **Backend** | Inline in `AdvancedFeatureController.studyAssistant()` (lines ~2022–2276) |
+| **Input** | `{ question: string }` — blank/missing question returns a canned prompt answer with `mode:"simple-ai"` |
+| **LLM config (all commented out by default)** | `app.ai.api-key`, `app.ai.base-url` (default `https://api.openai.com/v1`), `app.ai.model` (default `gpt-4o-mini`) — `application.properties`; documented in-file as working with "OpenAI, Groq, OpenRouter, DeepSeek" |
+| **Offline keyword groups** | `dependency injection` · `jwt`/`json web token` · `jpa`/`hibernate` · `oop`/`object oriented` · `sql`/`database`/`dbms` · `spring` · `java` · `react`/`javascript`/`frontend`/`web` · `algorithm`/`data structure`/`dsa` · `api`/`rest`/`endpoint` · `python` · `network`/`tcp`/`http`/`osi` · `operating system`/` os `/`thread`/`process` · `machine learning`/`ai `/`artificial intelligence`/`neural network`/`deep learning` · `git`/`version control` · `html`/`css` · `design pattern` → else a generic fallback |
+| **Output** | `{ question, answer, mode: "ai" \| "simple-ai" }` |
+| **HTTP client** | JDK `java.net.http.HttpClient` (no extra dependency added to `pom.xml`) |
+| **Backend** | `AdvancedFeatureController.studyAssistant()` + private `askFullAI()` (lines ~2030–2440) |
 | **Frontend** | `src/pages/AIAssistant.jsx` → `api.studyAssistant(question)` |
-| **Type** | **keyword matching over canned text — no model, no LLM** |
+| **Key/server side** | The key, if any, stays on the Spring Boot side; the browser never receives it |
 
 ### 2.3 AI Course Recommendations — `GET /api/ai/recommendations`
 
@@ -121,9 +135,10 @@ await api.instructorCreateExam({ ..., questionPaper: JSON.stringify(paperData), 
 ```
 
 That JSON is what `ExamService.gradeSubmission()` later grades against.
-**100 % client-side generation, 0 % external AI.**
+**100 % client-side generation.** This path never calls the external LLM mode — only
+`/api/ai/study-assistant` does.
 
-### 2.9 Analytics (often presented as "AI analytics")
+### 2.9 Analytics (presented in AI analytics pages)
 
 `GET /api/analytics/student`, `/api/analytics/course/{id}`, `/api/analytics/admin` — plain
 aggregations over `QuizAttempt`, `Progress`, `Enrollment`, `Course`, `User`. No model.
@@ -152,6 +167,10 @@ flowchart TD
         EXS["ExamService (grades paper JSON)"]
     end
 
+    subgraph EXT["External (optional, off by default)"]
+        LLM["OpenAI-compatible /chat/completions<br/>app.ai.api-key + base-url + model"]
+    end
+
     AA -->|"POST /api/ai/study-assistant"| BE
     AA -->|"POST /api/ai/generate-questions"| BE
     IAT -->|"local generateQuestions then POST /api/exams"| BE
@@ -161,11 +180,12 @@ flowchart TD
     ADM -->|"local presentation + /api/analytics/admin"| BE
     AA -.->|offline| EN
     BE --> AQS
+    AFC -.->|"only if app.ai.api-key is set<br/>mode: ai"| LLM
 ```
 
 ---
 
-## 4. AI request flow (text) — as actually implemented
+## 4. AI request flow (as actually implemented)
 
 ```mermaid
 sequenceDiagram
@@ -174,17 +194,34 @@ sequenceDiagram
     participant API as src/api.js
     participant SRV as AdvancedFeatureController
     participant AIC as AIQuestionService / rule logic
+    participant EXT as OpenAI-compatible API
     participant DB as MySQL
 
     S->>UI: type question / topic + count
     UI->>API: api.studyAssistant(q) or api.generateQuestions(t, n)
     API->>SRV: POST /api/ai/... with Bearer JWT
-    SRV->>AIC: route by keyword OR generate(topic, count)
-    AIC-->>SRV: canned answer / generated question list
-    SRV-->>API: JSON
+    alt question endpoint (study assistant)
+        SRV->>SRV: app.ai.api-key configured?
+        alt key set
+            SRV->>EXT: POST {base-url}/chat/completions (25 s timeout)
+            alt 2xx + content
+                EXT-->>SRV: answer text
+                SRV-->>API: { question, answer, mode:"ai" }
+            else failure
+                SRV->>SRV: fall back to offline knowledge base
+                SRV-->>API: { question, answer, mode:"simple-ai" }
+            end
+        else no key (default committed config)
+            SRV-->>API: { question, answer, mode:"simple-ai" }
+        end
+    else question-generation endpoint
+        SRV->>AIC: generate(topic, count)
+        AIC-->>SRV: generated question list
+        SRV-->>API: JSON
+    end
     API-->>UI: parsed object
     UI-->>S: rendered answer / question table
-    Note over SRV,DB: Recommendations/weak-topics/learning-path additionally READ QuizAttempt, Progress, Enrollment, Course
+    Note over SRV,DB: Recommendations/weak-topics/learning-path READ QuizAttempt, Progress, Enrollment, Course
 ```
 
 ```mermaid
@@ -198,104 +235,33 @@ sequenceDiagram
 ```
 
 **Voice flow:** there is **no microphone capture, no speech recognition and no streaming audio
-anywhere in the source** → **PLANNED / NOT IMPLEMENTED** (see §5.2).
+anywhere in the source** → NOT IMPLEMENTED.
 
 ---
 
-## 5. PLANNED Gemini Architecture — *not implemented*
+## 5. Summary of the AI layer as it is today
 
-> **Nothing in this section exists today.** It is the recommended integration path that can be
-> added **without changing any existing endpoint, database table, role rule or page** — because
-> every current AI feature already sits behind a single controller/service seam.
+- **Two AI entry mechanisms exist:** (a) in-process rule/template engines used by question
+  generation, recommendations, weak topics, learning path and coding assist; (b) one optional
+  outbound HTTPS call to an OpenAI-compatible chat-completions API used exclusively by
+  `POST /api/ai/study-assistant`.
+- **Configuration lives in `backend/src/main/resources/application.properties`:**
 
-### 5.1 Text assistant (drop-in replacement behind the existing endpoint)
+  ```properties
+  # Optional: real AI answers for /api/ai/study-assistant (any OpenAI-compatible API
+  # such as OpenAI, Groq, OpenRouter or DeepSeek). Leave unset to use the built-in
+  # offline knowledge base.
+  # app.ai.api-key=sk-...
+  # app.ai.base-url=https://api.openai.com/v1
+  # app.ai.model=gpt-4o-mini
+  ```
 
-```
-React (AIAssistant.jsx)
-        │  POST /api/ai/study-assistant   { question }
-        ▼
-Spring Boot (AdvancedFeatureController.studyAssistant)
-        │  new StudyAssistantEngine.answer(question, context)
-        ▼
-   ┌─────────────────────────────┬──────────────────────────────┐
-   │  existing rule-based path   │  NEW: GeminiClient (optional) │
-   │  (keep as fallback,        │  - reads GEMINI_API_KEY from  │
-   │   used when key missing     │  - server-side only           │
-   │   or API fails)             │  - short timeout + fallback   │
-   └─────────────────────────────┴──────────────────────────────┘
-        ▼
-   answer JSON { question, answer, mode: "gemini" | "simple-ai" }
-        ▼
-React renders the answer
-```
-
-**Why this is safe to add**
-- The response shape `{ question, answer, mode }` already exists — only the `mode` value changes.
-- `AIQuestionService` can be swapped the same way: keep the curated bank as a fallback, return
-  `generatedBy: "gemini"` instead of `"AI-Smart-LMS-Engine"` when the model answers.
-- No database change is required (the generated questions are either returned as JSON or saved
-  through the existing `QuestionService.createQuestion(quizId, q)` path).
-- All role rules (`requireHOD`, `requireCourseManage`) stay exactly where they are.
-
-### 5.2 Voice assistant — Gemini Live (PLANNED)
-
-```
-React: getUserMedia() microphone + WebAudio
-        │  (browser captures audio, does NOT hold any key)
-        ▼
-Spring Boot: POST /api/ai/live-token   ← protected by the normal JWT
-        │  verifies the user's JWT + role
-        │  mints a SHORT-LIVED access token / session handle
-        ▼
-Gemini Live API (WebSocket)  ◄── server-brokered or short-lived token handed to the client
-        │  audio in → audio out
-        ▼
-React plays the audio response
-```
-
-**Two acceptable variants**
-1. **Server-brokered (recommended):** Spring Boot keeps the long-lived key, opens the WebSocket to
-   Gemini Live, and relays audio frames to the browser. The browser never sees any secret.
-2. **Short-lived token:** Spring Boot exchanges the long-lived `GEMINI_API_KEY` for a
-   time-limited OAuth/access token, hands *that* to the browser for a direct Gemini Live socket.
-   The long-lived key still never leaves the server.
-
-### 5.3 Where to add it (files, no existing behaviour touched)
-
-| Concern | File to extend | Change |
-|---|---|---|
-| HTTP client to Gemini | **new** `backend/.../service/GeminiClient.java` | only new class |
-| Text answers | `AdvancedFeatureController.studyAssistant(...)` | delegate, keep rule path as fallback |
-| Question generation | `AIQuestionService.generateQuestions(...)` | delegate, keep curated bank as fallback |
-| Coding assist | `CodingPracticeService.getAiAssist(...)` | delegate for `explain`/`debug` |
-| Voice token endpoint | **new** handler (or a new small controller) | new endpoint only |
-| Config | `application.properties` | `gemini.api.key=${GEMINI_API_KEY:}` (empty default ⇒ rule-based mode) |
-| Frontend voice UI | `src/pages/AIAssistant.jsx` | new panel; existing text panel unchanged |
-
-### 5.4 `GEMINI_API_KEY` storage rules
-
-| Do | Don't |
-|---|---|
-| Store it in the **server** environment / `application.properties` referenced as `${GEMINI_API_KEY}` | ❌ Never put it in `src/`, `import.meta.env` or any Vite `VITE_*` variable — everything in the React bundle is readable in the browser |
-| Keep it out of git (`.env` is git-ignored; `application.properties` is currently committed — move the key to an env var) | ❌ Never commit the literal key |
-| Send it only in outbound server→Google requests | ❌ Never return it in any API response |
-| Add per-user rate limiting on `/api/ai/*` before enabling a paid model | ❌ Don't let an authenticated student trigger unbounded spend |
-
-> Note: the **current** project already hard-codes two secrets in committed files
-> (`application.properties` DB password, `JwtService.SECRET_KEY`). Gemini must not repeat that
-> pattern — see SECURITY.md → *Security Observations*.
-
----
-
-## 6. Honest positioning for a report / viva
-
-**Say this:**
-> "Our AI layer is a **rule-based expert system**: a curated plus template-based question
-> generator, a keyword-routed study assistant, and analytics-driven recommendations computed from
-> real student data. It is deliberately isolated in `AIQuestionService` and the `/api/ai/*`
-> endpoints so that a large language model such as Gemini can be plugged in later without
-> touching authentication, roles, the database or any other feature. The Gemini integration is
-> **planned, not yet implemented**."
-
-**Do not say:** "we use TensorFlow", "we call the Gemini API", "we have a Python micro-service",
-"we have a voice assistant" — none of these exist in the source code.
+  With the file as committed (all three commented out), `askFullAI()` returns `null`
+  immediately and every study-assistant answer comes from the offline knowledge base.
+- **The response contract is stable either way:** `{ question, answer, mode }`, where `mode` is
+  `"ai"` (external model) or `"simple-ai"` (offline knowledge base).
+- **No AI feature touches the database schema** — generated questions are returned as JSON or
+  saved through the existing `QuestionService` path; recommendations/analytics only read
+  existing tables.
+- **Not present:** ML training/inference, embeddings, vector search, prompt caching, streaming
+  responses, tool calling, and any AI call other than the one described above.
