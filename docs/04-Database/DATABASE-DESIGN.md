@@ -76,6 +76,11 @@ erDiagram
 
 ### Relationship summary
 
+> `semesters` and `academic_years` do **not** appear in the ER diagram: `Semester.courseId` and
+> `InstructorCourseAssignment.semesterId/academicYearId` are plain `Long` columns with no JPA
+> association, so Hibernate declares no foreign key for them. They are listed in the
+> "no JPA association" table below.
+
 | Type | Relationships |
 |---|---|
 | **One-to-Many** | `Course→Subject`, `Course→Lesson`, `Subject→Lesson`, `Course→Quiz`, `Quiz→Question`, `Course→Exam`, `Course→Enrollment`, `User→Enrollment`, `User→Progress`, `Lesson→Progress`, `User→QuizAttempt`, `Quiz→QuizAttempt`, `User→Wishlist`, `Course→Wishlist`, `User→Review`, `Course→Review`, `User→Certificate`, `Course→Certificate`, `Course→Assignment`, `Assignment→AssignmentSubmission`, `User→AssignmentSubmission`, `User→Attendance`, `Course→Attendance`, `Course→Resource`, `Course→Discussion`, `User→Discussion`, `Discussion→DiscussionReply`, `User→DiscussionReply`, `User→Notification`, `User→PasswordResetToken`, `User→CodingSubmission`, `CodingProblem→CodingSubmission`, `CodingProblem→CodingTestCase`, `Course→Division` |
