@@ -206,7 +206,7 @@ async function main() {
     " const [h, m, ap] = hour.closest('[role=\"group\"]').querySelectorAll('select');" +
     " return { hVal: h.value, mDisabled: m.disabled, apVal: ap.value }; })()"
   );
-  check("create: picking hour 9 sets 09:00 and enables minute", cg2.hVal === "09:00" && cg2.mDisabled === false, JSON.stringify(cg2));
+  check("create: picking hour 9 sets 09:00 and enables minute", cg2.hVal === "9" && cg2.mDisabled === false && cg2.apVal === "AM", JSON.stringify(cg2));
 
   await setDate("document.getElementById('create-close-date')", "2026-10-06");
   await doSelect(groupChild("create-close-time", 0), "8");
