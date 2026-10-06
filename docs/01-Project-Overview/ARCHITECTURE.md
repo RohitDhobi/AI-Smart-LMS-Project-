@@ -3,7 +3,7 @@
 > **Entry document for the documentation set.**
 > Everything below was verified against the actual source code in this repository.
 > Features that are described in text/UI but have **no code behind them** are explicitly
-> marked **PLANNED / NOT IMPLEMENTED**. Features that only work in part are marked
+> marked **NOT IMPLEMENTED**. Features that only work in part are marked
 > **PARTIALLY IMPLEMENTED**.
 
 | Document | Contents |
@@ -12,7 +12,7 @@
 | [WORKFLOWS.md](../02-Workflows/WORKFLOWS.md) | Student / Instructor / HOD / Admin / Exam / Question-Bank workflows |
 | [API-DOCUMENTATION.md](../03-API/API-DOCUMENTATION.md) | Every REST endpoint actually present in the controllers |
 | [DATABASE-DESIGN.md](../04-Database/DATABASE-DESIGN.md) | All JPA entities, fields, relationships, ER diagram |
-| [AI-ARCHITECTURE.md](../05-AI/AI-ARCHITECTURE.md) | Real AI features + the PLANNED Gemini architecture |
+| [AI-ARCHITECTURE.md](../05-AI/AI-ARCHITECTURE.md) | AI features as implemented (rule-based engines + optional external LLM mode) |
 | [SECURITY.md](../06-Security/SECURITY.md) | JWT, BCrypt, CORS, role rules, security observations |
 | [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) | Real folder/file tree with purpose of each folder |
 | [FEATURE-MATRIX.md](./FEATURE-MATRIX.md) | Feature × status × where it lives |
@@ -96,7 +96,7 @@ flowchart TD
     A[Admin] --> FE
     FE -->|HTTP JSON + Authorization: Bearer JWT| BE
     SVC --> AIL
-    AIL -. "PLANNED / NOT IMPLEMENTED" .-> GEM["External LLM API (Gemini)"]
+    AIL -. "optional: only when app.ai.api-key is set" .-> GEM["OpenAI-compatible LLM API"]
     BE --> DB[("MySQL: ai_smart_lms")]
 ```
 
@@ -110,7 +110,7 @@ flowchart TD
 | **Spring Security + JWT** | No server sessions. Every request is authenticated by decoding the Bearer token, then loading the user by e-mail from the DB. |
 | **MySQL** | Database `ai_smart_lms`. Tables are created/updated automatically by Hibernate (`spring.jpa.hibernate.ddl-auto=update`); `backend/database/setup.sql` only creates the database. |
 | **`DataSeeder`** | `CommandLineRunner` that seeds 10 degree programs + subjects + lessons, the default staff/student demo accounts, divisions and default instructor assignments on first start. Idempotent. |
-| **AI layer** | Pure Java/JS **rule-based logic** (keyword matching, curated question banks, template text, simple aggregates). **No ML model, no Python service, no external AI API key exists in the code.** |
+| **AI layer** | Mostly **rule-based Java/JS logic** (keyword matching, curated question banks, template text, simple aggregates). One optional outbound path exists: `/api/ai/study-assistant` calls an **OpenAI-compatible chat-completions API** through `java.net.http.HttpClient` **only when `app.ai.api-key` is configured** (commented out in the committed `application.properties`). **No ML model and no Python service.** |
 | **Electron / Capacitor** | Optional wrappers around the same built `dist/` — desktop app and Android/iOS shell. |
 | **`public/sw.js`** | Service worker for PWA/offline shell. |
 
@@ -238,10 +238,10 @@ com.aismartlms.backend
 ├── controller/                      # 19 @RestController classes + 1 @RestControllerAdvice
 ├── dto/                             # AuthResponse, LoginRequest, RegisterRequest, ExamSubmissionRequest,
 │                                    # QuizSubmissionRequest, HODDashboardView, DivisionRequest/Response, ...
-├── entity/                          # 27 JPA entities + Role enum
+├── entity/                          # 29 JPA entities + Role enum
 ├── exception/
 │   └── AccessDeniedException.java   # → HTTP 403 via ApiExceptionHandler
-├── repository/                      # 27 Spring Data JpaRepository interfaces
+├── repository/                      # 29 Spring Data JpaRepository interfaces
 ├── security/
 │   ├── SecurityConfig.java          # filter chain, CORS, BCrypt, UserDetailsService, public endpoints
 │   ├── JwtAuthenticationFilter.java # OncePerRequestFilter: Bearer → SecurityContext
@@ -316,7 +316,7 @@ Every exam-workflow and instructor-assignment decision is re-made on the server
 
 Full detail lives in [DATABASE-DESIGN.md](../04-Database/DATABASE-DESIGN.md). Summary:
 
-- **27 JPA entities** + `Role` enum, mapped to MySQL tables (snake_case names declared with `@Table`).
+- **29 JPA entities** + `Role` enum, mapped to MySQL tables (snake_case names declared with `@Table`).
 - Schema is produced by **`spring.jpa.hibernate.ddl-auto=update`** — no Flyway/Liquibase migration files.
 - `backend/database/setup.sql` only creates the empty database and documents the seeder.
 
@@ -428,7 +428,7 @@ flowchart TD
     FE -->|http://localhost:8080/api| BE["Spring Boot backend :8080"]
     BE --> DB[("MySQL :3306<br/>ai_smart_lms")]
     BE --> AI["AI layer<br/>(in-process Java/JS rules)"]
-    AI -. PLANNED .-> EXT["External AI API (Gemini)"]
+    AI -. "optional, off by default (app.ai.api-key)" .-> EXT["OpenAI-compatible LLM API"]
 ```
 
 ### Development environment (values taken from the actual config)
@@ -503,10 +503,10 @@ Full table in [FEATURE-MATRIX.md](./FEATURE-MATRIX.md).
 | Wishlist / reviews / discussions / assignments / attendance / resources | **IMPLEMENTED** |
 | Analytics (student, course, admin) | **IMPLEMENTED** (SQL/aggregate based) |
 | "AI" assistant, question generator, recommendations, weak topics, learning path | **IMPLEMENTED but rule-based** (no ML, no LLM) |
-| Python FastAPI AI service (claimed in a UI footer) | **PLANNED / NOT IMPLEMENTED** — no `ai-service/` folder, no Python code |
-| Gemini / any external LLM API | **PLANNED / NOT IMPLEMENTED** — no API key, no HTTP client calls in the backend |
-| Voice assistant / Gemini Live | **PLANNED / NOT IMPLEMENTED** |
-| TensorFlow / ML model | **PLANNED / NOT IMPLEMENTED** (only mentioned inside answer text) |
+| Python FastAPI AI service (claimed in a UI footer) | **NOT IMPLEMENTED** — no `ai-service/` folder, no Python code |
+| External LLM call | **IMPLEMENTED but off by default** — `POST /api/ai/study-assistant` calls an OpenAI-compatible `/chat/completions` endpoint only when `app.ai.api-key` is set; committed config leaves it commented out (`mode:"simple-ai"`) |
+| Voice assistant / speech input | **NOT IMPLEMENTED** — no mic or speech code |
+| TensorFlow / ML model | **NOT IMPLEMENTED** (only mentioned inside answer text) |
 | Forgot/reset password | **PARTIALLY IMPLEMENTED** — token created and *returned in the response* ("Demo mode"); no email is sent; endpoints are also behind JWT auth |
 | Coding arena "code execution" | **PARTIALLY IMPLEMENTED** — simulated/interpreted runner, not a real sandboxed compiler |
 
@@ -522,7 +522,7 @@ Full table in [FEATURE-MATRIX.md](./FEATURE-MATRIX.md).
 > 24-hour token, and every subsequent request carries `Authorization: Bearer <token>`. The Spring
 > Security filter loads the user from the database on each request, so no server session exists.
 >
-> On the data side there are **27 JPA entities** covering degree courses, semesters, subjects,
+> On the data side there are **29 JPA entities** covering degree courses, semesters, subjects,
 > lessons, enrolment, progress, quizzes, questions, exams, assignments, attendance, discussions,
 > certificates, divisions and more. The schema is generated by Hibernate from the entities.
 >
@@ -565,7 +565,7 @@ There is no global store; server data is fetched per page and gamification/flash
 locally in `localStorage`.
 
 ### 3. Backend (≈ 1 min)
-19 controllers, 19 services (+ `JwtService`), 27 repositories, 27 entities, one `@RestControllerAdvice`
+19 controllers, 19 services (+ `JwtService`), 29 repositories, 29 entities, one `@RestControllerAdvice`
 exception handler (`RuntimeException → 400`, `AccessDeniedException → 403`).
 Two service classes carry the domain rules: **`ExamApprovalService`** (exam state machine) and
 **`InstructorAccessService`** (which instructor may manage which course/subject).
@@ -716,7 +716,7 @@ It aggregates the student's own data: recommendations rank un-enrolled approved 
 After login the role from the response decides the redirect (`/admin`, `/instructor`, `/hod`, `/dashboard`), and each panel is a separate layout route. `Protected` only verifies a token exists; the real authorisation is enforced by the API.
 
 **25. How is the database schema created?**
-Hibernate `spring.jpa.hibernate.ddl-auto=update` generates/alters tables from the 27 `@Entity` classes; `backend/database/setup.sql` only creates the `ai_smart_lms` database, and `DataSeeder` populates degrees, subjects, lessons, demo users, divisions and default assignments idempotently.
+Hibernate `spring.jpa.hibernate.ddl-auto=update` generates/alters tables from the 29 `@Entity` classes; `backend/database/setup.sql` only creates the `ai_smart_lms` database, and `DataSeeder` populates degrees, subjects, lessons, demo users, divisions, default assignments, course semesters and academic years idempotently.
 
 **26 (bonus). What is unique about how the frontend handles the backend being offline?**
 `src/api.js` tracks a `_backendDown` flag after a failed connectivity probe; `safeApiRequest()` then returns `null` so pages render with local/mock fallbacks (e.g. mock divisions), while `strictApiRequest()` still rethrows genuine 4xx errors so the user sees the real message.
