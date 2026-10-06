@@ -141,13 +141,13 @@ function ExamList() {
                         {e.date
                           ? new Date(e.date).toLocaleString([], {
                               day: "2-digit", month: "short", year: "numeric",
-                              hour: "2-digit", minute: "2-digit",
+                              hour: "2-digit", minute: "2-digit", hour12: true,
                             })
                           : "immediate"}
                         {e.endTime &&
                           ` → ${new Date(e.endTime).toLocaleString([], {
                             day: "2-digit", month: "short",
-                            hour: "2-digit", minute: "2-digit",
+                            hour: "2-digit", minute: "2-digit", hour12: true,
                           })}`}
                       </span>
                     ) : (
@@ -354,14 +354,14 @@ function ScheduleField({ id, label, date, time, onDate, onTime, hint }) {
   );
 }
 
-/** Human-readable "Tue, 1 Oct 2026, 09:00" for a slot value. */
+/** Human-readable "Tue, 1 Oct 2026, 09:00 AM" for a slot value (always 12-hour). */
 function formatSlot(value) {
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return d.toLocaleString([], {
     weekday: "short", day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    hour: "2-digit", minute: "2-digit", hour12: true,
   });
 }
 
