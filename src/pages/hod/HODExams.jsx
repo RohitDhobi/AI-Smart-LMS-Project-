@@ -227,6 +227,29 @@ function joinDateTime(date, time) {
   return `${date}T${time || "00:00"}`;
 }
 
+/**
+ * Stored "HH:mm" (24h) -> parts for the 12-hour selects.
+ * Empty/unparseable time -> empty parts (hour shows "--").
+ */
+function splitTime12(time) {
+  if (!time || time.length < 5) return { hour: "", minute: "", meridiem: "AM" };
+  const hh = Number(time.slice(0, 2));
+  let hour = hh % 12;
+  if (hour === 0) hour = 12;
+  return {
+    hour: String(hour),
+    minute: time.slice(3, 5),
+    meridiem: hh < 12 ? "AM" : "PM",
+  };
+}
+
+/** 12-hour select parts -> the "HH:mm" (24h) value everything else stores. */
+function joinTime12(hour, minute, meridiem) {
+  if (!hour) return "";
+  const hh24 = (Number(hour) % 12) + (meridiem === "PM" ? 12 : 0);
+  return `${pad2(hh24)}:${minute || "00"}`;
+}
+
 /** The slot end implied by a start time + duration, when no end was picked. */
 function deriveEnd(startValue, durationMinutes) {
   if (!startValue) return null;
@@ -237,16 +260,26 @@ function deriveEnd(startValue, durationMinutes) {
 }
 
 /**
- * One side of the exam slot: a day picker + a time picker.
+ * One side of the exam slot: a day picker + a 12-hour time control.
  *
  * Deliberately NOT a single <input type="datetime-local">: that widget only
  * reports a value once BOTH date and time are filled in, so picking a date
  * from the calendar (time still "--:--") silently left the form empty and
  * Save stayed disabled. Separate inputs each take effect immediately.
+ *
+ * And NOT an <input type="time"> either: Chrome/Edge render that picker on a
+ * 24-hour clock (17, 18, 19 ...) and ignore the lang attribute - there is no
+ * way for a page to ask for AM/PM. Three small selects (hour + minute + AM/PM)
+ * are the only reliable way to get a 12-hour time entry.
  */
 function ScheduleField({ id, label, date, time, onDate, onTime, hint }) {
+  const t12 = splitTime12(time);
+  // Minute and meridiem only make sense once an hour is picked (mirrors the
+  // left-to-right order of the native widget, where hour is the first slot).
+  const needHour = !t12.hour;
+
   return (
-    <div className="inst-form-group" style={{ flex: "1 1 260px", minWidth: 240, marginBottom: 0 }}>
+    <div className="inst-form-group" style={{ flex: "1 1 300px", minWidth: 300, marginBottom: 0 }}>
       <label htmlFor={`${id}-date`} style={{ marginBottom: 6 }}>
         {label}
       </label>
@@ -260,18 +293,57 @@ function ScheduleField({ id, label, date, time, onDate, onTime, hint }) {
           value={date}
           onChange={(e) => onDate(e.target.value)}
         />
-        <input
-          id={`${id}-time`}
-          className="inst-input"
-          type="time"
-          // Chrome/Edge pick 12h vs 24h clock for <input type="time"> from the
-          // element's language - force en-US so the picker shows AM/PM.
-          lang="en-US"
-          aria-label={`${label} — time`}
-          style={{ flex: "0 0 120px" }}
-          value={time}
-          onChange={(e) => onTime(e.target.value)}
-        />
+        <div
+          style={{ flex: "0 0 auto", display: "flex", gap: 6 }}
+          role="group"
+          aria-label={`${label} — time (12-hour)`}
+        >
+          <select
+            id={`${id}-time`}
+            className="inst-input"
+            aria-label={`${label} — hour`}
+            style={{ width: 56, padding: "10px 4px", textAlign: "center" }}
+            value={t12.hour}
+            onChange={(e) => onTime(joinTime12(e.target.value, t12.minute, t12.meridiem))}
+          >
+            <option value="" disabled>
+              --
+            </option>
+            {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => (
+              <option key={h} value={h}>
+                {h}
+              </option>
+            ))}
+          </select>
+          <select
+            className="inst-input"
+            aria-label={`${label} — minute`}
+            style={{ width: 62, padding: "10px 4px", textAlign: "center" }}
+            value={t12.minute}
+            disabled={needHour}
+            onChange={(e) => onTime(joinTime12(t12.hour, e.target.value, t12.meridiem))}
+          >
+            <option value="" disabled>
+              --
+            </option>
+            {Array.from({ length: 60 }, (_, i) => pad2(i)).map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          <select
+            className="inst-input"
+            aria-label={`${label} — AM or PM`}
+            style={{ width: 68, padding: "10px 4px", textAlign: "center" }}
+            value={t12.meridiem || "AM"}
+            disabled={needHour}
+            onChange={(e) => onTime(joinTime12(t12.hour, t12.minute, e.target.value))}
+          >
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
       </div>
       {hint && (
         <small style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
