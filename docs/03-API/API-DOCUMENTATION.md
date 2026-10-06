@@ -169,8 +169,8 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | GET | `/api/hod/assignments` | Instructor assignments | JWT | **HOD** |
 | GET | `/api/hod/assignments/instructor/{instructorId}` | Assignments of one instructor | JWT | **HOD** |
 | GET | `/api/hod/assignments/course/{courseId}` | Assignments of one course | JWT | **HOD** |
-| POST | `/api/hod/assignments` | Assign instructor ↔ course/subject | JWT | **HOD** |
-| PUT | `/api/hod/assignments/{id}` | Update assignment | JWT | **HOD** |
+| POST | `/api/hod/assignments` | Assign instructor ↔ course/subject; body `HODRequest` also takes `semesterId`, `academicYearId` (missing year defaults to the active `academic_years` row) | JWT | **HOD** |
+| PUT | `/api/hod/assignments/{id}` | Update assignment (same body) | JWT | **HOD** |
 | DELETE | `/api/hod/assignments/{id}` | Remove assignment | JWT | **HOD** |
 | DELETE | `/api/hod/assignments/instructor/{i}/subject/{s}` | Remove assignment by pair | JWT | **HOD** |
 | GET | `/api/hod/courses` | Courses in department | JWT | **HOD** |
