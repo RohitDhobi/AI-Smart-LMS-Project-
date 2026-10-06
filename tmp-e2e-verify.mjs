@@ -67,14 +67,14 @@ async function main() {
     ev(
       "(() => { const el = " + selExpr + ";" +
       " const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;" +
-      " setter.call(el, " + JSON.stringify(JSON.stringify(val)) + ");" +
+      " setter.call(el, " + JSON.stringify(val) + ");" +
       " el.dispatchEvent(new Event('change', { bubbles: true })); return el.value; })()"
     );
   const setDate = (selExpr, val) =>
     ev(
       "(() => { const el = " + selExpr + ";" +
       " const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;" +
-      " setter.call(el, " + JSON.stringify(JSON.stringify(val)) + ");" +
+      " setter.call(el, " + JSON.stringify(val) + ");" +
       " el.dispatchEvent(new Event('input', { bubbles: true }));" +
       " el.dispatchEvent(new Event('change', { bubbles: true })); return el.value; })()"
     );
