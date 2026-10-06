@@ -52,13 +52,13 @@ Anything not backed by code is labelled **PLANNED / NOT IMPLEMENTED** or **PARTI
 ```mermaid
 flowchart TD
     A[User fills Register form] --> B[POST /api/auth/register]
-    B --> C{Email already exists?}
+    B --> P{Phone valid?<br/>7-15 digits, digits + - space only (optional field)}
+    P -->|invalid| F2[400 Invalid phone number]
+    P -->|ok| C{Email already exists?}
     C -->|yes| D[400: Email already registered]
-    C -->|no| E{Phone valid?<br/>7-15 digits, digits + - space only (optional field)}
-    E -->|invalid| F2[400 Invalid phone number]
-    E -->|ok| E2{confirmPassword given?}
-    E2 -->|mismatch| F[400: passwords do not match]
-    E2 -->|ok| G{courseId given?}
+    C -->|no| E{confirmPassword given?}
+    E -->|mismatch| F[400: passwords do not match]
+    E -->|ok| G{courseId given?}
     G -->|course missing| H[400: Course not found]
     G -->|ok/none| I["set Role = STUDENT<br/>(client role is IGNORED)"]
     I --> J[BCrypt encode password]
