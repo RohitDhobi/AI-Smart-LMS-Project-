@@ -1,7 +1,7 @@
 # AI-Smart-LMS — Workflows
 
 Every workflow below was traced through the actual source files named in each section.
-Anything not backed by code is labelled **PLANNED / NOT IMPLEMENTED** or **PARTIALLY IMPLEMENTED**.
+Anything not backed by code is labelled **NOT IMPLEMENTED** or **PARTIALLY IMPLEMENTED**.
 
 ---
 

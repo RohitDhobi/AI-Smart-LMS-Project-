@@ -33,7 +33,7 @@
 | Roles | Per-endpoint role enforcement (manual, server-side) | IMPLEMENTED | buttons hidden per role | `role()`, `requireRole()`, `requireHOD()`, `requireHODOrAdmin()`, `InstructorAccessService` | — | — |
 | Roles | Route guard (`Protected`) | PARTIALLY IMPLEMENTED | `ui.jsx` — checks **token only, not role** | — | — | — |
 | Roles | Admin role management UI | PARTIALLY IMPLEMENTED | `pages/admin/AdminRoles.jsx` (role list is a local `BUILTIN` constant) | `PUT /api/admin/users/{id}/role` | `users.role` | — |
-| Roles | Audit log of role changes | PLANNED / NOT IMPLEMENTED | `pages/admin/AdminAuditLogs.jsx` uses a **hard-coded `auditLogs` array** | no audit endpoint | no audit table | — |
+| Roles | Audit log of role changes | NOT IMPLEMENTED | `pages/admin/AdminAuditLogs.jsx` uses a **hard-coded `auditLogs` array** | no audit endpoint | no audit table | — |
 
 ## 3. Course Management
 
@@ -73,7 +73,7 @@
 | Quiz | MCQ questions (4 options + answer + marks + order) | IMPLEMENTED | instructor quiz pages | `POST/PUT/DELETE /api/questions/...` (course-manage gated) | `questions` | — |
 | Quiz | Attempt submission & server-side grading | IMPLEMENTED | `pages/Quizzes.jsx` | `POST /api/quiz-attempts/submit` (`QuizAttemptService`) | `quiz_attempts` | — |
 | Quiz | Attempt history / quiz history | IMPLEMENTED | `pages/QuizHistory.jsx` | `GET /api/quiz-attempts/my` | `quiz_attempts` | — |
-| Quiz | Non-MCQ question types | PLANNED / NOT IMPLEMENTED | AI Tools can build 1/2/3/5-marker text, but only inside an **exam paper JSON** | `questions` table has MCQ columns only | — | — |
+| Quiz | Non-MCQ question types | NOT IMPLEMENTED | AI Tools can build 1/2/3/5-marker text, but only inside an **exam paper JSON** | `questions` table has MCQ columns only | — | — |
 
 ## 7. Exam System
 
@@ -95,7 +95,7 @@
 |---|---|---|---|---|---|---|
 | Question bank | HOD question bank listing | PARTIALLY IMPLEMENTED | `pages/hod/HODQuestions.jsx` | `GET /api/hod/questions` — `type`/`difficulty`/`status` are **hard-coded literals** | `questions` (only `marks`, text, quiz/course are real) | — |
 | Question bank | AI generation into a quiz (persists with `quizId`) | IMPLEMENTED | `HODQuestions.jsx` | `POST /api/hod/questions/generate` | `questions` | ✅ rule-based |
-| Question bank | Question approval status / reviewer | PLANNED / NOT IMPLEMENTED | — | no field, no endpoint | no columns | — |
+| Question bank | Question approval status / reviewer | NOT IMPLEMENTED | — | no field, no endpoint | no columns | — |
 | Question bank | Standalone bank entity (independent of a quiz) | NOT FOUND | — | — | `Question.quiz_id` is NOT NULL | — |
 
 ## 9. Instructor Functionality
@@ -143,7 +143,7 @@
 | Admin | Platform analytics | IMPLEMENTED | `AdminAnalytics.jsx` | `GET /api/analytics/admin` | aggregates | — |
 | Admin | Resources management | IMPLEMENTED | `AdminResources.jsx` | `/api/resources/**` | `resources` | — |
 | Admin | Settings | PARTIALLY IMPLEMENTED | `AdminSettings.jsx` (profile edit only) | `GET/PUT /api/profile` | `users` | — |
-| Admin | **Audit logs** | PLANNED / NOT IMPLEMENTED | `AdminAuditLogs.jsx` renders a **hard-coded array** | no endpoint | no table | — |
+| Admin | **Audit logs** | NOT IMPLEMENTED | `AdminAuditLogs.jsx` renders a **hard-coded array** | no endpoint | no table | — |
 | Admin | AI assistant / AI analytics / AI insights pages | PARTIALLY IMPLEMENTED | `AdminAIAssistant.jsx`, `AdminAIAnalytics.jsx`, `AdminAIInsights.jsx` | reuses `/api/ai/*`, `/api/analytics/admin` + local presentation logic | aggregates | ✅ rule-based |
 | Admin | Override exam status | IMPLEMENTED | admin exam page | `PUT /api/exams/{id}/status` (ADMIN only) | `exams.status` | — |
 
@@ -183,7 +183,7 @@
 | Notifications | In-app list + unread badge + mark read | IMPLEMENTED | `pages/Notifications.jsx`, header badge | `GET /api/notifications`, `PUT /{id}/read` | `notifications` | — |
 | Notifications | Learning reminders | IMPLEMENTED | `Notifications.jsx` | `POST /api/notifications/reminders` | `notifications` | — |
 | Notifications | Certificate-issued notification | IMPLEMENTED | — | `AdvancedFeatureController` (certificate flow) | `notifications` | — |
-| Notifications | Email / push / WebSocket / scheduler | PLANNED / NOT IMPLEMENTED | — | no mail sender, no WS, no job | — | — |
+| Notifications | Email / push / WebSocket / scheduler | NOT IMPLEMENTED | — | no mail sender, no WS, no job | — | — |
 
 ## 16. Analytics
 
