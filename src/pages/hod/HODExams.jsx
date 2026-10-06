@@ -264,6 +264,9 @@ function ScheduleField({ id, label, date, time, onDate, onTime, hint }) {
           id={`${id}-time`}
           className="inst-input"
           type="time"
+          // Chrome/Edge pick 12h vs 24h clock for <input type="time"> from the
+          // element's language - force en-US so the picker shows AM/PM.
+          lang="en-US"
           aria-label={`${label} — time`}
           style={{ flex: "0 0 120px" }}
           value={time}
