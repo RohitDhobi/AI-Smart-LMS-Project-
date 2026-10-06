@@ -285,6 +285,16 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | GET | `/api/certificates` | Own certificates | JWT | Any |
 | GET | `/api/certificates/verify/{id}` | Verify a certificate | JWT | Any |
 
+### Wishlist & Reviews — `/api/wishlist`, `/api/courses/{courseId}/reviews`
+
+| Method | Endpoint | Purpose | Auth | Role / rule |
+|---|---|---|---|---|
+| POST | `/api/wishlist/{courseId}` | Save a course (idempotent; unique user+course row) | JWT | Any |
+| DELETE | `/api/wishlist/{courseId}` | Remove a saved course | JWT | Any |
+| GET | `/api/wishlist` | Own wishlist (`courseId`, `title`, `category`) | JWT | Any |
+| POST | `/api/courses/{courseId}/reviews` | Post a rating + comment (one per user per course) | JWT | Any |
+| GET | `/api/courses/{courseId}/reviews` | Reviews of a course | JWT | Any |
+
 ---
 
 ## 13. Assignments, Attendance, Resources, Discussions
