@@ -333,6 +333,11 @@ function ExamCreate() {
     });
   }
 
+  /** Closing slot is not after the opening one - Save will move it forward. */
+  const slotOutOfOrder = Boolean(
+    form.startTime && form.endTime && form.endTime <= form.startTime
+  );
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -344,15 +349,21 @@ function ExamCreate() {
       setError("Pick the course this exam belongs to.");
       return;
     }
-    if (form.startTime && form.endTime && form.endTime <= form.startTime) {
-      setError("Closing time must be later than the opening time.");
-      return;
-    }
+    // A closing slot on or before the opening slot can never be accepted (the
+    // backend rejects it too), so close the paper one exam duration after it
+    // opens instead of blocking the form - exactly what the hint under the
+    // field promises when the closing side is left blank.
+    const closesTooEarly = Boolean(
+      form.startTime && form.endTime && form.endTime <= form.startTime
+    );
 
-    // No explicit end? The slot then lasts exactly the exam duration.
-    const endTime = form.endTime
-      ? toIso(form.endTime)
-      : deriveEnd(form.startTime, form.durationMinutes);
+    // No explicit end (or an impossible one)? Then it lasts the exam duration.
+    const endTime = closesTooEarly
+      ? deriveEnd(form.startTime, form.durationMinutes)
+      : form.endTime
+        ? toIso(form.endTime)
+        : deriveEnd(form.startTime, form.durationMinutes);
+    const movedEnd = closesTooEarly ? endTime : null;
 
     const body = {
       title: form.title.trim(),
@@ -371,7 +382,13 @@ function ExamCreate() {
       setError("");
       const created = await api.instructorCreateExam(body);
       navigate("/hod/exams", {
-        state: { notice: `Exam "${body.title}" created.` },
+        state: {
+          notice:
+            `Exam "${body.title}" created.` +
+            (movedEnd
+              ? ` Closing time moved to ${formatSlot(movedEnd)} — it was not after the opening time.`
+              : ""),
+        },
       });
       return created;
     } catch (err) {
@@ -488,6 +505,18 @@ function ExamCreate() {
             </div>
           </div>
 
+          {slotOutOfOrder && (
+            <p
+              className="hod-sub"
+              style={{ marginTop: 8, marginBottom: 0, color: "var(--danger)" }}
+            >
+              ⚠ Closing (<strong>{formatSlot(form.endTime)}</strong>) is not after opening (<
+              strong>{formatSlot(form.startTime)}</strong>). Save will close it at{" "}
+              <strong>{formatSlot(deriveEnd(form.startTime, form.durationMinutes))}</strong> —{" "}
+              {form.durationMinutes || 60} minutes after opening.
+            </p>
+          )}
+
           <div className="inst-form-group">
             <label>Description</label>
             <textarea
@@ -566,10 +595,21 @@ function ExamManage({ examId }) {
   /** Save status + the day/time slot the paper opens and closes in. */
   async function handleStatusSave() {
     if (!exam) return;
-    if (startTime && endTime && endTime <= startTime) {
-      setError("Closing time must be later than the opening time.");
-      return;
+
+    // A closing slot on or before the opening slot is impossible (the backend
+    // rejects it with a red banner). Instead of blocking the HOD, close the
+    // paper exactly one exam duration after it opens - the same rule as
+    // "leave blank to close N minutes after opening" - and say what happened.
+    let endValue = endTime;
+    let correction = "";
+    if (startTime && endValue && endValue <= startTime) {
+      const derived = deriveEnd(startTime, exam.durationMinutes || 60);
+      if (derived) {
+        endValue = derived;
+        correction = `Closing time was moved to ${formatSlot(derived)} because it was not after the opening time. `;
+      }
     }
+
     try {
       setSaving(true);
       setError("");
@@ -579,13 +619,14 @@ function ExamManage({ examId }) {
         ...exam,
         status,
         startTime: toIso(startTime),
-        endTime: toIso(endTime),
+        endTime: toIso(endValue),
       });
       await load();
       setNotice(
-        startTime
-          ? "Schedule saved — students can only open the paper inside this slot."
-          : "Schedule saved. This exam has no slot, so its paper stays open."
+        correction +
+          (startTime
+            ? "Schedule saved — students can only open the paper inside this slot."
+            : "Schedule saved. This exam has no slot, so its paper stays open.")
       );
     } catch (err) {
       setError(err.message || "Failed to update the exam.");
@@ -626,6 +667,12 @@ function ExamManage({ examId }) {
 
   const pendingStart = formatSlot(startTime);
   const pendingEnd = formatSlot(endTime);
+
+  // Live warning while the slot is out of order (Save moves it forward).
+  const slotOutOfOrder = Boolean(startTime && endTime && endTime <= startTime);
+  const suggestedEnd = slotOutOfOrder
+    ? deriveEnd(startTime, exam?.durationMinutes || 60)
+    : null;
 
   // ---------- question paper editing ------------------------------------
 
@@ -882,6 +929,22 @@ function ExamManage({ examId }) {
                 <strong style={{ color: "var(--warning, #b45309)" }}> — unsaved, press Save.</strong>
               )}
             </p>
+
+            {slotOutOfOrder && (
+              <p
+                style={{
+                  marginTop: 6,
+                  marginBottom: 0,
+                  fontSize: 13.5,
+                  color: "var(--danger)",
+                }}
+              >
+                ⚠ Closing (<strong>{pendingEnd}</strong>) is not after opening (<
+                strong>{pendingStart}</strong>). Pressing Save closes it at{" "}
+                <strong>{formatSlot(suggestedEnd)}</strong> — {exam.durationMinutes || 60} minutes
+                after opening.
+              </p>
+            )}
           </div>
 
           {/* Question paper */}
