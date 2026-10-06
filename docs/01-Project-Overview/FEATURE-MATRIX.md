@@ -253,8 +253,9 @@ Reading the matrix above (one row = one feature):
   certificate instructor endpoints (no role check), audit-logs page, admin/HOD settings pages,
   gamification/flashcards/leaderboard (localStorage only), the coding judge, and the
   client-side route guard.
-- **8 rows are `NOT IMPLEMENTED`** — Python AI service, TensorFlow, voice assistant,
+- **9 rows say `NOT IMPLEMENTED`** — Python AI service, TensorFlow, voice assistant,
   non-MCQ persisted questions, email/push notifications, question approval,
-  audit logging, exam-result history.
+  audit logging (2 rows: roles audit + admin audit page) and **exam-result persistence**
+  (no exam-attempt table exists).
 - **4 rows are `NOT FOUND`** — standalone question-bank entity, AI submission feedback,
   CI/CD, container deployment.
