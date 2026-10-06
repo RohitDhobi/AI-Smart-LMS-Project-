@@ -510,8 +510,8 @@ function ExamCreate() {
               className="hod-sub"
               style={{ marginTop: 8, marginBottom: 0, color: "var(--danger)" }}
             >
-              ⚠ Closing (<strong>{formatSlot(form.endTime)}</strong>) is not after opening (<
-              strong>{formatSlot(form.startTime)}</strong>). Save will close it at{" "}
+              ⚠ Closing (<strong>{formatSlot(form.endTime)}</strong>) is not after opening{" "}
+              (<strong>{formatSlot(form.startTime)}</strong>). Save will close it at{" "}
               <strong>{formatSlot(deriveEnd(form.startTime, form.durationMinutes))}</strong> —{" "}
               {form.durationMinutes || 60} minutes after opening.
             </p>
@@ -939,8 +939,8 @@ function ExamManage({ examId }) {
                   color: "var(--danger)",
                 }}
               >
-                ⚠ Closing (<strong>{pendingEnd}</strong>) is not after opening (<
-                strong>{pendingStart}</strong>). Pressing Save closes it at{" "}
+                ⚠ Closing (<strong>{pendingEnd}</strong>) is not after opening{" "}
+                (<strong>{pendingStart}</strong>). Pressing Save closes it at{" "}
                 <strong>{formatSlot(suggestedEnd)}</strong> — {exam.durationMinutes || 60} minutes
                 after opening.
               </p>
