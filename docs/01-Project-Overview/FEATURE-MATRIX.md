@@ -24,6 +24,8 @@
 | Auth | Forgot/reset password | PARTIALLY IMPLEMENTED | (no dedicated page found using it) | `POST /api/auth/forgot-password`, `/reset-password` — token returned in body, no email; both endpoints sit behind JWT | `password_reset_tokens` | — |
 | Auth | Account activate/deactivate | IMPLEMENTED | `pages/AdminTeachers.jsx` | `PUT /api/admin/users/{id}/active` | `users.active` | — |
 | Accounts | Default demo accounts seeded on first run | IMPLEMENTED | — | `config/DataSeeder.java` | `users` | — |
+| Accounts | Phone-number validation (optional field: digits `+ - space`, 7–15 digits) | IMPLEMENTED | `src/utils/phone.js` used by Register, Profile, settings pages, AdminTeachers | `util/PhoneValidator.java` in `AuthService.register`, `registerInstructor`, `PUT /api/profile`, `PUT /api/instructor/profile` | `users.phone` | — |
+| Accounts | Academic structure seeded on first run (semesters per course, previous + current academic year) | IMPLEMENTED | — | `config/DataSeeder.java` → `seedAcademicStructure()`, `backfillAssignmentAcademicFields()` | `semesters`, `academic_years` | — |
 
 ## 2. User Roles
 
@@ -119,6 +121,9 @@
 |---|---|---|---|---|---|---|
 | HOD | Dashboard & analytics | IMPLEMENTED | `pages/hod/HODDashboard.jsx`, `HODAnalytics.jsx` | `GET /api/hod/dashboard` | aggregates | — |
 | HOD | Assign instructors ↔ course/subject | IMPLEMENTED | `HODAssignments.jsx` | `POST/PUT/DELETE /api/hod/assignments*` | `instructor_course_assignments` | — |
+| HOD | Assignment scoped by semester + academic year | IMPLEMENTED | `HODAssignments.jsx` (columns, filters) | `HODRequest.semesterId/academicYearId`, `HODAssignmentView.semesterNumber/academicYear` | `instructor_course_assignments.semester_id`, `.academic_year_id` | — |
+| HOD | Academic years: list + create | IMPLEMENTED | `HODAssignments.jsx` drop-down/filter | `GET/POST /api/hod/academic-years` (HOD); `GET /api/academic-years` (any signed-in user) | `academic_years` | — |
+| HOD | Semesters drop-down per course | IMPLEMENTED | `HODAssignments.jsx` | `GET /api/hod/semesters?courseId=` | `semesters` | — |
 | HOD | Courses & subjects view | IMPLEMENTED | `HODCoursesSubjects.jsx` | `GET /api/hod/courses`, `/hod/subjects` | `courses`, `subjects` | — |
 | HOD | Students view | IMPLEMENTED | `HODStudents.jsx` | `GET /api/hod/students` | `users` | — |
 | HOD | Divisions CRUD + assign/remove students | IMPLEMENTED | `HODDivisions.jsx` | `/api/hod/divisions*` (HOD **or** ADMIN) | `divisions`, `users.division_id` | — |
