@@ -105,10 +105,11 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 
 ---
 
-## 4. Enrolment & Progress
+## 4. Dashboard, Enrolment & Progress
 
 | Method | Endpoint | Purpose | Auth | Role / rule |
 |---|---|---|---|---|
+| GET | `/api/dashboard` | Student dashboard KPIs (enrolments, completed courses, progress, attempts) | JWT | Any |
 | POST | `/api/enrollments` | Enrol self in a course | JWT | Any |
 | GET | `/api/enrollments/my` | Own enrolments | JWT | Any |
 | POST | `/api/progress/lesson/{lessonId}` | Start a lesson (creates `Progress`) | JWT | Any |
@@ -248,12 +249,17 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | GET | `/api/ai/weak-topics` | Quiz attempts with `< 60 %` | JWT | Any |
 | GET | `/api/ai/learning-path` | Approved courses marked COMPLETED / RECOMMENDED | JWT | Any |
 | GET | `/api/ai/quiz-recommendations` | Derived from weak topics | JWT | Any |
-| POST | `/api/ai/study-assistant` | Keyword-routed canned answer, returns `mode:"simple-ai"` | JWT | Any |
+| POST | `/api/ai/study-assistant` | Answer a question: external OpenAI-compatible model when `app.ai.api-key` is set (`mode:"ai"`), otherwise the built-in keyword knowledge base (`mode:"simple-ai"`) | JWT | Any |
 | POST | `/api/ai/generate-questions` | Curated + algorithmic MCQ generation (max 200) | JWT | Any |
 | POST | `/api/hod/questions/generate` | Same engine; persists into a quiz when `quizId` supplied | JWT | **HOD** |
 | POST | `/api/coding/ai-assist` | Hint/analysis text for a coding problem | JWT | Any |
 
-> **No external AI API is called anywhere.** See AI-ARCHITECTURE.md.
+> **External AI call:** only `POST /api/ai/study-assistant` can call outside the system. When
+> `app.ai.api-key` is configured in `application.properties`, the controller POSTs to an
+> OpenAI-compatible `/chat/completions` endpoint (JDK `HttpClient`, 25 s timeout) and returns
+> `mode:"ai"`; with the committed config (all `app.ai.*` lines commented out) — and on any
+> failure — it uses the built-in offline knowledge base and returns `mode:"simple-ai"`.
+> See AI-ARCHITECTURE.md.
 
 ---
 
@@ -267,7 +273,7 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 
 ---
 
-## 12. Notifications & Certificates
+## 12. Notifications, Certificates, Wishlist & Reviews
 
 | Method | Endpoint | Purpose | Auth | Role / rule |
 |---|---|---|---|---|
