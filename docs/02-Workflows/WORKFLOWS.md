@@ -28,11 +28,15 @@ Anything not backed by code is labelled **PLANNED / NOT IMPLEMENTED** or **PARTI
         |
    Certificate                  +
         |                       |
-        +---------- AI (rule-based) --------+
+        +---------- AI ------------------+
                      |             |
                    Text         Question bank
              study-assistant    generate-questions
-             recommendations    ai-assist (coding)
+             (offline KB or     ai-assist (coding)
+              optional external
+              LLM when
+              app.ai.api-key set)
+             recommendations
              weak-topics
              learning-path
 
@@ -50,9 +54,11 @@ flowchart TD
     A[User fills Register form] --> B[POST /api/auth/register]
     B --> C{Email already exists?}
     C -->|yes| D[400: Email already registered]
-    C -->|no| E{confirmPassword given?}
-    E -->|mismatch| F[400: passwords do not match]
-    E -->|ok| G{courseId given?}
+    C -->|no| E{Phone valid?<br/>7-15 digits, digits + - space only (optional field)}
+    E -->|invalid| F2[400 Invalid phone number]
+    E -->|ok| E2{confirmPassword given?}
+    E2 -->|mismatch| F[400: passwords do not match]
+    E2 -->|ok| G{courseId given?}
     G -->|course missing| H[400: Course not found]
     G -->|ok/none| I["set Role = STUDENT<br/>(client role is IGNORED)"]
     I --> J[BCrypt encode password]
@@ -70,7 +76,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Instructor signs up] --> B{"valid name / email / password length >= 6?"}
+    A[Instructor signs up] --> B{"phone valid? name / email present / password length >= 6?"}
     B -->|no| C[400 with message]
     B -->|yes| D{email free?}
     D -->|no| E[400 Email already registered]
@@ -222,7 +228,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[HOD logs in → /hod] --> B[GET /api/hod/dashboard]
-    B --> C[Assign instructors<br/>POST /api/hod/assignments]
+    B --> B2[Academic structure<br/>GET /api/hod/semesters, /api/hod/academic-years<br/>POST /api/hod/academic-years]
+    B2 --> C[Assign instructors<br/>POST /api/hod/assignments<br/>body: instructorId + courseId + optional<br/>subjectId, semesterId, academicYearId]
     C --> D[Manage divisions<br/>POST /api/hod/divisions, assign-students]
     D --> E[Manage students / subjects / courses<br/>GET /api/hod/students, /subjects, /courses]
     E --> F[Question bank<br/>GET /api/hod/questions]
@@ -413,5 +420,5 @@ flowchart TD
 | Email / push notifications | **NOT IMPLEMENTED** | only `Notification` rows in MySQL |
 | Question approval (separate from exam approval) | **NOT IMPLEMENTED** | questions have no status/approver fields |
 | AI-generated feedback on submissions | **NOT IMPLEMENTED** | no such endpoint |
-| Python / FastAPI AI micro-service | **PLANNED / NOT IMPLEMENTED** | mentioned in a UI footer string only; no Python source in the repo |
-| External LLM (Gemini) text or voice assistant | **PLANNED / NOT IMPLEMENTED** | see AI-ARCHITECTURE.md |
+| Voice assistant / speech input | **NOT IMPLEMENTED** | no microphone or speech code anywhere |
+| Python / FastAPI AI micro-service | **NOT IMPLEMENTED** | mentioned in a UI footer string only; no Python source in the repo |
