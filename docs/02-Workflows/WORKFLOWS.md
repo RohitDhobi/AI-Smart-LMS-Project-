@@ -52,7 +52,7 @@ Anything not backed by code is labelled **NOT IMPLEMENTED** or **PARTIALLY IMPLE
 ```mermaid
 flowchart TD
     A[User fills Register form] --> B[POST /api/auth/register]
-    B --> P{Phone valid?<br/>7-15 digits, digits + - space only (optional field)}
+    B --> P{"Phone valid?<br/>7-15 digits, digits + - space only (optional field)"}
     P -->|invalid| F2[400 Invalid phone number]
     P -->|ok| C{Email already exists?}
     C -->|yes| D[400: Email already registered]
