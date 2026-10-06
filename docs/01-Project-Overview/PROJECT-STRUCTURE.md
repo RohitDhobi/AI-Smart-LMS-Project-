@@ -96,7 +96,7 @@ src/
 │   ├── AdminDashboard.jsx, AdminCourseManagement.jsx, AdminTeachers.jsx, AdminStudents.jsx
 │   ├── InstructorDashboard.jsx
 │   │
-│   ├── instructor/            # ★ INSTRUCTOR PANEL (22 files: InstructorLayout + screens incl. InstructorAITools)
+│   ├── instructor/            # ★ INSTRUCTOR PANEL (23 files: InstructorLayout + screens incl. InstructorAITools)
 │   ├── hod/                   # ★ HOD PANEL (dashboard, assignments, courses/subjects, divisions,
 │   │                          #    students, questions, exams, exam-approvals, announcements, analytics, settings)
 │   ├── admin/                 # ★ ADMIN PANEL (23 pages incl. AdminAIAssistant/Analytics/Insights; 4 more admin
