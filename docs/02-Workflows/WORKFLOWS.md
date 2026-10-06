@@ -170,7 +170,7 @@ flowchart TD
 |---|---|---|
 | Profile | `GET/PUT /api/profile`, `PUT /api/profile/password` | e-mail is the login identity |
 | Wishlist | `POST/DELETE /api/wishlist/:courseId`, `GET /api/wishlist` | unique `(user_id, course_id)` |
-| Reviews | `POST/GET /api/courses/:id/reviews` | one review per user per course |
+| Reviews | `POST/GET /api/courses/:id/reviews` | one review per user per course; student must be enrolled first |
 | Notifications | `GET /api/notifications`, `PUT /api/notifications/:id/read` | in-app rows only — **no email/push** |
 | Learning reminders | `POST /api/notifications/reminders` | creates a `Learning Reminder` per unfinished enrolment |
 | Continue learning | `GET /api/continue-learning` | latest 10 incomplete `Progress` rows |

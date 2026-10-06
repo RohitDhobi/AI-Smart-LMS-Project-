@@ -171,7 +171,7 @@
 | Module | Feature | Status | Frontend | Backend | Database | AI |
 |---|---|---|---|---|---|---|
 | Wishlist | Add / remove / list | IMPLEMENTED | `pages/Wishlist.jsx` | `POST|DELETE|GET /api/wishlist/{courseId}` | `wishlists` (unique user+course) | — |
-| Reviews | Post rating + comment (1 per user per course) | IMPLEMENTED | `pages/CourseDetails.jsx` | `POST/GET /api/courses/{id}/reviews` | `reviews` (unique user+course) | — |
+| Reviews | Post rating + comment (1 per user per course, enrolment required) | IMPLEMENTED | `pages/CourseDetails.jsx` | `POST/GET /api/courses/{id}/reviews` | `reviews` (unique user+course) | — |
 
 ## 14. Certificates
 
