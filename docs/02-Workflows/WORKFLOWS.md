@@ -341,7 +341,8 @@ flowchart TD
     B --> C[Open lesson]
     C --> D["POST /api/progress/lesson/:id<br/>creates Progress (0%, startedAt)"]
     D --> E["PUT /api/progress/lesson/:id<br/>progressPercentage, completed, completedAt"]
-    E --> F["GET /api/progress/my, /progress/course/:id"]
+    E --> E2["PUT with no existing row →<br/>ProgressService auto-creates it<br/>(\"Mark Lesson Complete\" without start)"]
+    E2 --> F["GET /api/progress/my, /progress/course/:id"]
     F --> G["GET /api/continue-learning<br/>GET /api/analytics/student"]
     F --> H{"All lessons of the course completed?"}
     H -->|no| I["POST /api/certificates/course/:id<br/>→ 400 'Complete all lessons first'"]

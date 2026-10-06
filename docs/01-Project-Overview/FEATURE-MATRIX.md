@@ -62,7 +62,7 @@
 
 | Module | Feature | Status | Frontend | Backend | Database | AI |
 |---|---|---|---|---|---|---|
-| Progress | Start / update / read lesson progress | IMPLEMENTED | `pages/StudentLearning.jsx`, `SubjectLearning.jsx` | `POST|PUT /api/progress/lesson/{id}`, `GET /api/progress/my`, `/course/{id}` | `progress` | — |
+| Progress | Start / update / read lesson progress (update auto-creates the row when none exists) | IMPLEMENTED | `pages/StudentLearning.jsx`, `SubjectLearning.jsx` | `POST|PUT /api/progress/lesson/{id}`, `GET /api/progress/my`, `/course/{id}` | `progress` | — |
 | Progress | Continue Learning (last 10 unfinished) | IMPLEMENTED | `pages/Dashboard.jsx` | `GET /api/continue-learning` | `progress` | — |
 | Progress | Course completion % | IMPLEMENTED | `components/ProgressRing.jsx` | `GET /api/progress/course/{id}` | `progress` | — |
 | Progress | Learning heatmap / study planner / streak | PARTIALLY IMPLEMENTED | `components/LearningHeatmap.jsx`, `StudyPlanner.jsx`, `StudyStreak.jsx` — **local data** | none | none | — |
