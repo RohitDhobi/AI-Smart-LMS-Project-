@@ -311,22 +311,36 @@ export default function HODAssignments() {
   }
 
   // Assignment row that belongs to exactly this subject.
+  //
+  // Legacy data can hold several ACTIVE rows for the same subject. Pick the
+  // same row the backend renders in the "Assigned Instructor" cell (newest
+  // assignment first, lowest id on ties), otherwise Change/Remove would edit a
+  // stale row and the table would keep showing the old instructor.
   function findSubjectRow(list, row) {
-    return (
-      list.find(
-        (a) => a.subjectId != null && Number(a.subjectId) === Number(row.id)
-      ) || null
+    const matches = list.filter(
+      (a) => a.subjectId != null && Number(a.subjectId) === Number(row.id)
     );
+    return matches.length ? newestFirst(matches)[0] : null;
   }
 
   // Course-wide row that covers this subject (subjectId empty).
   function findCourseRow(list, row) {
-    return (
-      list.find(
-        (a) =>
-          (a.subjectId == null || Number(a.subjectId) === 0) &&
-          Number(a.courseId) === Number(row.courseId)
-      ) || null
+    const matches = list.filter(
+      (a) =>
+        (a.subjectId == null || Number(a.subjectId) === 0) &&
+        Number(a.courseId) === Number(row.courseId)
+    );
+    return matches.length ? newestFirst(matches)[0] : null;
+  }
+
+  // Newest assignment first; ties fall back to the lowest id.
+  function newestFirst(list) {
+    const stamp = (a) => {
+      const t = a.assignedAt ? Date.parse(String(a.assignedAt).replace(" ", "T")) : NaN;
+      return Number.isNaN(t) ? 0 : t;
+    };
+    return [...list].sort((a, b) =>
+      stamp(b) !== stamp(a) ? stamp(b) - stamp(a) : Number(a.id ?? 0) - Number(b.id ?? 0)
     );
   }
 
