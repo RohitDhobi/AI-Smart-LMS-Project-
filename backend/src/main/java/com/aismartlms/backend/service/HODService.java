@@ -31,6 +31,7 @@ import com.aismartlms.backend.exception.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -173,19 +174,6 @@ public class HODService {
                     : "This instructor is already assigned to this course");
         }
 
-        InstructorCourseAssignment assignment = new InstructorCourseAssignment(
-                instructorId,
-                courseId,
-                subjectId,
-                request.getAssignedBy() != null ? request.getAssignedBy() : null
-        );
-
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            assignment.setStatus(request.getStatus().toUpperCase());
-        } else {
-            assignment.setStatus("ACTIVE");
-        }
-
         // Semester + academic year the HOD picked in the assignment form.
         Long semesterId = request.getSemesterId();
 
@@ -200,8 +188,6 @@ public class HODService {
             }
         }
 
-        assignment.setAcademicYearId(resolveAcademicYearId(request.getAcademicYearId()));
-
         if (semesterId != null) {
             Semester semester = semesterRepository.findById(semesterId)
                     .orElseThrow(() -> new RuntimeException("Semester not found"));
@@ -210,11 +196,100 @@ public class HODService {
                 throw new RuntimeException("The selected semester does not belong to this course");
             }
 
-            assignment.setSemesterId(semester.getId());
+            semesterId = semester.getId();
+        }
+
+        Long academicYearId = resolveAcademicYearId(request.getAcademicYearId());
+
+        // The Instructor Assignment page shows exactly ONE instructor per
+        // subject (and per course for course-wide rows). If somebody already
+        // occupies that scope, take that row over instead of stacking a second
+        // one on top of it: stacked rows are invisible - the listing keeps
+        // showing the older instructor, so the instructor the HOD just assigned
+        // never appeared and searching for their name returned nothing.
+        InstructorCourseAssignment existing = findActiveRowForScope(courseId, subjectId);
+
+        if (existing != null) {
+            existing.setInstructorId(instructorId);
+            existing.setStatus("ACTIVE");
+            if (semesterId != null) {
+                existing.setSemesterId(semesterId);
+            }
+            existing.setAcademicYearId(academicYearId);
+            if (request.getAssignedBy() != null) {
+                existing.setAssignedBy(request.getAssignedBy());
+            }
+            existing.setAssignedAt(LocalDateTime.now());
+            return assignmentRepository.save(existing);
+        }
+
+        InstructorCourseAssignment assignment = new InstructorCourseAssignment(
+                instructorId,
+                courseId,
+                subjectId,
+                request.getAssignedBy() != null ? request.getAssignedBy() : null
+        );
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            assignment.setStatus(request.getStatus().toUpperCase());
+        } else {
+            assignment.setStatus("ACTIVE");
+        }
+
+        assignment.setAcademicYearId(academicYearId);
+
+        if (semesterId != null) {
+            assignment.setSemesterId(semesterId);
         }
 
         return assignmentRepository.save(assignment);
     }
+
+    /**
+     * The ACTIVE row that already covers this exact scope - the one subject, or
+     * the whole course for a course-wide assignment - or {@code null} when the
+     * scope is still free.
+     */
+    private InstructorCourseAssignment findActiveRowForScope(Long courseId, Long subjectId) {
+        if (subjectId != null) {
+            return visibleRow(assignmentRepository.findBySubjectIdAndStatus(subjectId, "ACTIVE"));
+        }
+
+        if (courseId == null) {
+            return null;
+        }
+
+        List<InstructorCourseAssignment> courseRows =
+                assignmentRepository.findByCourseIdAndStatus(courseId, "ACTIVE");
+
+        return visibleRow(courseRows.stream()
+                .filter(r -> !isSubjectScoped(r))
+                .collect(Collectors.toList()));
+    }
+
+    /**
+     * The row the Instructor Assignment page renders for a scope. Legacy data can
+     * hold several ACTIVE rows for the same subject / course, and taking
+     * "whichever row the database returned first" meant a freshly assigned
+     * instructor stayed invisible while the previous one kept showing up (and
+     * stayed searchable). The most recently assigned row wins; ties fall back to
+     * the lowest id so seeded rows keep displaying exactly as before.
+     */
+    private InstructorCourseAssignment visibleRow(List<InstructorCourseAssignment> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return null;
+        }
+        return rows.stream().min(MOST_RECENT_FIRST).orElse(rows.get(0));
+    }
+
+    /** Newest assignment first, null / unknown dates last, ties by lowest id. */
+    private static final Comparator<InstructorCourseAssignment> MOST_RECENT_FIRST =
+            Comparator
+                    .comparing(InstructorCourseAssignment::getAssignedAt,
+                            Comparator.<LocalDateTime>nullsFirst(Comparator.naturalOrder()))
+                    .reversed()
+                    .thenComparing(InstructorCourseAssignment::getId,
+                            Comparator.<Long>nullsLast(Comparator.naturalOrder()));
 
     @Transactional
     public InstructorCourseAssignment updateAssignment(Long id, HODRequest request) {
@@ -564,7 +639,7 @@ public class HODService {
                 }
 
                 if (!rows.isEmpty()) {
-                    assignmentRow = rows.get(0);
+                    assignmentRow = visibleRow(rows);
                     assignedInstructorId = assignmentRow.getInstructorId();
                     assigned = userRepository.findById(assignedInstructorId)
                             .map(User::getName)
