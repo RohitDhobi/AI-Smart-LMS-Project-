@@ -388,6 +388,9 @@ function ExamCreate() {
   const [courses, setCourses] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // With this on, moving the opening slot (or the duration) drags the closing
+  // slot along so it always stays "opening + exam duration".
+  const [autoAdjust, setAutoAdjust] = useState(true);
 
   useEffect(() => {
     api.hodCourses()
@@ -405,6 +408,32 @@ function ExamCreate() {
       const current = splitInput(f[field]);
       const next = { ...current, [part]: value };
       return { ...f, [field]: joinDateTime(next.date, next.time) };
+    });
+  }
+
+  /** Opening slot edit - with auto-fix on, closing follows opening + duration. */
+  function setOpeningSlot(part, value) {
+    setForm((f) => {
+      const next = { ...splitInput(f.startTime), [part]: value };
+      const joined = joinDateTime(next.date, next.time);
+      const out = { startTime: joined };
+      if (autoAdjust && joined && f.endTime) {
+        const derived = deriveEnd(joined, Number(f.durationMinutes) || 60);
+        if (derived) out.endTime = derived;
+      }
+      return { ...f, ...out };
+    });
+  }
+
+  /** Duration edit - with auto-fix on, closing follows opening + duration. */
+  function setDuration(value) {
+    setForm((f) => {
+      const out = { durationMinutes: value };
+      if (autoAdjust && f.startTime && f.endTime) {
+        const derived = deriveEnd(f.startTime, Number(value) || 60);
+        if (derived) out.endTime = derived;
+      }
+      return { ...f, ...out };
     });
   }
 
@@ -523,7 +552,7 @@ function ExamCreate() {
                 type="number"
                 min="1"
                 value={form.durationMinutes}
-                onChange={(e) => setField("durationMinutes", e.target.value)}
+                onChange={(e) => setDuration(e.target.value)}
               />
             </div>
             <div className="inst-form-group" style={{ flex: 1, minWidth: 150 }}>
@@ -553,8 +582,8 @@ function ExamCreate() {
               id="create-open"
               label="Opens (day & time)"
               {...splitInput(form.startTime)}
-              onDate={(v) => setSlot("startTime", "date", v)}
-              onTime={(v) => setSlot("startTime", "time", v)}
+              onDate={(v) => setOpeningSlot("date", v)}
+              onTime={(v) => setOpeningSlot("time", v)}
               hint="Leave both blank to keep the paper open all the time."
             />
             <ScheduleField
@@ -579,6 +608,18 @@ function ExamCreate() {
               </select>
             </div>
           </div>
+
+          <label
+            title="Whenever the opening time or the duration changes, the closing time is recomputed as opening + exam duration."
+            style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer", width: "fit-content" }}
+          >
+            <input
+              type="checkbox"
+              checked={autoAdjust}
+              onChange={(e) => setAutoAdjust(e.target.checked)}
+            />
+            Auto-fix closing time — keep it {form.durationMinutes || 60} minutes after opening
+          </label>
 
           {slotOutOfOrder && (
             <p
@@ -636,6 +677,9 @@ function ExamManage({ examId }) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [notice, setNotice] = useState("");
+  // With this on, moving the opening slot drags the closing slot along so it
+  // always stays "opening + exam duration".
+  const [autoAdjust, setAutoAdjust] = useState(true);
   // Question editor: { mode: "add" | "edit", secIdx?, qIdx?, sectionNames, form }
   const [editor, setEditor] = useState(null);
 
@@ -733,6 +777,17 @@ function ExamManage({ examId }) {
   function changeSlot(setter, current, part, value) {
     const next = { ...splitInput(current), [part]: value };
     setter(joinDateTime(next.date, next.time));
+  }
+
+  /** Opening slot edit - with auto-fix on, closing follows opening + duration. */
+  function changeOpenSlot(current, part, value) {
+    const next = { ...splitInput(current), [part]: value };
+    const joined = joinDateTime(next.date, next.time);
+    setStartTime(joined);
+    if (autoAdjust && joined && endTime) {
+      const derived = deriveEnd(joined, exam?.durationMinutes || 60);
+      if (derived) setEndTime(derived);
+    }
   }
 
   const slotDirty =
@@ -971,8 +1026,8 @@ function ExamManage({ examId }) {
                 id="exam-open"
                 label="Opens (day & time)"
                 {...splitInput(startTime)}
-                onDate={(v) => changeSlot(setStartTime, startTime, "date", v)}
-                onTime={(v) => changeSlot(setStartTime, startTime, "time", v)}
+                onDate={(v) => changeOpenSlot(startTime, "date", v)}
+                onTime={(v) => changeOpenSlot(startTime, "time", v)}
                 hint="Day the paper unlocks for students."
               />
               <ScheduleField
@@ -984,6 +1039,18 @@ function ExamManage({ examId }) {
                 hint={`Leave blank to close ${exam.durationMinutes || 60} minutes after opening.`}
               />
             </div>
+
+            <label
+              title="Whenever the opening time changes, the closing time is recomputed as opening + exam duration."
+              style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, fontSize: 13, cursor: "pointer", width: "fit-content" }}
+            >
+              <input
+                type="checkbox"
+                checked={autoAdjust}
+                onChange={(e) => setAutoAdjust(e.target.checked)}
+              />
+              Auto-fix closing time — keep it {exam.durationMinutes || 60} minutes after opening
+            </label>
 
             {exam.description && <p className="hod-sub">{exam.description}</p>}
             <p className="hod-sub" style={{ marginTop: 6 }}>
