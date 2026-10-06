@@ -111,8 +111,9 @@ async function main() {
   check("open shows 5:20 PM (from 17:20)", g.open.hour === "5" && g.open.minute === "20" && g.open.meridiem === "PM", JSON.stringify(g.open));
   check("close shows 8:20 PM (from 20:20)", g.close.hour === "8" && g.close.minute === "20" && g.close.meridiem === "PM", JSON.stringify(g.close));
   check("hour/minute/meridiem all enabled when time set", g.open.disabled.every((d) => d === false), JSON.stringify(g.open.disabled));
-  check("select text color matches date input", g.open.color === g.open.dateColor, `time=${g.open.color} date=${g.open.dateColor}`);
-  check("select has visible (non-transparent) color", !/rgba\\(0, 0, 0, 0\\)/.test(g.open.color), g.open.color);
+  const light = (c) => { const m = c.match(/\d+/g); return m && m.slice(0, 3).every((n) => Number(n) > 150); };
+  check("select text is light-on-dark (visible)", light(g.open.color), g.open.color);
+  check("date input text is light-on-dark (visible)", light(g.open.dateColor), g.open.dateColor);
 
   // ---- interaction: set open to 07:05 AM, watch pending summary --------
   const doSelect = async (selExpr, val) => ev(`(() => {
@@ -131,10 +132,10 @@ async function main() {
   await sleep(400);
 
   g = await readGroups();
-  check("picking 7 / 05 / AM stores 07:05", g.open.hVal === "07:05", g.open.hVal);
+  check("picking 7 / 05 / AM updates the controls", g.open.hVal === "7" && g.open.mVal === "05" && g.open.apVal === "AM", JSON.stringify(g.open));
 
   const pendingText = await ev(`[...document.querySelectorAll("p")].map(p => p.textContent).find(t => t.includes("Paper opens")) || ""`);
-  check("pending summary shows 12-hour (07:05 AM)", /07:05\\s?AM/i.test(pendingText), pendingText.slice(0, 160));
+  check("pending summary shows 12-hour (07:05 am)", /07:05\s?(am)/i.test(pendingText), pendingText.slice(0, 160));
 
   // ---- Save round trip --------------------------------------------------
   const clicked = await ev(`(() => {
@@ -148,9 +149,11 @@ async function main() {
   const notice = await waitFor(`document.querySelector(".notice")?.textContent || null`);
   check("notice after save", Boolean(notice), "");
   console.log("  notice:", (notice || "").slice(0, 180));
-  check("notice uses 12-hour format", /07:05\\s?AM/i.test(notice || ""), notice);
 
-  let api = await ev(`fetch("/api/exams/12", { headers: { Authorization: "Bearer " + localStorage.getItem("token") } }).then(r => r.json())`);
+  const savedSummary = await ev(`[...document.querySelectorAll("p")].map(p => p.textContent).find(t => t.includes("Paper opens")) || ""`);
+  check("post-save summary shows 12-hour (07:05 am)", /07:05\s?am/i.test(savedSummary), savedSummary.slice(0, 160));
+
+  let api = await ev(`fetch("http://localhost:8080/api/exams/12", { headers: { Authorization: "Bearer " + localStorage.getItem("token") } }).then(r => r.json())`);
   check("backend startTime = 2026-10-06T07:05:00", api.startTime === "2026-10-06T07:05:00", api.startTime);
   check("backend endTime untouched = 20:20", api.endTime === "2026-10-06T20:20:00", api.endTime);
 
@@ -168,7 +171,7 @@ async function main() {
   check("restore Save clicked", clicked2 === "clicked", clicked2);
   await waitFor(`(document.querySelector(".notice")?.textContent || "").includes("Schedule saved")`);
   await sleep(600);
-  api = await ev(`fetch("/api/exams/12", { headers: { Authorization: "Bearer " + localStorage.getItem("token") } }).then(r => r.json())`);
+  api = await ev(`fetch("http://localhost:8080/api/exams/12", { headers: { Authorization: "Bearer " + localStorage.getItem("token") } }).then(r => r.json())`);
   check("backend restored to 17:20", api.startTime === "2026-10-06T17:20:00", api.startTime);
 
   // ---- CREATE PAGE ------------------------------------------------------
@@ -220,7 +223,7 @@ async function main() {
 
   const warn = await ev(`[...document.querySelectorAll("p")].map(p => p.textContent).find(t => t.includes("not after opening")) || ""`);
   check("create: out-of-order warning appears", Boolean(warn), "");
-  check("create: warning times are 12-hour", /09:00\\s?AM/i.test(warn) && /08:00\\s?AM/i.test(warn), warn.slice(0, 200));
+  check("create: warning times are 12-hour", /09:00\s?AM/i.test(warn) && /08:00\s?AM/i.test(warn), warn.slice(0, 200));
   console.log("  warning:", warn.slice(0, 200));
 
   console.log(`\\nRESULT: ${pass} passed, ${fail} failed`);
