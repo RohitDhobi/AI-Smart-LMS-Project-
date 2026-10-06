@@ -330,3 +330,8 @@ Query styles used:
 7. **`Division` uniqueness** (course + code + academic year) is enforced in
    `HODService.existsByCourseIdAndCodeAndAcademicYear(...)` rather than a table constraint
    (comment in the entity explains a Hibernate 5.6 schema-update bug).
+8. **`semesters` has no unique constraint** on `(course_id, semester_number)` — `DataSeeder`
+   checks `findByCourseIdAndSemesterNumber(...)` before inserting. `academic_years.year_name`
+   **is** declared unique at the column level.
+9. **Exam results are still not stored** (see observation 1): there is no exam-attempt table;
+   `quiz_attempts` is the only attempt history that exists.
