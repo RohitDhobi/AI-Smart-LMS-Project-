@@ -244,30 +244,17 @@
 
 Reading the matrix above (one row = one feature):
 
-- The **large majority** of rows are `IMPLEMENTED` — auth, roles, curriculum, enrolment,
-  progress, quizzes, the exam approval workflow, HOD assignment/division management,
-  admin user management, reviews, wishlist, certificates, in-app notifications, analytics,
-  assignments, attendance, resources, discussions and the shell/packaging layers.
-- A **small but important group** is `PARTIALLY IMPLEMENTED` — question-bank metadata,
+- **104 rows are `IMPLEMENTED`** — auth, roles, curriculum, enrolment,
+  progress, quizzes, the exam approval workflow, HOD assignment/division/academic-structure
+  management, admin user management, reviews, wishlist, certificates, in-app notifications,
+  analytics, assignments, attendance, resources, discussions and the shell/packaging layers
+  (plus the study assistant's optional external LLM mode, which is off in the committed config).
+- **20 rows are `PARTIALLY IMPLEMENTED`** — question-bank metadata,
   certificate instructor endpoints (no role check), audit-logs page, admin/HOD settings pages,
   gamification/flashcards/leaderboard (localStorage only), the coding judge, and the
   client-side route guard.
-- **8 rows are `PLANNED / NOT IMPLEMENTED`** — Python AI service, TensorFlow, Gemini text,
-  Gemini voice, non-MCQ persisted questions, email/push notifications, question approval,
-  audit logging.
+- **8 rows are `NOT IMPLEMENTED`** — Python AI service, TensorFlow, voice assistant,
+  non-MCQ persisted questions, email/push notifications, question approval,
+  audit logging, exam-result history.
 - **4 rows are `NOT FOUND`** — standalone question-bank entity, AI submission feedback,
   CI/CD, container deployment.
-
----
-
-## 20. The five most important gaps (for a report's "future scope")
-
-1. **Exam results are never persisted** — there is no exam-attempt entity, so no exam history,
-   no result page backed by data, and no course-level exam analytics.
-2. **No external/ML AI** — everything labelled AI is rule-based; a real LLM (Gemini) integration
-   is designed but **not implemented** (see AI-ARCHITECTURE.md §5).
-3. **No email/push notifications** — the reset token is even returned in the HTTP response.
-4. **Question bank metadata is cosmetic** — `type`, `difficulty` and `status` are hard-coded in
-   `HODController.getQuestions`; there is no question-approval flow.
-5. **Audit logging and CI/CD are absent** — the audit page renders a constant array and no
-   pipeline exists in the repository.
