@@ -22,14 +22,14 @@ AI-Smart-LMS/
 ├── AI-Smart-LMS-Complete-Project-Details.md   # original product spec
 ├── FEATURE_COMPARISON_REPORT.md               # existing report
 │
-├── ARCHITECTURE.md            # ← main documentation entry (new)
-├── WORKFLOWS.md               # ← new
-├── API-DOCUMENTATION.md       # ← new
-├── DATABASE-DESIGN.md         # ← new
-├── AI-ARCHITECTURE.md         # ← new
-├── SECURITY.md                # ← new
-├── PROJECT-STRUCTURE.md       # ← this file (new)
-├── FEATURE-MATRIX.md          # ← new
+├── docs/                      # ★ ALL PROJECT DOCUMENTATION lives here
+│   ├── README.md              # documentation index
+│   ├── 01-Project-Overview/   # ARCHITECTURE, PROJECT-STRUCTURE, FEATURE-MATRIX
+│   ├── 02-Workflows/          # WORKFLOWS.md
+│   ├── 03-API/                # API-DOCUMENTATION.md
+│   ├── 04-Database/           # DATABASE-DESIGN.md
+│   ├── 05-AI/                 # AI-ARCHITECTURE.md
+│   └── 06-Security/           # SECURITY.md
 │
 ├── seed-lessons.js            # helper script for lesson seeding
 ├── opencode.json              # local tool config (git-ignored)
@@ -104,7 +104,9 @@ src/
 │   │                          #    AdminTeachers, AdminStudents)
 │   └── three/                 # 3D scenes: Stats3D, Badges3D, CourseCards3D, Classroom3D
 │
-└── utils/confetti.js          # celebration effects (canvas-confetti)
+└── utils/
+    ├── confetti.js            # celebration effects (canvas-confetti)
+    └── phone.js               # shared phone-number validation (mirrors backend PhoneValidator)
 ```
 
 **Purpose of the important frontend folders**
@@ -138,16 +140,19 @@ backend/
 └── src/
     ├── main/
     │   ├── java/com/aismartlms/backend/
-    │   │   ├── BackendApplication.java        # Spring Boot entry point
-    │   │   ├── config/DataSeeder.java         # CommandLineRunner: seeds degrees/subjects/lessons/users/divisions/assignments
-    │   │   ├── controller/                    # 19 @RestController classes + 1 @RestControllerAdvice
-    │   │   ├── dto/                           # request/response objects (AuthResponse, RegisterRequest, ...)
-    │   │   ├── entity/                        # 27 JPA entities + Role enum
-    │   │   ├── exception/AccessDeniedException.java   # → HTTP 403
-    │   │   ├── repository/                    # 27 JpaRepository interfaces
-    │   │   ├── security/                      # SecurityConfig, JwtAuthenticationFilter, JwtService
-    │   │   └── service/                       # 19 @Service classes (incl. AIQuestionService,
-    │   │                                      #   ExamApprovalService, HODService, InstructorAccessService)
+│   │   ├── BackendApplication.java        # Spring Boot entry point
+│   │   ├── config/DataSeeder.java         # CommandLineRunner: seeds degrees/subjects/lessons/users/
+│   │   │                                 #   divisions/assignments + semesters + academic years
+│   │   ├── controller/                    # 19 @RestController classes + 1 @RestControllerAdvice
+│   │   ├── dto/                           # request/response objects (AuthResponse, RegisterRequest,
+│   │   │                                 #   HODRequest, HODAssignmentView, DivisionRequest/Response, ...)
+│   │   ├── entity/                        # 29 JPA entities + Role enum
+│   │   ├── exception/AccessDeniedException.java   # → HTTP 403
+│   │   ├── repository/                    # 29 JpaRepository interfaces
+│   │   ├── security/                      # SecurityConfig, JwtAuthenticationFilter, JwtService
+│   │   ├── service/                       # 19 @Service classes (incl. AIQuestionService,
+│   │   │                                 #   ExamApprovalService, HODService, InstructorAccessService)
+│   │   └── util/PhoneValidator.java       # shared phone-number rule (mirrors src/utils/phone.js)
     │   └── resources/
     │       └── application.properties         # MySQL + port 8080 + JPA + upload config
     └── test/
@@ -188,18 +193,19 @@ backend/
 
 ---
 
-## 5. Documentation set (this repository)
+## 5. Documentation set (this repository — inside `docs/`)
 
 | File | Audience |
 |---|---|
-| `ARCHITECTURE.md` | **Start here** — overview, diagrams, request flow, deployment, 2-min & 10-min explanations, viva Q&A |
-| `WORKFLOWS.md` | Student / Instructor / HOD / Admin / Exam / Question-bank step-by-step flows |
-| `API-DOCUMENTATION.md` | Every REST endpoint with auth + role columns |
-| `DATABASE-DESIGN.md` | Entities, fields, ER diagram, data observations |
-| `AI-ARCHITECTURE.md` | Real AI features + the PLANNED Gemini architecture |
-| `SECURITY.md` | Auth implementation + Security Observations |
-| `PROJECT-STRUCTURE.md` | This file |
-| `FEATURE-MATRIX.md` | Feature × status × where it lives |
+| `docs/README.md` | **Start here** — documentation index + short project description |
+| `docs/01-Project-Overview/ARCHITECTURE.md` | Overview, diagrams, request flow, deployment, presentation & viva material |
+| `docs/01-Project-Overview/PROJECT-STRUCTURE.md` | This file — real folder/file tree with purpose of each folder |
+| `docs/01-Project-Overview/FEATURE-MATRIX.md` | Feature × status × where it lives |
+| `docs/02-Workflows/WORKFLOWS.md` | Student / Instructor / HOD / Admin / Exam / Question-bank step-by-step flows |
+| `docs/03-API/API-DOCUMENTATION.md` | Every REST endpoint with auth + role columns |
+| `docs/04-Database/DATABASE-DESIGN.md` | Entities, fields, ER diagram, data observations |
+| `docs/05-AI/AI-ARCHITECTURE.md` | AI features as implemented (rule-based + optional external LLM mode) |
+| `docs/06-Security/SECURITY.md` | Auth implementation + Security Observations |
 
 Pre-existing documentation (**left untouched**): `README.md`, `PROJECT.md`,
 `AI-Smart-LMS-Complete-Project-Details.md`, `FEATURE_COMPARISON_REPORT.md`,
