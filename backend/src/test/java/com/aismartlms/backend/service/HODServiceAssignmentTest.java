@@ -22,6 +22,7 @@ import com.aismartlms.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -168,6 +170,56 @@ class HODServiceAssignmentTest {
 
         assertTrue(ex.getMessage().contains("already assigned to this course"));
         verify(assignments, never()).save(any());
+    }
+
+    @Test
+    void assigningASubjectThatIsAlreadyTakenReplacesTheInstructorInPlace() {
+        // Prof. Ritu Agarwal already owns subject 1. Assigning Prof. Rajesh Kumar
+        // to the same subject must reuse that row - stacking a second ACTIVE row
+        // left the listing (and therefore the search) showing the old instructor.
+        InstructorCourseAssignment occupied = assignment(18L, 28L, BCA_COURSE_ID, SUBJECT_ONE);
+        occupied.setAssignedAt(LocalDateTime.of(2026, 9, 28, 18, 0, 58));
+
+        when(assignments.findByInstructorIdAndStatus(20L, "ACTIVE"))
+                .thenReturn(List.of(assignment(3L, 20L, 4L, null)));
+        when(assignments.findBySubjectIdAndStatus(SUBJECT_ONE, "ACTIVE"))
+                .thenReturn(List.of(occupied));
+        when(subjects.findById(SUBJECT_ONE)).thenReturn(Optional.of(subject(SUBJECT_ONE)));
+
+        HODRequest request = new HODRequest();
+        request.setInstructorId(20L);
+        request.setCourseId(BCA_COURSE_ID);
+        request.setSubjectId(SUBJECT_ONE);
+
+        InstructorCourseAssignment saved = service.createAssignment(request);
+
+        assertEquals(20L, saved.getInstructorId());
+        assertEquals(18L, saved.getId());          // same row, no second one
+        assertEquals(SUBJECT_ONE, saved.getSubjectId());
+        assertEquals("ACTIVE", saved.getStatus());
+        verify(assignments, times(1)).save(occupied);
+    }
+
+    @Test
+    void subjectListingShowsTheMostRecentAssignmentWhenDuplicatesExist() {
+        when(subjects.findAll()).thenReturn(List.of(subject(SUBJECT_ONE)));
+
+        InstructorCourseAssignment older = assignment(18L, 28L, BCA_COURSE_ID, SUBJECT_ONE);
+        older.setAssignedAt(LocalDateTime.of(2026, 9, 28, 18, 0, 58));
+        InstructorCourseAssignment newer = assignment(19L, 20L, BCA_COURSE_ID, SUBJECT_ONE);
+        newer.setAssignedAt(LocalDateTime.of(2026, 10, 6, 11, 58, 1));
+
+        when(assignments.findBySubjectIdAndStatus(SUBJECT_ONE, "ACTIVE"))
+                .thenReturn(List.of(older, newer));
+        when(users.findById(20L))
+                .thenReturn(Optional.of(instructor(20L, "Prof. Rajesh Kumar")));
+        when(users.findById(28L))
+                .thenReturn(Optional.of(instructor(28L, "Prof. Ritu Agarwal")));
+
+        List<Map<String, Object>> view = service.getSubjects();
+
+        assertEquals("Prof. Rajesh Kumar", view.get(0).get("assignedInstructor"));
+        assertEquals(19L, view.get(0).get("assignedInstructorId"));
     }
 
     @Test
