@@ -260,7 +260,7 @@ com.aismartlms.backend
 | `UserController` | `/api/user` | `/profile` |
 | `AdvancedFeatureController` | `/api` | dashboard, search/filter, profile, wishlist, reviews, instructor dashboard, course status, certificates, notifications, admin dashboard/users/reports, forgot/reset password, analytics, all `/ai/*`, continue-learning, quiz-attempts, reminders |
 | `CourseController` | `/api/courses` | plain CRUD on courses |
-| `CourseManagementController` | `/api` | degree programs, semesters, subjects, lessons, instructor & admin course management |
+| `CourseManagementController` | `/api` | degree programs, semesters, subjects, lessons, instructor & admin course management, `GET /api/academic-years` |
 | `LessonController` | `/api/lessons` | lesson CRUD |
 | `EnrollmentController` | `/api/enrollments` | enrol / my enrolments |
 | `ProgressController` | `/api/progress` | start/update/list lesson progress |
@@ -500,7 +500,8 @@ Full table in [FEATURE-MATRIX.md](./FEATURE-MATRIX.md).
 | Exam question paper (JSON `TEXT`) + server-side grading | **IMPLEMENTED** |
 | **Exam result persistence** (history per student) | **NOT IMPLEMENTED** — grading returns a map, nothing is saved |
 | Question bank (HOD) | **PARTIALLY IMPLEMENTED** — reads `questions` table, `type`/`difficulty`/`status` are hard-coded placeholders |
-| Instructor↔course assignment (HOD) | **IMPLEMENTED** |
+| Instructor↔course assignment (HOD), scoped by course/subject + semester + academic year | **IMPLEMENTED** |
+| Academic structure (`semesters`, `academic_years` tables + HOD endpoints) | **IMPLEMENTED** |
 | Divisions & student assignment (HOD) | **IMPLEMENTED** |
 | Certificates (student self-issue after 100% progress; instructor generate/revoke/verify) | **IMPLEMENTED** |
 | Notifications | **PARTIALLY IMPLEMENTED** — in-app rows only (certificates, reminders, test endpoint). No email/push/WS. |
@@ -576,8 +577,8 @@ locally in `localStorage`.
 exception handler (`RuntimeException → 400`, `AccessDeniedException → 403`).
 Two service classes carry the domain rules: **`ExamApprovalService`** (exam state machine) and
 **`InstructorAccessService`** (which instructor may manage which course/subject).
-`DataSeeder` creates 10 degree programs with subjects and lessons, the demo accounts, divisions
-and default assignments on first start.
+`DataSeeder` creates 10 degree programs with subjects and lessons, the demo accounts, divisions,
+default assignments, per-course semester rows and the current academic years on first start.
 
 ### 4. Database (≈ 1 min)
 Everything hangs off **`Course`** — a degree program (BCA, MBA, …) that owns **`Subject`** rows per
@@ -587,7 +588,8 @@ semester and **`Lesson`** rows. Students link to a degree via `User.course` and 
 `Quiz → Question` (MCQ, four fixed options, correct answer, marks) and `Exam` (duration, marks,
 passing marks, negative marking, schedule, workflow status, plus a JSON `questionPaper` column).
 Side modules: `Assignment/AssignmentSubmission`, `Attendance`, `Resource`, `Discussion/DiscussionReply`,
-`Certificate`, `Notification`, `Wishlist`, `Review`, `Announcement`, `InstructorCourseAssignment`,
+`Certificate`, `Notification`, `Wishlist`, `Review`, `Announcement`, `InstructorCourseAssignment`
+(course/subject + semester + academic year, all plain FKs), `Semester`, `AcademicYear`,
 `Division`, and `CodingProblem/CodingTestCase/CodingSubmission`.
 
 ### 5. Authentication (≈ 1 min)
