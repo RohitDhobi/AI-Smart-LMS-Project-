@@ -533,12 +533,15 @@ Full table in [FEATURE-MATRIX.md](./FEATURE-MATRIX.md).
 > exams are visible to students. The state machine, the department scope and the "nobody approves
 > their own exam" rule are all re-enforced **on the server**, not just hidden in the UI.
 >
-> The "AI" features — the study assistant, the question generator, the recommendations, the weak
-> topic detector and the learning path — are currently **rule-based Java and JavaScript logic**
-> working on real student data: curated question banks, keyword matching and simple aggregates.
-> They are deliberately isolated in `AIQuestionService` and the `/api/ai/*` endpoints so a real
-> model or an external LLM such as **Gemini** can be dropped in later without touching any other
-> code — that integration is planned, not yet implemented.
+> The "AI" features are split in two. The **study assistant** has two modes: with
+> `app.ai.api-key` configured it forwards the question to an OpenAI-compatible chat-completions
+> API (server-side key, 25-second timeout) and returns `"mode": "ai"`; with the committed
+> configuration — key commented out — it, and any failed call, falls back to a built-in
+> keyword knowledge base and returns `"mode": "simple-ai"`. The **question generator,
+> recommendations, weak-topic detector and learning path** are **rule-based Java and JavaScript
+> logic** working on real student data: curated question banks, keyword matching and simple
+> aggregates. All of them sit behind `AIQuestionService` and the `/api/ai/*` endpoints, so the
+> key — if an operator adds one — stays only on the Spring Boot side.
 >
 > Finally, the same frontend also ships as an **Electron desktop app**, an **Android/iOS
 > Capacitor app** and a **PWA**, because they all wrap the same built bundle."
@@ -631,13 +634,13 @@ instructors, manages divisions and students, and generates questions into the qu
 Four server endpoints under `/api/ai/*` plus `/api/hod/questions/generate` and
 `/api/coding/ai-assist`. `AIQuestionService` first serves **curated** question sets for known
 topics (OOP, Java, Python, DBMS, DSA, networks, OS, web) and then **algorithmically fills** the
-remainder up to the requested count. The **study assistant** is a keyword router over canned
-answers (it even returns `"mode": "simple-ai"`). **Recommendations**, **weak topics** and the
-**learning path** are computed from the student's own enrolments, progress and quiz percentages.
-The frontend has a matching local engine used as an offline fallback. **No ML model, no Python
-service and no external API is involved today.** The recommended next step — documented in
-AI-ARCHITECTURE.md — is an optional Gemini integration behind the same endpoints, with the key
-kept only on the Spring Boot side.
+remainder up to the requested count. The **study assistant** has two modes: an outbound call to
+an OpenAI-compatible `chat/completions` API when `app.ai.api-key` is set (`mode:"ai"`), and
+otherwise a keyword router over canned answers (`mode:"simple-ai"`) — that is what the committed
+config does. **Recommendations**, **weak topics** and the **learning path** are computed from the
+student's own enrolments, progress and quiz percentages. The frontend has a matching local
+engine used as an offline fallback. **No ML model and no Python service are involved.**
+AI-ARCHITECTURE.md documents the exact request flow and configuration.
 
 ---
 
@@ -706,8 +709,12 @@ A HOD-facing view over the `questions` table (`GET /api/hod/questions`) plus AI 
 **21. How does AI question generation work?**
 `AIQuestionService.generateQuestions(topic, count)` matches the topic to curated banks (OOP, Java, Python, DBMS, DSA, networks, OS, web), de-duplicates, then algorithmically fills the remaining count up to 200. It is **template/rule-based, not an ML model**.
 
-**22. Is Gemini or any external LLM integrated?**
-No. There is no API key, no HTTP client call to any AI provider, no Python service. The study assistant returns canned keyword-matched answers with `"mode":"simple-ai"`. A Gemini integration is documented as **PLANNED** in AI-ARCHITECTURE.md.
+**22. Is an external LLM integrated?**
+Partially — and only for one endpoint. `POST /api/ai/study-assistant` calls any OpenAI-compatible
+`/chat/completions` API (`app.ai.base-url`, `app.ai.model`, `app.ai.api-key`) when a key is
+configured; the committed `application.properties` leaves all three commented out, so out of the
+box the assistant answers from its built-in keyword knowledge base with `"mode":"simple-ai"`.
+No ML model and no Python service exist in the repository. Details in AI-ARCHITECTURE.md.
 
 **23. What does "AI recommendation / weak topic / learning path" actually do?**
 It aggregates the student's own data: recommendations rank un-enrolled approved courses by keyword overlap with the lowest-scoring quiz; weak topics list attempts below 60 %; the learning path lists approved courses marked COMPLETED when every lesson has `completed = true`.
