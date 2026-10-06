@@ -11,9 +11,11 @@ Derived **only** from the JPA entities in
   and documents the seeder.
 - **Seeding:** `config/DataSeeder.java` (idempotent `CommandLineRunner`) inserts 10 degree
   programs + subjects + starter lessons, the default accounts, divisions and default
-  instructor assignments.
+  instructor assignments, **plus the academic structure**: `1..totalSemesters` rows in
+  `semesters` for every course, the previous + current `academic_years` (current one active),
+  and a backfill of `semester_id` / `academic_year_id` onto existing instructor assignments.
 
-**Entity count: 27 `@Entity` classes + 1 enum (`Role`).**
+**Entity count: 29 `@Entity` classes + 1 enum (`Role`).**
 
 ---
 
@@ -85,7 +87,9 @@ erDiagram
 
 | Entity | Loose FK columns | Consequence |
 |---|---|---|
-| `InstructorCourseAssignment` | `instructorId`, `courseId`, `subjectId`, `assignedBy` | Joining is done manually in `HODService` / `InstructorAccessService` |
+| `InstructorCourseAssignment` | `instructorId`, `courseId`, `subjectId`, `semesterId`, `academicYearId`, `assignedBy` | Joining is done manually in `HODService` / `InstructorAccessService` |
+| `Semester` | `courseId` | `semesters` rows point at `courses` without a JPA association |
+| `AcademicYear` | *(none)* | standalone lookup table |
 | `Announcement` | `postedBy` (Long), `courseCode` (String) | No link to `users`/`courses` tables |
 | `Exam` | `subjectId`, `createdBy`, `approvedBy` (Long) + denormalised `subjectName`, `createdByName`, `approvedByName` | Deliberate: "list views never join the users table" |
 
@@ -109,6 +113,17 @@ erDiagram
 | `division` | ManyToOne → `Division` (nullable) | section (e.g. "BCA Div A") |
 
 #### `Role` (enum) — `STUDENT`, `INSTRUCTOR`, `HOD`, `ADMIN`
+
+#### `AcademicYear` → `academic_years`
+`id` PK · `yearName` (not null, **unique**, e.g. "2025-2026") · `active` boolean (not null,
+default `true`) — exactly one active year is the default for new instructor assignments.
+Seeded by `DataSeeder` (previous + current year; never overwritten). No JPA associations.
+
+#### `Semester` → `semesters`
+`id` PK · `semesterNumber` (Integer, not null, 1-based) · `courseId` (**plain `Long`, not a
+JPA association** — joining to `courses` is done in the service layer).
+Seeded by `DataSeeder` as `1..course.totalSemesters` for every course. Used as the semester
+column/filter on the HOD instructor-assignment page.
 
 #### `PasswordResetToken` → `password_reset_tokens`
 `id` PK · `token` (unique, not null) · `user` ManyToOne not null · `expiresAt` (30 min).
@@ -249,9 +264,11 @@ Files land in `app.upload.dir = uploads/resources` (max 50 MB).
 
 #### `InstructorCourseAssignment` → instructor assignments
 `id` PK · `instructorId` (Long) · `courseId` (Long) · `subjectId` (Long, 0/null = course-wide) ·
+`semesterId` (Long → `semesters.id`, plain) · `academicYearId` (Long → `academic_years.id`, plain) ·
 `assignedBy` (Long) · `status` (default `ACTIVE`).
 No JPA associations — looked up through `InstructorCourseAssignmentRepository`
-(`findByInstructorIdAndStatus`).
+(`findByInstructorIdAndStatus`). The read models (`HODAssignmentView`, `CourseManagementController`)
+resolve `semesterNumber` and `yearName` by joining in Java.
 
 ---
 
@@ -275,13 +292,13 @@ No JPA associations — looked up through `InstructorCourseAssignmentRepository`
 
 ---
 
-## 3. Repositories (27 `JpaRepository` interfaces)
+## 3. Repositories (29 `JpaRepository` interfaces)
 
-`Announcement` · `Assignment` · `AssignmentSubmission` · `Attendance` · `Certificate` ·
-`CodingProblem` · `CodingSubmission` · `CodingTestCase` · `Course` · `Discussion` ·
-`DiscussionReply` · `Division` · `Enrollment` · `Exam` · `InstructorCourseAssignment` ·
-`Lesson` · `Notification` · `PasswordResetToken` · `Progress` · `Question` · `Quiz` ·
-`QuizAttempt` · `Resource` · `Review` · `Subject` · `User` · `Wishlist`
+`AcademicYear` · `Announcement` · `Assignment` · `AssignmentSubmission` · `Attendance` ·
+`Certificate` · `CodingProblem` · `CodingSubmission` · `CodingTestCase` · `Course` · `Discussion` ·
+`DiscussionReply` · `Division` · `Enrollment` · `Exam` · `InstructorCourseAssignment` · `Lesson` ·
+`Notification` · `PasswordResetToken` · `Progress` · `Question` · `Quiz` · `QuizAttempt` ·
+`Resource` · `Review` · `Semester` · `Subject` · `User` · `Wishlist`
 
 Query styles used:
 - **Derived queries** — `findByUserAndCourse`, `findByStatusOrderByCreatedAtDesc`,
