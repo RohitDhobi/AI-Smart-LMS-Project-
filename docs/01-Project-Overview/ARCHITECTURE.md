@@ -26,7 +26,7 @@
 AI-Smart-LMS is a **role-based Learning Management System** for a college/university.
 It lets four kinds of people work in the same system:
 
-- **Students** — browse degree programs, enrol, study lessons, track progress, take quizzes and exams, earn certificates, and use rule-based "AI" study helpers.
+- **Students** — browse degree programs, enrol, study lessons, track progress, take quizzes and exams, earn certificates, and use the "AI" study helpers (offline knowledge base by default; external model answer only when the operator configures `app.ai.api-key`).
 - **Instructors (Teachers)** — create courses/subjects/lessons, assignments, quizzes, exams and question papers, grade submissions, issue certificates.
 - **HOD (Head of Department)** — assign instructors to courses/subjects, manage divisions and students, run a **question bank**, and **approve or reject exams** before they reach students.
 - **Admin** — manage users/roles/accounts, courses and subjects, reports and platform-wide analytics.
@@ -112,7 +112,7 @@ flowchart TD
 | **Spring Boot backend** | Stateless REST API on port 8080 under `/api/**`. Layered: Controller → Service → Repository → Entity → MySQL. |
 | **Spring Security + JWT** | No server sessions. Every request is authenticated by decoding the Bearer token, then loading the user by e-mail from the DB. |
 | **MySQL** | Database `ai_smart_lms`. Tables are created/updated automatically by Hibernate (`spring.jpa.hibernate.ddl-auto=update`); `backend/database/setup.sql` only creates the database. |
-| **`DataSeeder`** | `CommandLineRunner` that seeds 10 degree programs + subjects + lessons, the default staff/student demo accounts, divisions and default instructor assignments on first start. Idempotent. |
+| **`DataSeeder`** | `CommandLineRunner` that seeds 10 degree programs + subjects + lessons, the default staff/student demo accounts, divisions, default instructor assignments, one `semesters` row per course semester and the previous + current `academic_years` on first start. Idempotent. |
 | **AI layer** | Mostly **rule-based Java/JS logic** (keyword matching, curated question banks, template text, simple aggregates). One optional outbound path exists: `/api/ai/study-assistant` calls an **OpenAI-compatible chat-completions API** through `java.net.http.HttpClient` **only when `app.ai.api-key` is configured** (commented out in the committed `application.properties`). **No ML model and no Python service.** |
 | **Electron / Capacitor** | Optional wrappers around the same built `dist/` — desktop app and Android/iOS shell. |
 | **`public/sw.js`** | Service worker for PWA/offline shell. |
