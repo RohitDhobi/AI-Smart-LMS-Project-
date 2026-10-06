@@ -53,13 +53,16 @@ It lets four kinds of people work in the same system:
 
 ### Main modules (as implemented)
 
-Authentication & accounts · Courses / Semesters / Subjects / Lessons · Enrolment ·
+Authentication & accounts · Courses / Semesters / Subjects / Lessons · Academic years &
+semester rows (HOD instructor-assignment scope) · Enrolment ·
 Lesson progress · Quizzes + Questions + Quiz attempts · Exams + question papers + HOD approval ·
-Question bank (HOD) · Instructor–course assignment · Divisions & students (HOD) ·
+Question bank (HOD) · Instructor–course assignment (course/subject + semester + academic year) ·
+Divisions & students (HOD) ·
 Assignments + submissions · Attendance · Resources (file upload/download) ·
 Discussions · Certificates · Notifications (in-app) · Wishlist · Reviews ·
-Analytics (student/course/admin) · Rule-based "AI" (assistant, question generator, recommender,
-weak topics, learning path) · Coding practice arena (simulated judge) ·
+Analytics (student/course/admin) · "AI" (assistant — rule-based or optional external LLM —,
+question generator, recommender, weak topics, learning path) ·
+Coding practice arena (simulated judge) ·
 Gamification (client-side XP/badges/streak) · 3D showcase pages.
 
 ---
@@ -444,6 +447,7 @@ flowchart TD
 | SQL logging | `spring.jpa.show-sql=true`, `format_sql=true` | `application.properties` |
 | File upload dir | `app.upload.dir=uploads/resources`, max 50 MB | `application.properties` |
 | Data seeding toggle | `app.seed-data:true` (default) | `DataSeeder` |
+| External AI mode (off by default) | `# app.ai.api-key`, `# app.ai.base-url=https://api.openai.com/v1`, `# app.ai.model=gpt-4o-mini` (all commented out) | `application.properties` → read by `AdvancedFeatureController` |
 | Electron dev URL | `http://localhost:5173` | `electron/main.cjs` |
 | Capacitor web dir | `dist`, appId `com.aismartlms.app` | `capacitor.config.json` |
 
@@ -502,7 +506,7 @@ Full table in [FEATURE-MATRIX.md](./FEATURE-MATRIX.md).
 | Notifications | **PARTIALLY IMPLEMENTED** — in-app rows only (certificates, reminders, test endpoint). No email/push/WS. |
 | Wishlist / reviews / discussions / assignments / attendance / resources | **IMPLEMENTED** |
 | Analytics (student, course, admin) | **IMPLEMENTED** (SQL/aggregate based) |
-| "AI" assistant, question generator, recommendations, weak topics, learning path | **IMPLEMENTED but rule-based** (no ML, no LLM) |
+| "AI" assistant, question generator, recommendations, weak topics, learning path | **IMPLEMENTED** — question generator / recommendations / weak topics / learning path are rule-based; the study assistant additionally calls an external OpenAI-compatible LLM **only when `app.ai.api-key` is configured** (off in the committed config) |
 | Python FastAPI AI service (claimed in a UI footer) | **NOT IMPLEMENTED** — no `ai-service/` folder, no Python code |
 | External LLM call | **IMPLEMENTED but off by default** — `POST /api/ai/study-assistant` calls an OpenAI-compatible `/chat/completions` endpoint only when `app.ai.api-key` is set; committed config leaves it commented out (`mode:"simple-ai"`) |
 | Voice assistant / speech input | **NOT IMPLEMENTED** — no mic or speech code |
