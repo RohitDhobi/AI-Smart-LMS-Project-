@@ -2,7 +2,7 @@
 
 > This document describes **what the code actually does today**.
 > Problems found during inspection are listed under **§7 Security Observations** —
-> **documented only, deliberately not fixed**, per the request.
+> **documented only, deliberately not changed**, per the request.
 
 ---
 
@@ -161,17 +161,27 @@ flowchart LR
 
 ---
 
-## 6. Secrets & environment variables
+## 6. Secrets & configuration
 
-| Secret / config | Where it lives today | Recommended |
-|---|---|---|
-| MySQL password | literal in `backend/src/main/resources/application.properties` (**committed**, incl. a commented copy) | env var / external config |
-| JWT signing key | literal `JwtService.SECRET_KEY` (**committed**) | env var + rotation |
-| JWT lifetime | literal `24 h` in code | config property |
-| Upload dir / size | `app.upload.dir`, `spring.servlet.multipart.*` | unchanged |
-| **AI API key (Gemini)** | **does not exist** | if added: **server-side env var only** (`GEMINI_API_KEY`), never in the React bundle — see AI-ARCHITECTURE.md §5.4 |
+| Secret / config | Where it lives today |
+|---|---|
+| MySQL password | literal in `backend/src/main/resources/application.properties` (**committed**, incl. a commented copy) |
+| JWT signing key | literal `JwtService.SECRET_KEY` (**committed**) |
+| JWT lifetime | literal `24 h` in code |
+| Upload dir / size | `app.upload.dir`, `spring.servlet.multipart.*` |
+| External AI key (`app.ai.api-key`) | optional property in `application.properties`, **commented out in the committed file**; read server-side only by `AdvancedFeatureController` (`@Value`), sent only in the outbound `Authorization` header to the configured `app.ai.base-url`, never returned in any response. With it unset, `/api/ai/study-assistant` runs offline (`mode:"simple-ai"`). |
 
 There is **no `.env` usage** in the backend and no `System.getenv` lookups.
+
+## 6b. Input validation that exists today
+
+| Check | Where |
+|---|---|
+| Phone number: optional; if present only `digits + - space`, 7–15 digits (E.164 max) | `util/PhoneValidator.java`, applied in `AuthService.register`, `AuthService.registerInstructor`, `PUT /api/profile`, `PUT /api/instructor/profile` — same wording as the client rule in `src/utils/phone.js` (used by Register, Profile, settings pages, AdminTeachers) |
+| Instructor self-signup: name required, password ≥ 6 chars, `confirmPassword` must match | `AuthService.registerInstructor` |
+| Student self-registration: `confirmPassword` must match, e-mail uniqueness, course must exist | `AuthService.register` |
+| Login: e-mail existence + `active` flag + BCrypt match | `AuthService.login` |
+| Duplicate e-mail on admin user creation | `POST /api/admin/users` |
 
 ---
 
