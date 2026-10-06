@@ -87,7 +87,7 @@ flowchart TD
         SEC --> CTRL --> SVC --> REPO
     end
 
-    subgraph AIL["AI layer (no external API today)"]
+    subgraph AIL["AI layer (rule-based + optional external LLM)"]
         AI1["AIQuestionService (rule/template engine)"]
         AI2["Keyword study-assistant in AdvancedFeatureController"]
         AI3["Rule-based recommender / weak-topic / learning-path"]
