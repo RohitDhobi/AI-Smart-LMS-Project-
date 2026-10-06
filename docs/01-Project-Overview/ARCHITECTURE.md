@@ -268,7 +268,7 @@ com.aismartlms.backend
 | `QuestionController` | `/api/questions` | question CRUD (course-manage gated) |
 | `QuizAttemptController` | `/api/quiz-attempts` | submit quiz, list attempts |
 | `ExamController` | `/api/exams` | exam CRUD, submit-for-approval, publish, override status, student submission & grading |
-| `HODController` | `/api/hod` | HOD dashboard, assignments, courses/subjects/instructors/students, question bank, exam approvals, announcements, divisions |
+| `HODController` | `/api/hod` | HOD dashboard, assignments, courses/subjects/instructors/students, semesters & academic years, question bank, exam approvals, announcements, divisions |
 | `AssignmentController` | `/api/assignments` | assignments + submissions + grading |
 | `AttendanceController` | `/api/attendance` | mark & read attendance |
 | `ResourceController` | `/api/resources` | upload/download/list course resources |
