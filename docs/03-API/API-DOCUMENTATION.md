@@ -67,6 +67,7 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | GET | `/api/courses/{courseId}/subjects` | Subjects of a degree | **Public** | — |
 | GET | `/api/courses/{courseId}/subjects/{semester}` | Subjects of one semester | **Public** | — |
 | GET | `/api/subjects/{id}` | Subject detail | JWT | Any (detail restricted for students) |
+| GET | `/api/academic-years` | Academic-year list (drives the "Academic Year" context on course/subject pages) | JWT | Any signed-in user |
 | GET | `/api/admin/courses` | Admin course list | JWT | **ADMIN** |
 | POST | `/api/admin/courses` | Create degree program | JWT | **ADMIN** |
 | PUT | `/api/admin/courses/{id}` | Update degree program | JWT | **ADMIN** |
@@ -182,6 +183,9 @@ Business errors → **400** `{"error":"<message>"}` (via `ApiExceptionHandler`).
 | GET | `/api/hod/exam-approvals/{id}` | Full review incl. `questionPaper` | JWT | **HOD** + department scope |
 | POST | `/api/hod/exam-approvals/{id}/approve` | `PENDING_HOD_APPROVAL` → `APPROVED` | JWT | **HOD** + scope + not self |
 | POST | `/api/hod/exam-approvals/{id}/reject` | → `REJECTED`, `reason` mandatory | JWT | **HOD** + scope + not self |
+| GET | `/api/hod/semesters?courseId=` | Semester drop-down for the instructor-assignment form | JWT | **HOD** |
+| GET | `/api/hod/academic-years` | Academic-year drop-down + search filter | JWT | **HOD** |
+| POST | `/api/hod/academic-years` | Add an academic year, body `{ "yearName": "2027-2028", "active": false }` | JWT | **HOD** |
 | GET | `/api/hod/announcements` | List announcements | JWT | **HOD** |
 | POST | `/api/hod/announcements` | Post announcement | JWT | **HOD** |
 | GET | `/api/hod/divisions` | List divisions | JWT | **HOD or ADMIN** |
