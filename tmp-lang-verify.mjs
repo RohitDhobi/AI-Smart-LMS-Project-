@@ -1,4 +1,6 @@
 // Temp verification script - delete after use.
+import zlib from "node:zlib";
+
 const DEBUG = "http://localhost:9333";
 
 const TOKEN =
@@ -121,7 +123,6 @@ async function main() {
   const countInk = (b64) => {
     const buf = Buffer.from(b64, "base64");
     // decode PNG minimally using zlib inflate + unfilter
-    const zlib = require("zlib");
     let pos = 8, w = 0, h = 0, bitDepth = 0, colorType = 0;
     const idat = [];
     while (pos < buf.length) {
