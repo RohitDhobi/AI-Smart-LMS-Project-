@@ -1,10 +1,10 @@
 # AI-Smart-LMS — Feature Matrix
 
-**Status values** (as requested):
+**Status values**:
 
 - `IMPLEMENTED` — feature exists end-to-end (frontend page + backend endpoint + persistence where applicable)
 - `PARTIALLY IMPLEMENTED` — some layers exist, others are placeholders, local-only, or missing
-- `PLANNED` — described/claimed somewhere but **no code**
+- `NOT IMPLEMENTED` — claimed somewhere in text/UI but **no code**
 - `NOT FOUND` — no trace anywhere in the repository
 
 **AI column** = whether that feature uses AI logic; `—` means no AI involved.
@@ -197,7 +197,7 @@
 
 | Module | Feature | Status | Frontend | Backend | Database | AI |
 |---|---|---|---|---|---|---|
-| AI | AI Study Assistant (chat-style Q&A) | IMPLEMENTED | `pages/AIAssistant.jsx` | `POST /api/ai/study-assistant` | — | ✅ **keyword-matched canned answers (`mode:"simple-ai"`)** |
+| AI | AI Study Assistant (chat-style Q&A) | IMPLEMENTED | `pages/AIAssistant.jsx` | `POST /api/ai/study-assistant` | — | ✅ **keyword knowledge base (`mode:"simple-ai"`) by default; external OpenAI-compatible LLM (`mode:"ai"`) when `app.ai.api-key` is set** |
 | AI | AI Question Generator (server) | IMPLEMENTED | `AIAssistant.jsx` | `POST /api/ai/generate-questions` → `AIQuestionService` | — | ✅ **curated bank + string templates** |
 | AI | AI Question Generator (browser fallback) | IMPLEMENTED | `src/ai-question-engine.js` | — | — | ✅ rule-based |
 | AI | HOD AI question generation (persists) | IMPLEMENTED | `HODQuestions.jsx` | `POST /api/hod/questions/generate` | `questions` | ✅ rule-based |
@@ -207,10 +207,10 @@
 | AI | AI quiz recommendations | IMPLEMENTED | `Analytics.jsx` | `GET /api/ai/quiz-recommendations` | `quiz_attempts` | ✅ derived |
 | AI | Coding AI assist (hint/explain/complexity/debug) | IMPLEMENTED | `CodingPlayground.jsx` | `POST /api/coding/ai-assist` | `coding_problems.hints_json` | ✅ templates |
 | AI | Instructor AI Tools (paper builder) | IMPLEMENTED | `InstructorAITools.jsx` (local) | `POST /api/exams` | `exams.question_paper` | ✅ client-side templates |
-| AI | Python (FastAPI) AI micro-service | PLANNED / NOT IMPLEMENTED | footer text in `Dashboard.jsx` claims it | **no Python source, no `ai-service/` folder** | — | — |
-| AI | TensorFlow / trained ML model | PLANNED / NOT IMPLEMENTED | mentioned inside answer text only | **no dependency, no model file** | — | — |
-| AI | **Gemini (or any external LLM) text API** | PLANNED / NOT IMPLEMENTED | — | **no HTTP client, no API key anywhere** | — | see AI-ARCHITECTURE.md §5 |
-| AI | **Voice assistant / Gemini Live** | PLANNED / NOT IMPLEMENTED | no mic/speech code | no token endpoint | — | see AI-ARCHITECTURE.md §5.2 |
+| AI | Python (FastAPI) AI micro-service | NOT IMPLEMENTED | footer text in `Dashboard.jsx` claims it | **no Python source, no `ai-service/` folder** | — | — |
+| AI | TensorFlow / trained ML model | NOT IMPLEMENTED | mentioned inside answer text only | **no dependency, no model file** | — | — |
+| AI | **External LLM mode for the study assistant** | IMPLEMENTED (off by default) | `AIAssistant.jsx` renders either mode | `POST /api/ai/study-assistant` → `AdvancedFeatureController.askFullAI()` (JDK `HttpClient`, OpenAI-compatible `/chat/completions`) when `app.ai.api-key` is set; committed config leaves it commented out | — (no table) | ✅ `mode:"ai"` vs `mode:"simple-ai"` |
+| AI | **Voice assistant / speech input** | NOT IMPLEMENTED | no mic/speech code | no token endpoint | — | — |
 | AI | AI-generated feedback on submissions | NOT FOUND | — | — | — | — |
 
 ## 18. Other implemented modules
