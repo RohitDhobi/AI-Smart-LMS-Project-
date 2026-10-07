@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api";
 import { Loading, Empty } from "../ui";
 import { highlightSegments } from "../highlight";
+import { enrolledCourseIds, resolveEnrolledCourses } from "../enrollment";
 
 function Highlighted({ text, keyword }) {
 
@@ -28,6 +29,88 @@ function Highlighted({ text, keyword }) {
   );
 }
 
+function CourseCard({ course, tint, enrolled = false, keyword = "" }) {
+  return (
+    <Link
+      to={`/courses/${course.id}`}
+      className={`card course-card tint-${tint}`}
+    >
+      <div className="course-card-top">
+
+        <div className="course-icon">
+          📘
+        </div>
+
+        {enrolled ? (
+          <span className="course-enrolled-chip">
+            ✓ Enrolled
+          </span>
+        ) : (
+          <span className="course-price">
+            {course.price != null
+              ? `₹${course.price}`
+              : "Free"}
+          </span>
+        )}
+
+      </div>
+
+      <h2>
+        <Highlighted
+          text={course.title || "Enrolled Course"}
+          keyword={keyword}
+        />
+      </h2>
+
+      <p>
+        <Highlighted
+          text={course.description ||
+            "No description available."}
+          keyword={keyword}
+        />
+      </p>
+
+      <div className="course-meta">
+
+        <span>
+          {course.category || "General"}
+        </span>
+
+        <span>
+          {course.difficulty || "Beginner"}
+        </span>
+
+        {course.totalSemesters != null &&
+          course.totalSemesters > 0 && (
+            <span className="semester-badge">
+              {course.totalSemesters} Sem
+            </span>
+        )}
+
+      </div>
+
+      {course.duration && (
+        <span className="course-duration">
+          ⏱ {course.duration}
+        </span>
+      )}
+
+      <div className="course-card-footer">
+
+        <span className="course-instructor">
+          👨‍🏫 {course.instructor || "Instructor"}
+        </span>
+
+        <span className="course-view">
+          {enrolled ? "Continue →" : "View →"}
+        </span>
+
+      </div>
+
+    </Link>
+  );
+}
+
 function Courses() {
 
   const [courses, setCourses] =
@@ -50,9 +133,36 @@ function Courses() {
 
   const searchTimerRef = useRef(null);
 
+  // Rows from GET /enrollments/my - null until the first response arrives.
+  const [enrollments, setEnrollments] = useState(null);
+
   useEffect(() => {
 
     loadCourses();
+
+  }, []);
+
+  // Enrolments power the "My Enrolled Courses" section. A failure here must
+  // never break the catalogue, so it degrades to an empty list instead.
+  useEffect(() => {
+
+    let cancelled = false;
+
+    api.myEnrollments()
+      .then(rows => {
+        if (!cancelled) {
+          setEnrollments(Array.isArray(rows) ? rows : []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEnrollments([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
 
   }, []);
 
@@ -201,7 +311,30 @@ function Courses() {
     return courses.filter(c => c.totalSemesters === semesterFilter);
   }, [courses, semesterFilter]);
 
-  if (loading) {
+  // =====================================================
+  // ENROLLED COURSES (student's "assigned" list)
+  // =====================================================
+
+  // Always shown in full - search and semester filters only affect the
+  // catalogue grid below.
+  const enrolledCourses = useMemo(
+    () => resolveEnrolledCourses(enrollments, courses),
+    [enrollments, courses]
+  );
+
+  const enrolledIds = useMemo(
+    () => enrolledCourseIds(enrollments),
+    [enrollments]
+  );
+
+  // Catalogue rows the student can still enrol in (already-enrolled ones
+  // live in their own section above, so they are not listed twice).
+  const browseCourses = useMemo(
+    () => filteredCourses.filter(c => !enrolledIds.has(Number(c.id))),
+    [filteredCourses, enrolledIds]
+  );
+
+  if (loading || enrollments === null) {
     return <Loading />;
   }
 
