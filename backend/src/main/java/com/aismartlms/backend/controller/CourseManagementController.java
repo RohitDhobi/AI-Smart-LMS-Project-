@@ -31,6 +31,7 @@ public class CourseManagementController {
     private final CertificateRepository certificates;
     private final AssignmentRepository assignmentRepository;
     private final AcademicYearRepository academicYears;
+    private final DivisionRepository divisions;
     private final InstructorAccessService access;
 
     public CourseManagementController(
@@ -47,6 +48,7 @@ public class CourseManagementController {
             CertificateRepository certificates,
             AssignmentRepository assignmentRepository,
             AcademicYearRepository academicYears,
+            DivisionRepository divisions,
             InstructorAccessService access) {
 
         this.users = users;
@@ -62,6 +64,7 @@ public class CourseManagementController {
         this.certificates = certificates;
         this.assignmentRepository = assignmentRepository;
         this.academicYears = academicYears;
+        this.divisions = divisions;
         this.access = access;
     }
 
@@ -316,6 +319,87 @@ public class CourseManagementController {
         response.put("subjects", items);
 
         return response;
+    }
+
+    // =========================================================
+    // MY DIVISIONS (divisions of the student's own course)
+    // GET /api/students/me/divisions
+    // Read-only counterpart of the HOD division endpoints: the HOD routes
+    // answer 403 for students, which left the student panel with no way to
+    // show divisions at all.
+    // =========================================================
+
+    @GetMapping("/students/me/divisions")
+    public Map<String, Object> myDivisions(
+            Authentication authentication) {
+
+        User user = me(authentication);
+
+        Course course = user.getCourse();
+        Division mine = user.getDivision();
+
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        response.put("courseId", course != null ? course.getId() : null);
+        response.put("courseName", course != null ? course.getCourseName() : null);
+        response.put("courseCode", course != null ? course.getCourseCode() : null);
+
+        List<Map<String, Object>> items = new ArrayList<>();
+
+        if (course != null) {
+
+            for (Division division
+                    : divisions.findByCourseIdOrderByCodeAsc(course.getId())) {
+
+                items.add(divisionView(division, mine));
+            }
+        }
+
+        // The student's own division is always shown, even when it belongs to
+        // a course they are not currently enrolled in.
+        if (mine != null && items.stream()
+                .noneMatch(item -> mine.getId().equals(item.get("id")))) {
+
+            items.add(divisionView(mine, mine));
+        }
+
+        response.put("myDivision",
+                mine != null ? divisionView(mine, mine) : null);
+        response.put("divisions", items);
+
+        return response;
+    }
+
+    /** One division as the student panel needs it, incl. the "mine" flag. */
+    private Map<String, Object> divisionView(
+            Division division, Division mine) {
+
+        Map<String, Object> item = new LinkedHashMap<>();
+
+        item.put("id", division.getId());
+        item.put("name", division.getName());
+        item.put("code", division.getCode());
+        item.put("semester", division.getSemester());
+        item.put("academicYear", division.getAcademicYear());
+        item.put("maxCapacity", division.getMaxCapacity());
+        item.put("studentCount", users.countByDivisionId(division.getId()));
+
+        Course divisionCourse = division.getCourse();
+
+        item.put("courseId",
+                divisionCourse != null ? divisionCourse.getId() : null);
+        item.put("courseName",
+                divisionCourse != null ? divisionCourse.getCourseName() : null);
+        item.put("courseCode",
+                divisionCourse != null ? divisionCourse.getCourseCode() : null);
+
+        User teacher = division.getClassTeacher();
+        item.put("classTeacherName",
+                teacher != null ? teacher.getName() : null);
+        item.put("mine",
+                mine != null && division.getId().equals(mine.getId()));
+
+        return item;
     }
 
     // =========================================================
