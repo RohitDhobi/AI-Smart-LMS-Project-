@@ -600,6 +600,51 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     // =========================================================
+    // ENROLLMENT BACKFILL
+    // =========================================================
+
+    /**
+     * Every STUDENT who has a degree program must also own a row in
+     * `enrollments`. The student "My Enrolled Courses" view, the dashboard
+     * counter, progress and certificate flows all read that table, but any
+     * account that only set `users.course` (the seeded demo students) never
+     * got one - so those students appeared enrolled in nothing.
+     *
+     * Idempotent: a row is only inserted when no matching enrolment exists,
+     * exactly the way AuthService.register enrolls a new signup.
+     */
+    private void backfillStudentEnrollments() {
+
+        int created = 0;
+
+        for (User student : users.findAll()) {
+
+            if (student.getRole() != Role.STUDENT
+                    || student.getCourse() == null) {
+                continue;
+            }
+
+            if (enrollments.existsByUserAndCourse(
+                    student, student.getCourse())) {
+                continue;
+            }
+
+            enrollments.save(
+                    new Enrollment(student, student.getCourse())
+            );
+
+            created++;
+        }
+
+        if (created > 0) {
+            log.info(
+                    "DataSeeder: backfilled {} missing student enrolment(s)",
+                    created
+            );
+        }
+    }
+
+    // =========================================================
     // DEMO DIVISIONS (BCA Div A / B / C)
     //
     // Only seeds when the divisions table is completely empty, so real
