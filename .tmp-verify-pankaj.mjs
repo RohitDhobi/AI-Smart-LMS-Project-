@@ -60,6 +60,7 @@ const { result: { result: { targetId } } } = await send("Target.createTarget", {
 const { result: { sessionId } } = await send("Target.attachToTarget", { targetId, flatten: true });
 await send("Page.enable", {}, sessionId);
 await send("Runtime.enable", {}, sessionId);
+await send("Network.enable", {}, sessionId);
 
 const seed = `try {
   localStorage.setItem("token", ${JSON.stringify(token)});
