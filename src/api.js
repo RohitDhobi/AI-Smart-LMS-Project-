@@ -304,6 +304,18 @@ export const api = {
     return data || { subjects: [] };
   },
 
+  // Student-facing divisions (the HOD routes answer 403 for students).
+  myDivisions: async () => {
+    const data = await safeApiRequest("/students/me/divisions");
+    return data || {
+      courseId: null,
+      courseName: null,
+      courseCode: null,
+      myDivision: null,
+      divisions: [],
+    };
+  },
+
   subject: (id) =>
     apiRequest(`/subjects/${id}`),
 
