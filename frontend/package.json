@@ -17,8 +17,8 @@
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
     "cap:open:ios": "npx cap open ios",
-    "auto-push": "bash scripts/auto-push.sh",
-    "auto-push:win": "scripts\\auto-push.bat"
+    "auto-push": "bash ../scripts/auto-push.sh",
+    "auto-push:win": "..\\scripts\\auto-push.bat"
   },
   "build": {
     "appId": "com.aismartlms.app",
