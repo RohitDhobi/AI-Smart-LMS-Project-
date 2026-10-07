@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   GraduationCap,
   BarChart3,
+  LayoutGrid,
   Award,
   Users,
   Calendar,
@@ -41,6 +42,11 @@ const studentMenuItems = [
         label: "My Courses",
         path: "/courses",
         icon: BookOpen,
+      },
+      {
+        label: "Divisions",
+        path: "/divisions",
+        icon: LayoutGrid,
       },
       {
         label: "Coding Practice",
