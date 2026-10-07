@@ -56,8 +56,12 @@ browserWs.onmessage = (m) => {
 const send = (method, params = {}, sessionId) =>
   new Promise((resolve) => { const i = ++id; pending.set(i, resolve); browserWs.send(JSON.stringify({ id: i, method, params, ...(sessionId ? { sessionId } : {}) })); });
 
-const { result: { result: { targetId } } } = await send("Target.createTarget", { url: "about:blank" });
-const { result: { sessionId } } = await send("Target.attachToTarget", { targetId, flatten: true });
+const r1 = await send("Target.createTarget", { url: "about:blank" });
+console.log("createTarget:", JSON.stringify(r1).slice(0, 300));
+const targetId = r1.result?.targetId ?? r1.result?.result?.targetId;
+const r2 = await send("Target.attachToTarget", { targetId, flatten: true });
+console.log("attach:", JSON.stringify(r2).slice(0, 300));
+const sessionId = r2.result?.sessionId ?? r2.result?.result?.sessionId;
 await send("Page.enable", {}, sessionId);
 await send("Runtime.enable", {}, sessionId);
 await send("Network.enable", {}, sessionId);
