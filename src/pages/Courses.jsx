@@ -384,6 +384,51 @@ function Courses() {
 
       </div>
 
+      {/* my enrolled courses - always visible, mirroring the instructor's
+          "Assigned Subjects" view */}
+
+      <div className="courses-enrolled-section">
+
+        <div className="courses-heading-row">
+
+          <h3>🎓 My Enrolled Courses</h3>
+
+          <span>
+            {enrolledCourses.length} enrolled
+          </span>
+
+        </div>
+
+        {enrolledCourses.length === 0 ? (
+
+          <Empty
+            text={
+              "You haven't enrolled in any course yet. " +
+              "Open a course below and click Enroll to get started."
+            }
+          />
+
+        ) : (
+
+          <div className="courses-grid">
+
+            {enrolledCourses.map((course, index) => (
+
+              <CourseCard
+                key={course.id}
+                course={course}
+                tint={cardTints[index % cardTints.length]}
+                enrolled
+              />
+
+            ))}
+
+          </div>
+
+        )}
+
+      </div>
+
       {/* semester filter tabs */}
 
       {semesterOptions.length > 0 && (
@@ -435,18 +480,22 @@ function Courses() {
         </h3>
 
         <span>
-          {filteredCourses.length} available
+          {browseCourses.length} available
         </span>
 
       </div>
 
-      {filteredCourses.length === 0 ? (
+      {browseCourses.length === 0 ? (
 
         <Empty
           text={
-            semesterFilter !== null
-              ? `No ${semesterFilter}-semester courses found.`
-              : "No courses found."
+            filteredCourses.length === 0
+              ? semesterFilter !== null
+                ? `No ${semesterFilter}-semester courses found.`
+                : "No courses found."
+              : search.trim()
+                ? "No other courses match your search."
+                : "You're enrolled in every available course. 🎉"
           }
         />
 
@@ -454,92 +503,16 @@ function Courses() {
 
         <div className="courses-grid">
 
-          {filteredCourses.map((course, index) => {
+          {browseCourses.map((course, index) => (
 
-            const tint =
-              cardTints[index % cardTints.length];
+            <CourseCard
+              key={course.id}
+              course={course}
+              tint={cardTints[index % cardTints.length]}
+              keyword={search}
+            />
 
-            return (
-
-              <Link
-                key={course.id}
-                to={`/courses/${course.id}`}
-                className={`card course-card tint-${tint}`}
-              >
-
-                <div className="course-card-top">
-
-                  <div className="course-icon">
-                    📘
-                  </div>
-
-                  <span className="course-price">
-                    {course.price != null
-                      ? `₹${course.price}`
-                      : "Free"}
-                  </span>
-
-                </div>
-
-                <h2>
-                  <Highlighted
-                    text={course.title}
-                    keyword={search}
-                  />
-                </h2>
-
-                <p>
-                  <Highlighted
-                    text={course.description ||
-                      "No description available."}
-                    keyword={search}
-                  />
-                </p>
-
-                <div className="course-meta">
-
-                  <span>
-                    {course.category ||
-                      "General"}
-                  </span>
-
-                  <span>
-                    {course.difficulty ||
-                      "Beginner"}
-                  </span>
-
-                  {course.totalSemesters != null &&
-                    course.totalSemesters > 0 && (
-                      <span className="semester-badge">
-                        {course.totalSemesters} Sem
-                      </span>
-                  )}
-
-                </div>
-
-                {course.duration && (
-                  <span className="course-duration">
-                    ⏱ {course.duration}
-                  </span>
-                )}
-
-                <div className="course-card-footer">
-
-                  <span className="course-instructor">
-                    👨‍🏫 {course.instructor ||
-                      "Instructor"}
-                  </span>
-
-                  <span className="course-view">
-                    View →
-                  </span>
-
-                </div>
-
-              </Link>
-            );
-
-          })}
+          ))}
 
         </div>
 
