@@ -3,6 +3,7 @@ package com.aismartlms.backend.config;
 import com.aismartlms.backend.entity.AcademicYear;
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Division;
+import com.aismartlms.backend.entity.Enrollment;
 import com.aismartlms.backend.entity.InstructorCourseAssignment;
 import com.aismartlms.backend.entity.Lesson;
 import com.aismartlms.backend.entity.Role;
@@ -12,6 +13,7 @@ import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.AcademicYearRepository;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.DivisionRepository;
+import com.aismartlms.backend.repository.EnrollmentRepository;
 import com.aismartlms.backend.repository.InstructorCourseAssignmentRepository;
 import com.aismartlms.backend.repository.SemesterRepository;
 import com.aismartlms.backend.repository.SubjectRepository;
@@ -50,6 +52,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final InstructorCourseAssignmentRepository assignments;
+    private final EnrollmentRepository enrollments;
     private final DivisionRepository divisionRepository;
     private final SemesterRepository semesters;
     private final AcademicYearRepository academicYears;
@@ -64,6 +67,7 @@ public class DataSeeder implements CommandLineRunner {
             UserRepository users,
             PasswordEncoder passwordEncoder,
             InstructorCourseAssignmentRepository assignments,
+            EnrollmentRepository enrollments,
             DivisionRepository divisionRepository,
             SemesterRepository semesters,
             AcademicYearRepository academicYears,
@@ -74,6 +78,7 @@ public class DataSeeder implements CommandLineRunner {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.assignments = assignments;
+        this.enrollments = enrollments;
         this.divisionRepository = divisionRepository;
         this.semesters = semesters;
         this.academicYears = academicYears;
@@ -99,6 +104,8 @@ public class DataSeeder implements CommandLineRunner {
         seedHod();
 
         seedStudents();
+
+        backfillStudentEnrollments();
 
         seedDivisions();
 
