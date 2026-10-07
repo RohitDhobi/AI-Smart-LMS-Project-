@@ -271,7 +271,10 @@ function Divisions() {
                   <div className="division-card-footer">
 
                     <span>
-                      {division.studentCount ?? 0} students
+                      {division.studentCount ?? 0}{" "}
+                      {(division.studentCount ?? 0) === 1
+                        ? "student"
+                        : "students"}
                     </span>
 
                     <span>
