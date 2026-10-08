@@ -2,6 +2,7 @@ package com.aismartlms.backend.service;
 
 import com.aismartlms.backend.entity.Course;
 import com.aismartlms.backend.entity.Enrollment;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.EnrollmentRepository;
@@ -80,5 +81,94 @@ public class EnrollmentService {
                 );
 
         return enrollmentRepository.findByUser(user);
+    }
+
+    // =========================
+    // UNENROLL USER FROM COURSE (self-service drop)
+    // =========================
+
+    public void unenrollUser(
+            String email,
+            Long courseId) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        Course course = courseRepository
+                .findById(courseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Course not found")
+                );
+
+        Enrollment enrollment = enrollmentRepository
+                .findByUserAndCourse(user, course)
+                .orElseThrow(() ->
+                        new RuntimeException("Not enrolled in this course")
+                );
+
+        enrollmentRepository.delete(enrollment);
+    }
+
+    // =========================
+    // ALL ENROLLMENTS (admin / HOD management view)
+    // =========================
+
+    public List<Enrollment> getAllEnrollments() {
+        return enrollmentRepository.findAll();
+    }
+
+    // =========================
+    // STAFF: ENROLL A STUDENT INTO A COURSE (admin / HOD)
+    // =========================
+
+    public Enrollment enrollStudent(
+            Long studentId,
+            Long courseId) {
+
+        User student = userRepository
+                .findById(studentId)
+                .orElseThrow(() ->
+                        new RuntimeException("Student not found")
+                );
+
+        if (student.getRole() != Role.STUDENT) {
+            throw new RuntimeException(
+                    "Target user is not a student"
+            );
+        }
+
+        Course course = courseRepository
+                .findById(courseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Course not found")
+                );
+
+        if (enrollmentRepository.existsByUserAndCourse(student, course)) {
+            throw new RuntimeException(
+                    "User already enrolled in this course"
+            );
+        }
+
+        return enrollmentRepository.save(
+                new Enrollment(student, course)
+        );
+    }
+
+    // =========================
+    // STAFF: REMOVE AN ENROLLMENT BY ID (admin / HOD)
+    // =========================
+
+    public void removeStudentEnrollment(Long enrollmentId) {
+
+        Enrollment enrollment = enrollmentRepository
+                .findById(enrollmentId)
+                .orElseThrow(() ->
+                        new RuntimeException("Enrollment not found")
+                );
+
+        enrollmentRepository.delete(enrollment);
     }
 }
