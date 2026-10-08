@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import { api } from "../../services/api";
 import { Loading, Empty } from "../../components/ui";
 import { highlightSegments } from "../../store/highlight";
-import { enrolledCourseIds, resolveEnrolledCourses } from "../../store/enrollment";
+import {
+  enrolledCourseIds,
+  resolveEnrolledCourses,
+  enrollmentCourseId,
+} from "../../store/enrollment";
 
 function Highlighted({ text, keyword }) {
 
@@ -29,7 +33,16 @@ function Highlighted({ text, keyword }) {
   );
 }
 
-function CourseCard({ course, tint, enrolled = false, keyword = "" }) {
+function CourseCard({
+  course,
+  tint,
+  enrolled = false,
+  keyword = "",
+  onEnroll = null,
+  enrolling = false,
+  onLeave = null,
+  leaving = false,
+}) {
   return (
     <Link
       to={`/courses/${course.id}`}
@@ -101,11 +114,65 @@ function CourseCard({ course, tint, enrolled = false, keyword = "" }) {
           👨‍🏫 {course.instructor || "Instructor"}
         </span>
 
-        <span className="course-view">
-          {enrolled ? "Continue →" : "View →"}
-        </span>
+        {enrolled ? (
+          <span className="course-view">
+            Continue →
+          </span>
+        ) : onEnroll ? (
+          <span
+            role="button"
+            tabIndex={0}
+            className={
+              enrolling
+                ? "course-enroll-btn is-loading"
+                : "course-enroll-btn"
+            }
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              if (!enrolling) onEnroll(course);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !enrolling) {
+                event.preventDefault();
+                onEnroll(course);
+              }
+            }}
+          >
+            {enrolling ? "Enrolling..." : "🎓 Enroll"}
+          </span>
+        ) : (
+          <span className="course-view">
+            View →
+          </span>
+        )}
 
       </div>
+
+      {enrolled && onLeave && (
+        <span
+          role="button"
+          tabIndex={0}
+          className={
+            leaving
+              ? "course-leave-btn is-loading"
+              : "course-leave-btn"
+          }
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!leaving) onLeave(course);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !leaving) {
+              event.preventDefault();
+              onLeave(course);
+            }
+          }}
+        >
+          {leaving ? "Leaving..." : "✕ Leave course"}
+        </span>
+      )}
 
     </Link>
   );
@@ -135,6 +202,10 @@ function Courses() {
 
   // Rows from GET /enrollments/my - null until the first response arrives.
   const [enrollments, setEnrollments] = useState(null);
+
+  // Quick "Enroll" / "Leave" actions on the course cards.
+  const [enrollingId, setEnrollingId] = useState(null);
+  const [leavingId, setLeavingId] = useState(null);
 
   useEffect(() => {
 
@@ -334,6 +405,76 @@ function Courses() {
     [filteredCourses, enrolledIds]
   );
 
+  // Quick-enroll straight from the browse grid: the new row is appended to
+  // the local enrolments state, so the card flips to "✓ Enrolled" and moves
+  // into "My Enrolled Courses" without a refetch.
+  async function handleQuickEnroll(course) {
+
+    if (enrollingId !== null) return;
+
+    setEnrollingId(Number(course.id));
+    setError("");
+
+    try {
+
+      const row = await api.enroll(course.id);
+
+      setEnrollments(prev => {
+        const base = Array.isArray(prev) ? prev : [];
+        return [
+          ...base,
+          row && typeof row === "object" ? row : { course },
+        ];
+      });
+
+    } catch (e) {
+
+      setError(
+        e.message ||
+        "Unable to enroll in this course."
+      );
+
+    } finally {
+
+      setEnrollingId(null);
+
+    }
+  }
+
+  // Leave a course from "My Enrolled Courses": drops the row locally once
+  // the backend confirms, so the card returns to the browse grid.
+  async function handleLeave(course) {
+
+    if (leavingId !== null) return;
+
+    const courseId = Number(course.id);
+
+    setLeavingId(courseId);
+    setError("");
+
+    try {
+
+      await api.unenroll(courseId);
+
+      setEnrollments(prev =>
+        (Array.isArray(prev) ? prev : [])
+          .filter(row => enrollmentCourseId(row) !== courseId)
+      );
+
+    } catch (e) {
+
+      setError(
+        e.message ||
+        "Unable to leave this course."
+      );
+
+    } finally {
+
+      setLeavingId(null);
+
+    }
+  }
+
   if (loading || enrollments === null) {
     return <Loading />;
   }
@@ -419,6 +560,8 @@ function Courses() {
                 course={course}
                 tint={cardTints[index % cardTints.length]}
                 enrolled
+                onLeave={handleLeave}
+                leaving={leavingId === Number(course.id)}
               />
 
             ))}
@@ -510,6 +653,8 @@ function Courses() {
               course={course}
               tint={cardTints[index % cardTints.length]}
               keyword={search}
+              onEnroll={handleQuickEnroll}
+              enrolling={enrollingId === Number(course.id)}
             />
 
           ))}

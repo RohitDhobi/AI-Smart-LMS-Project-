@@ -23,6 +23,9 @@ function CourseDetails() {
   const [enrolling, setEnrolling] =
     useState(false);
 
+  const [dropping, setDropping] =
+    useState(false);
+
   const [message, setMessage] =
     useState("");
 
@@ -113,6 +116,39 @@ function CourseDetails() {
     } finally {
 
       setEnrolling(false);
+
+    }
+  }
+
+
+  // Leave the course (self-service unenroll)
+  async function handleDrop() {
+
+    setDropping(true);
+    setMessage("");
+    setError("");
+
+    try {
+
+      await api.unenroll(id);
+
+      setEnrolled(false);
+
+      setMessage(
+        "You have left this course. " +
+        "Enroll again any time."
+      );
+
+    } catch (e) {
+
+      setError(
+        e.message ||
+        "Unable to leave this course."
+      );
+
+    } finally {
+
+      setDropping(false);
 
     }
   }
@@ -262,6 +298,16 @@ function CourseDetails() {
               course. Continue learning from
               where you left off.
             </p>
+
+            <button
+              className="secondary"
+              onClick={handleDrop}
+              disabled={dropping}
+            >
+              {dropping
+                ? "Leaving..."
+                : "✕ Leave Course"}
+            </button>
 
           </div>
 
