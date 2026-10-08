@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../services/api";
-import { Loading, Empty } from "../components/ui";
-import { highlightSegments } from "../store/highlight";
-import { enrolledCourseIds, resolveEnrolledCourses } from "../store/enrollment";
+import { api } from "../../services/api";
+import { Loading, Empty } from "../../components/ui";
+import { highlightSegments } from "../../store/highlight";
+import { enrolledCourseIds, resolveEnrolledCourses } from "../../store/enrollment";
 
 function Highlighted({ text, keyword }) {
 

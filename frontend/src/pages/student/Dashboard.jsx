@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../services/api";
-import { getGamification, getWeeklyActivity } from "../store/gamification";
-import { getStoredUser, Loading } from "../components/ui";
+import { api } from "../../services/api";
+import { getGamification, getWeeklyActivity } from "../../store/gamification";
+import { getStoredUser, Loading } from "../../components/ui";
 
 function Dashboard() {
 

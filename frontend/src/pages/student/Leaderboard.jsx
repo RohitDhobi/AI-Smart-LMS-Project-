@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getGamification, getBadges } from "../store/gamification";
-import { Page } from "../components/ui";
+import { getGamification, getBadges } from "../../store/gamification";
+import { Page } from "../../components/ui";
 
 function Leaderboard() {
 

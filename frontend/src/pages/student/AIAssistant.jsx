@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { api } from "../services/api";
-import { awardActivity } from "../store/gamification";
-import { generateLocalQuestions } from "../services/ai-question-engine";
+import { api } from "../../services/api";
+import { awardActivity } from "../../store/gamification";
+import { generateLocalQuestions } from "../../services/ai-question-engine";
 
 const TOPIC_SUGGESTIONS = [
   "Object Oriented Programming (OOP)",

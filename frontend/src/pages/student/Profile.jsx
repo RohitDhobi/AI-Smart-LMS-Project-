@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../services/api";
-import { getGamification, getBadges, syncGamificationWithBackend } from "../store/gamification";
-import { Loading } from "../components/ui";
-import { sanitizePhone, phoneError } from "../utils/phone";
+import { api } from "../../services/api";
+import { getGamification, getBadges, syncGamificationWithBackend } from "../../store/gamification";
+import { Loading } from "../../components/ui";
+import { sanitizePhone, phoneError } from "../../utils/phone";
 
 function Profile() {
 

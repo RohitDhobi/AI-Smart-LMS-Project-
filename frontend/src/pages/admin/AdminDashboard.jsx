@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../services/api";
-import { Loading, Empty, Page } from "../components/ui";
-import { sanitizePhone, phoneError } from "../utils/phone";
+import { api } from "../../services/api";
+import { Loading, Empty, Page } from "../../components/ui";
+import { sanitizePhone, phoneError } from "../../utils/phone";
 
 function AdminDashboard() {
   const navigate = useNavigate();

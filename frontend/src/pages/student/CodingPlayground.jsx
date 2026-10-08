@@ -27,10 +27,10 @@ import {
   ChevronDown,
   BookOpen
 } from "lucide-react";
-import { api } from "../services/api";
-import { Page } from "../components/ui";
-import { useToast } from "../components/Toast";
-import { addXP, awardActivity } from "../store/gamification";
+import { api } from "../../services/api";
+import { Page } from "../../components/ui";
+import { useToast } from "../../components/ui/Toast";
+import { addXP, awardActivity } from "../../store/gamification";
 
 export default function CodingPlayground() {
   const { id } = useParams();

@@ -20,9 +20,9 @@ import {
   Layers,
   Code
 } from "lucide-react";
-import { api } from "../services/api";
-import { Page } from "../components/ui";
-import { useToast } from "../components/Toast";
+import { api } from "../../services/api";
+import { Page } from "../../components/ui";
+import { useToast } from "../../components/ui/Toast";
 
 export default function CodingArena() {
   const navigate = useNavigate();

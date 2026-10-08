@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { api } from "../services/api";
-import { awardActivity } from "../store/gamification";
-import { formatTime, Loading, Empty, Page } from "../components/ui";
-import { celebratePass } from "../utils/confetti";
+import { api } from "../../services/api";
+import { awardActivity } from "../../store/gamification";
+import { formatTime, Loading, Empty, Page } from "../../components/ui";
+import { celebratePass } from "../../utils/confetti";
 
 function Quizzes() {
 

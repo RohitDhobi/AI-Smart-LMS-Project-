@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
 import { Page } from "../../components/ui";
-import { useToast } from "../../components/Toast";
+import { useToast } from "../../components/ui/Toast";
 
 export default function AdminCodingManagement() {
   const toast = useToast();

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api } from "../services/api";
-import { awardActivity } from "../store/gamification";
-import { getCards, addCard, autoCards, rateCard } from "../store/flashcards";
-import { formatTime, Loading, Page } from "../components/ui";
+import { api } from "../../services/api";
+import { awardActivity } from "../../store/gamification";
+import { getCards, addCard, autoCards, rateCard } from "../../store/flashcards";
+import { formatTime, Loading, Page } from "../../components/ui";
 import QuizHistory from "./QuizHistory";
 
 function StudentLearning() {
