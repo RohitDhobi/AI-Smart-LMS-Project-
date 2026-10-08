@@ -208,3 +208,50 @@ test("myExams and adminSetExamStatus hit the right endpoints", async () => {
   assert.equal(calls2[0].options.method, "PUT");
   assert.deepEqual(JSON.parse(calls2[0].options.body), { status: "PUBLISHED" });
 });
+
+test("unenroll calls DELETE /api/enrollments with the course id", async () => {
+  stubStorage();
+  globalThis.localStorage.setItem("token", "my-jwt-token");
+  const calls = stubFetch(
+    200,
+    JSON.stringify({ message: "Unenrolled successfully" })
+  );
+
+  await api.unenroll(5);
+
+  assert.match(calls[0].url, /\/api\/enrollments\?courseId=5$/);
+  assert.equal(calls[0].options.method, "DELETE");
+  assert.equal(
+    calls[0].options.headers.Authorization,
+    "Bearer my-jwt-token"
+  );
+});
+
+test("allEnrollments and manageEnroll hit the right endpoints", async () => {
+  stubStorage();
+
+  const calls = stubFetch(200, "[]");
+  await api.allEnrollments();
+  assert.equal(calls[0].url, "http://localhost:8080/api/enrollments/all");
+
+  const calls2 = stubFetch(200, JSON.stringify({ id: 99 }));
+  await api.manageEnroll(2, 1);
+  assert.match(
+    calls2[0].url,
+    /\/api\/enrollments\/manage\?studentId=2&courseId=1$/
+  );
+  assert.equal(calls2[0].options.method, "POST");
+});
+
+test("manageRemove DELETEs the enrollment by id", async () => {
+  stubStorage();
+  const calls = stubFetch(
+    200,
+    JSON.stringify({ message: "Enrollment removed" })
+  );
+
+  await api.manageRemove(99);
+
+  assert.match(calls[0].url, /\/api\/enrollments\/manage\/99$/);
+  assert.equal(calls[0].options.method, "DELETE");
+});

@@ -280,8 +280,30 @@ export const api = {
       method: "POST",
     }),
 
+  // Drop a course the signed-in student is enrolled in.
+  unenroll: (courseId) =>
+    apiRequest(`/enrollments?courseId=${courseId}`, {
+      method: "DELETE",
+    }),
+
   myEnrollments: () =>
     apiRequest("/enrollments/my"),
+
+  // ----- Admin / HOD enrollment management (role-checked server-side) -----
+
+  allEnrollments: () =>
+    apiRequest("/enrollments/all"),
+
+  manageEnroll: (studentId, courseId) =>
+    apiRequest(
+      `/enrollments/manage?studentId=${studentId}&courseId=${courseId}`,
+      { method: "POST" }
+    ),
+
+  manageRemove: (enrollmentId) =>
+    apiRequest(`/enrollments/manage/${enrollmentId}`, {
+      method: "DELETE",
+    }),
 
   // ===================================================
   // COURSE-BASED REGISTRATION & SUBJECTS
