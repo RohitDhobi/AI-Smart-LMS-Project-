@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, Users, ClipboardList, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo, Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, Users, ClipboardList, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo, Layers, UserPlus } from "lucide-react";
 import { getStoredUser } from "../../components/ui";
 import { getTheme, applyTheme } from "../../store/gamification";
 import HODSidebar from "./HODSidebar";
@@ -21,6 +21,7 @@ const NAV = [
   ]},
   { section: "STUDENTS", items: [
     { to: "/hod/students", icon: Users, label: "Students" },
+    { to: "/hod/enrollments", icon: UserPlus, label: "Enrollments" },
   ]},
   { section: "QUESTION BANK", items: [
     { to: "/hod/questions", icon: FileQuestion, label: "Question Bank" },
