@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { api } from "../api";
-import { Loading } from "../ui";
-import { getTheme, applyTheme } from "../gamification";
+import { api } from "../services/api";
+import { Loading } from "../components/ui";
+import { getTheme, applyTheme } from "../store/gamification";
 import { sanitizePhone, phoneError } from "../utils/phone";
 
 export default function StudentSettings() {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api } from "../api";
-import { awardActivity } from "../gamification";
-import { Loading, Page } from "../ui";
+import { api } from "../services/api";
+import { awardActivity } from "../store/gamification";
+import { Loading, Page } from "../components/ui";
 
 function SubjectLearning() {
 

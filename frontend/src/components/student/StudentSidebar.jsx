@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
-import { getStoredUser } from "../../ui";
-import { getTheme, applyTheme } from "../../gamification";
+import { getStoredUser } from "../../components/ui";
+import { getTheme, applyTheme } from "../../store/gamification";
 import studentMenuItems from "./studentMenuConfig";
 
 const STORAGE_KEY = "student-sidebar-collapsed";

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { getStoredUser } from "../../ui";
+import { api } from "../../services/api";
+import { getStoredUser } from "../../components/ui";
 import { LayoutDashboard, BookOpen, Users, GraduationCap, BarChart3, ClipboardList, TrendingUp, Clock, ChevronRight } from "lucide-react";
 
 export default function HODDashboard() {

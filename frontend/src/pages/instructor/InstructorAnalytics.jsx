@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getStoredUser } from "../../ui";
-import { api } from "../../api";
+import { getStoredUser } from "../../components/ui";
+import { api } from "../../services/api";
 import InstructorPage from "./InstructorPage";
 
 const TABS = ["Course Analytics", "Student Analytics", "Performance", "Weak Topics", "Reports"];

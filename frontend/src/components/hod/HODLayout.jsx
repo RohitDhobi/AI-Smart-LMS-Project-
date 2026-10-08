@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, LogOut, LayoutDashboard, BookOpen, Users, ClipboardList, FileQuestion, BarChart3, Megaphone, Settings, GraduationCap, Award, Calendar, FileText, FolderOpen, ListTodo, Layers } from "lucide-react";
-import { getStoredUser } from "../../ui";
-import { getTheme, applyTheme } from "../../gamification";
+import { getStoredUser } from "../../components/ui";
+import { getTheme, applyTheme } from "../../store/gamification";
 import HODSidebar from "./HODSidebar";
 
 const NAV = [

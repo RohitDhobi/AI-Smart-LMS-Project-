@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api } from '../services/api';
 
 const XP_KEY = 'lms_xp_data';
 const ACHIEVEMENTS_KEY = 'lms_achievements';

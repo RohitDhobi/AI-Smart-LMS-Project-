@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { getStoredUser } from "../../ui";
+import { api } from "../../services/api";
+import { getStoredUser } from "../../components/ui";
 import { Megaphone, PlusCircle, Trash2, Bell } from "lucide-react";
 
 export default function HODAnnouncements() {

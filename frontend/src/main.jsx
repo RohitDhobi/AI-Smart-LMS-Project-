@@ -2,8 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import "./styles.css";
-import "./hod.css";
+import "./styles/styles.css";
+import "./styles/hod.css";
 
 // Error boundary: if the app ever crashes during render,
 // show a readable message instead of a blank page.

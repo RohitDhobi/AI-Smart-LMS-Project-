@@ -5,7 +5,7 @@ import {
   enrollmentCourseId,
   enrolledCourseIds,
   resolveEnrolledCourses,
-} from "./enrollment.js";
+} from "../store/enrollment.js";
 
 test("enrollmentCourseId reads course.id, then courseId", () => {
   assert.equal(enrollmentCourseId({ course: { id: 7 } }), 7);

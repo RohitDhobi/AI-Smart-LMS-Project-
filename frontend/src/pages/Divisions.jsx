@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api";
-import { Loading, Empty } from "../ui";
+import { api } from "../services/api";
+import { Loading, Empty } from "../components/ui";
 import {
   findMyDivision,
   otherDivisions,
   divisionFillPercent,
   semesterLabel,
-} from "../divisions";
+} from "../store/divisions";
 
 // =====================================================
 // STUDENT DIVISIONS

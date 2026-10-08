@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { getStoredUser } from "../../ui";
+import { api } from "../../services/api";
+import { getStoredUser } from "../../components/ui";
 import { Users, BookOpen, Settings, LogOut, Bell, User, Lock, Eye, EyeOff } from "lucide-react";
 import { sanitizePhone, phoneError } from "../../utils/phone";
 

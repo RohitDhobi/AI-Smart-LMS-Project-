@@ -11,20 +11,20 @@ import {
   useNavigate
 } from "react-router-dom";
 
-import { api } from "./api";
+import { api } from "./services/api";
 
 import {
   getTheme,
   applyTheme,
   touchStreak,
   getGamification
-} from "./gamification";
+} from "./store/gamification";
 
 import {
   getStoredUser,
   Page,
   Protected
-} from "./ui";
+} from "./components/ui";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";

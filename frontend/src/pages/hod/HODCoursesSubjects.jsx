@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { api } from "../../api";
+import { api } from "../../services/api";
 import {
   BookOpen, GraduationCap, PlusCircle, Pencil, ChevronLeft, Users
 } from "lucide-react";

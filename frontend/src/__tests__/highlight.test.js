@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { highlightSegments } from "./highlight.js";
+import { highlightSegments } from "../store/highlight.js";
 
 test("returns the whole text unmatched when there is no keyword", () => {
   assert.deepEqual(

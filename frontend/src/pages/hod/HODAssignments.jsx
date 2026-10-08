@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { api } from "../../api";
+import { api } from "../../services/api";
 import { Pencil, Trash2, PlusCircle, RefreshCw, X } from "lucide-react";
 
 /**

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, LogOut, Bell } from "lucide-react";
-import { getStoredUser } from "../../ui";
+import { getStoredUser } from "../../components/ui";
 import adminMenuItems from "./adminMenuConfig";
 import AdminSidebarSection from "./AdminSidebarSection";
 

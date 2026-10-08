@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { Loading, Page } from "../../ui";
+import { api } from "../../services/api";
+import { Loading, Page } from "../../components/ui";
 
 export default function AdminAIAnalytics() {
   const [analytics, setAnalytics] = useState(null);

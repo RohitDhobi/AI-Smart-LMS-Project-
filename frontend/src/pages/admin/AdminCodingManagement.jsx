@@ -13,8 +13,8 @@ import {
   Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { Page } from "../../ui";
+import { api } from "../../services/api";
+import { Page } from "../../components/ui";
 import { useToast } from "../../components/Toast";
 
 export default function AdminCodingManagement() {

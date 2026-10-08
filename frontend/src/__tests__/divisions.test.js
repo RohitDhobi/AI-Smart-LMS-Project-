@@ -6,7 +6,7 @@ import {
   otherDivisions,
   divisionFillPercent,
   semesterLabel,
-} from "./divisions.js";
+} from "../store/divisions.js";
 
 const divA = { id: 1, name: "Division A", code: "A", mine: true, studentCount: 12, maxCapacity: 60 };
 const divB = { id: 2, name: "Division B", code: "B", mine: false, studentCount: 30, maxCapacity: 60 };

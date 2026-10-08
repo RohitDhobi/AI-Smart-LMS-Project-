@@ -20,8 +20,8 @@ import {
   Layers,
   Code
 } from "lucide-react";
-import { api } from "../api";
-import { Page } from "../ui";
+import { api } from "../services/api";
+import { Page } from "../components/ui";
 import { useToast } from "../components/Toast";
 
 export default function CodingArena() {

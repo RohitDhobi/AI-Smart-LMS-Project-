@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import InstructorPage from "./InstructorPage";
-import { api } from "../../api";
+import { api } from "../../services/api";
 
 const AI_TOOLS = [
   {

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { api, _setBackendDown } from "./api.js";
+import { api, _setBackendDown } from "../services/api.js";
 
 function stubStorage() {
   const store = {};

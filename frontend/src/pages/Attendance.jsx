@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api";
-import { Loading, Empty, Page } from "../ui";
+import { api } from "../services/api";
+import { Loading, Empty, Page } from "../components/ui";
 
 function Attendance() {
 

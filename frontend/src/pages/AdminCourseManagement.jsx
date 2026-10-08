@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { api } from "../api";
-import { Empty, Loading, Page } from "../ui";
+import { api } from "../services/api";
+import { Empty, Loading, Page } from "../components/ui";
 
 function AdminCourseManagement() {
 

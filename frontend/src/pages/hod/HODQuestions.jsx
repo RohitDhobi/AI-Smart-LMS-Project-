@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { api } from "../../api";
+import { api } from "../../services/api";
 import { Pencil, PlusCircle, Bot, Trash2, ChevronLeft } from "lucide-react";
 
 export default function HODQuestions() {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../api";
-import { getWeeklyActivity } from "../gamification";
-import { Loading } from "../ui";
+import { api } from "../services/api";
+import { getWeeklyActivity } from "../store/gamification";
+import { Loading } from "../components/ui";
 
 function Analytics() {
 

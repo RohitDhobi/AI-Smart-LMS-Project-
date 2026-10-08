@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { getStoredUser } from "../../ui";
-import { api } from "../../api";
-import { getTheme, applyTheme } from "../../gamification";
+import { getStoredUser } from "../../components/ui";
+import { api } from "../../services/api";
+import { getTheme, applyTheme } from "../../store/gamification";
 import InstructorPage from "./InstructorPage";
 import { sanitizePhone, phoneError } from "../../utils/phone";
 

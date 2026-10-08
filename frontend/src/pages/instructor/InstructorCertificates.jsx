@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { api } from "../../api";
+import { api } from "../../services/api";
 
 export default function InstructorCertificates() {
   // =========================

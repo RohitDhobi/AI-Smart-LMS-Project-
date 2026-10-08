@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, RoundedBox, Html, Box } from "@react-three/drei";
 import * as THREE from "three";
-import { api } from "../../api";
+import { api } from "../../services/api";
 
 /* ── Desk ────────────────────────────────────────────────── */
 

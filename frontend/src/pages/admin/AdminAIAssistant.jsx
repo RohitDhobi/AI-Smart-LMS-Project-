@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../../api";
-import { Page } from "../../ui";
+import { api } from "../../services/api";
+import { Page } from "../../components/ui";
 
 export default function AdminAIAssistant() {
   const [question, setQuestion] = useState("");

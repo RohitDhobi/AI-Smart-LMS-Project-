@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api } from "../../api";
+import { api } from "../../services/api";
 import { Mail, Phone, ChevronLeft } from "lucide-react";
 
 export default function HODStudents() {

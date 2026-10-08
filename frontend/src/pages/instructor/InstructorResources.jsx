@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../../api";
+import { api } from "../../services/api";
 
 export default function InstructorResources() {
   const [resources, setResources] = useState([]);

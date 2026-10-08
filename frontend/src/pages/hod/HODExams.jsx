@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { api } from "../../api";
+import { api } from "../../services/api";
 import {
   FileQuestion, PlusCircle, GraduationCap, Trash2, ChevronLeft, Save, Pencil
 } from "lucide-react";

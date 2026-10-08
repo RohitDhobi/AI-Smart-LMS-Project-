@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { getTheme, applyTheme } from "../../gamification";
+import { getTheme, applyTheme } from "../../store/gamification";
 
 export default function StudentMobileHeader({ onToggleSidebar, sidebarOpen }) {
   const [theme, setTheme] = useState(() => getTheme());

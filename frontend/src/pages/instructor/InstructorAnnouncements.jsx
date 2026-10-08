@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getStoredUser } from "../../ui";
+import { getStoredUser } from "../../components/ui";
 import InstructorPage from "./InstructorPage";
 
 export default function InstructorAnnouncements() {

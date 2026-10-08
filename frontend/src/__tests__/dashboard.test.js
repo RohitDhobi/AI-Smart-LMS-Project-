@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { emptyResultsState } from "./dashboard.js";
+import { emptyResultsState } from "../store/dashboard.js";
 
 test("returns null when there are results to show", () => {
   assert.equal(emptyResultsState(0, 1), null);
