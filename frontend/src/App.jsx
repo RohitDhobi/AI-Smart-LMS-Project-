@@ -52,6 +52,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCourseManagement from "./pages/admin/AdminCourseManagement";
 import AdminTeachers from "./pages/admin/AdminTeachers";
 import AdminStudents from "./pages/admin/AdminStudents";
+import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminRoles from "./pages/admin/AdminRoles";
@@ -536,6 +537,7 @@ function App() {
         <Route path="courses" element={<AdminCourseManagement />} />
         <Route path="teachers" element={<AdminTeachers />} />
         <Route path="students" element={<AdminStudents />} />
+        <Route path="enrollments" element={<AdminEnrollments />} />
         <Route path="analytics" element={<AdminAnalytics />} />
         <Route path="roles" element={<AdminRoles />} />
         <Route path="subjects" element={<AdminSubjects />} />
@@ -635,6 +637,7 @@ function App() {
         <Route path="divisions/:id/students" element={<HODDivisions />} />
         <Route path="students" element={<HODStudents />} />
         <Route path="students/:id" element={<HODStudents />} />
+        <Route path="enrollments" element={<AdminEnrollments />} />
         <Route path="questions" element={<HODQuestions />} />
         <Route path="questions/new" element={<HODQuestions />} />
         <Route path="questions/:id" element={<HODQuestions />} />

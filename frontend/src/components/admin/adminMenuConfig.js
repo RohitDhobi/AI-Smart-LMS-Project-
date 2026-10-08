@@ -31,6 +31,7 @@ import {
   ScrollText,
   Calendar,
   Code2,
+  UserPlus,
 } from "lucide-react";
 
 // =====================================================
@@ -62,6 +63,11 @@ const adminMenuItems = [
         label: "Students",
         path: "/admin/students",
         icon: Users,
+      },
+      {
+        label: "Enrollments",
+        path: "/admin/enrollments",
+        icon: UserPlus,
       },
       {
         label: "Instructors",
