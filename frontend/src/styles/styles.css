@@ -15872,3 +15872,34 @@ a.analytics-stat:hover {
 .course-leave-btn.is-loading { opacity: 0.65; cursor: wait; }
 
 [data-theme="dark"] .course-leave-btn:hover { background: #450a0a; }
+
+/* ---------- Enrollment management page (admin / HOD) ---------- */
+.enroll-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.enroll-heading-row h3 {
+  margin: 0;
+}
+
+.enroll-heading-row span {
+  font-size: 13px;
+  color: var(--muted, #64748b);
+}
+
+.enroll-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.enroll-controls select {
+  flex: 1;
+  min-width: 220px;
+}
