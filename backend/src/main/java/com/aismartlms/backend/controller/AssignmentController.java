@@ -39,6 +39,23 @@ public class AssignmentController {
         }
     }
 
+    // Reading every student's submission, or grading one, is a management
+    // action on the assignment's course. SECURITY.md §7.6: grading used to
+    // accept any authenticated user, so a student could mark their own work.
+    private void requireManageSubmission(Long submissionId) {
+
+        AssignmentSubmission submission =
+                assignmentService.getSubmissionById(submissionId);
+
+        Assignment assignment = submission.getAssignment();
+
+        if (assignment != null
+                && assignment.getCourse() != null
+                && assignment.getCourse().getId() != null) {
+            access.requireCourseManage(assignment.getCourse().getId());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<List<Assignment>> getAllAssignments() {
         return ResponseEntity.ok(assignmentService.getAllAssignments());
@@ -90,6 +107,7 @@ public class AssignmentController {
 
     @GetMapping("/{id}/submissions")
     public ResponseEntity<List<AssignmentSubmission>> getSubmissions(@PathVariable Long id) {
+        requireManageAssignment(id);
         return ResponseEntity.ok(assignmentService.getSubmissionsByAssignment(id));
     }
 
@@ -102,6 +120,7 @@ public class AssignmentController {
     public ResponseEntity<AssignmentSubmission> gradeSubmission(
             @PathVariable Long submissionId,
             @RequestBody Map<String, Object> body) {
+        requireManageSubmission(submissionId);
         Integer marks = (Integer) body.get("marks");
         String feedback = (String) body.get("feedback");
         return ResponseEntity.ok(assignmentService.gradeSubmission(submissionId, marks, feedback));
