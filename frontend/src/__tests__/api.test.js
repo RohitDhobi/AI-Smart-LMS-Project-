@@ -255,3 +255,61 @@ test("manageRemove DELETEs the enrollment by id", async () => {
   assert.match(calls[0].url, /\/api\/enrollments\/manage\/99$/);
   assert.equal(calls[0].options.method, "DELETE");
 });
+
+// =====================================================
+// EXAM RESULTS HISTORY ENDPOINTS (FEATURE-MATRIX §7)
+// =====================================================
+
+test("myExamAttempts reads the caller's own history with the JWT", async () => {
+  stubStorage();
+  globalThis.localStorage.setItem("token", "jwt-1");
+  const calls = stubFetch(200, JSON.stringify([
+    { id: 4, examId: 7, percentage: 72.5, passed: true }
+  ]));
+
+  const rows = await api.myExamAttempts();
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exam-attempts/my`);
+  assert.equal(calls[0].options.method, undefined); // plain GET, no body
+  assert.equal(calls[0].options.headers.Authorization, "Bearer jwt-1");
+  assert.equal(rows[0].id, 4);
+  assert.equal(rows[0].passed, true);
+});
+
+test("examAttempt fetches a single attempt by id, answers included", async () => {
+  stubStorage();
+  const calls = stubFetch(200, JSON.stringify({
+    id: 4,
+    answers: { "0": "B", "1": "Not written" }
+  }));
+
+  const row = await api.examAttempt(4);
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exam-attempts/4`);
+  assert.deepEqual(row.answers, { "0": "B", "1": "Not written" });
+});
+
+test("examAttemptsForExam reads a paper's results (staff endpoint)", async () => {
+  stubStorage();
+  const calls = stubFetch(200, "[]");
+
+  await api.examAttemptsForExam(12);
+
+  assert.equal(calls[0].url, `${"http://localhost:8080/api"}/exam-attempts/exam/12`);
+});
+
+test("a forbidden exam-attempt read surfaces the backend 403 message", async () => {
+  stubStorage();
+  _setBackendDown(false);
+  stubFetch(403, JSON.stringify({ error: "That result is not yours." }));
+
+  await assert.rejects(
+    () => api.examAttempt(500),
+    /That result is not yours\./
+  );
+
+  // the 403 must not flip the app into offline/mock mode
+  const calls = stubFetch(200, JSON.stringify([{ id: 1 }]));
+  assert.equal((await api.exams()).length, 1);
+  assert.equal(calls.length, 1);
+});
