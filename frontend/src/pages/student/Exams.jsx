@@ -505,6 +505,8 @@ function Exams() {
   const [selectedExam, setSelectedExam] = useState(null);
   const [attempt, setAttempt] = useState(null);
   const [now, setNow] = useState(() => new Date());
+  // "papers" = exams that can be sat; "history" = past results (exam_attempts).
+  const [tab, setTab] = useState("papers");
 
   // One shared clock so every card's countdown and lock state stay in step.
   useEffect(() => {
@@ -570,6 +572,26 @@ function Exams() {
     >
 
       {error && <div className="error">{error}</div>}
+
+      <div className="semester-filter-tabs" style={{ marginBottom: 20 }}>
+        <button
+          className={tab === "papers" ? "semester-tab active" : "semester-tab"}
+          onClick={() => setTab("papers")}
+        >
+          📝 Exam Papers
+        </button>
+        <button
+          className={tab === "history" ? "semester-tab active" : "semester-tab"}
+          onClick={() => setTab("history")}
+        >
+          📊 My Results
+        </button>
+      </div>
+
+      {tab === "history" ? (
+        <ExamHistory />
+      ) : (
+        <>
 
       <div className="dash-search" style={{ maxWidth: 400, marginBottom: 20 }}>
         <span>🔍</span>
@@ -673,6 +695,9 @@ function Exams() {
             );
           })}
         </div>
+      )}
+
+        </>
       )}
 
       {attempt && (
