@@ -1031,6 +1031,21 @@ export const api = {
       body: JSON.stringify({ answers }),
     }),
 
+  // EXAM RESULTS HISTORY (FEATURE-MATRIX §7): every paper the logged-in
+  // student has sat, newest first. The grade is persisted server-side, so
+  // closing the result modal no longer loses it.
+  myExamAttempts: () =>
+    apiRequest("/exam-attempts/my"),
+
+  // One of the caller's own attempts, answers included.
+  examAttempt: (id) =>
+    apiRequest(`/exam-attempts/${id}`),
+
+  // Full results for one paper — staff only (ADMIN/HOD, or an instructor
+  // assigned the course). Students must use myExamAttempts()/examAttempt().
+  examAttemptsForExam: (examId) =>
+    apiRequest(`/exam-attempts/exam/${examId}`),
+
   // ===================================================
   // ATTENDANCE
   // ===================================================
