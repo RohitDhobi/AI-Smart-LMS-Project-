@@ -60,7 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 User user = userRepository.findByEmail(email).orElse(null);
 
-                if (user != null) {
+                // SECURITY.md §7.4: a banned account (active=false) used to
+                // keep its existing 24-hour token. Skipping authentication
+                // here means the very next request gets the 401 entry point,
+                // so deactivating a user takes effect immediately instead of
+                // at next login.
+                if (user != null && !Boolean.FALSE.equals(user.getActive())) {
 
                     List<SimpleGrantedAuthority> authorities =
                             List.of(
