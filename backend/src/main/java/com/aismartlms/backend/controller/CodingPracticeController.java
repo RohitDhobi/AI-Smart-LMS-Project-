@@ -2,7 +2,9 @@ package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.CodingProblem;
 import com.aismartlms.backend.entity.CodingTestCase;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.repository.UserRepository;
 import com.aismartlms.backend.service.CodingPracticeService;
 import org.springframework.http.ResponseEntity;
@@ -151,7 +153,26 @@ public class CodingPracticeController {
 
     // =========================================================
     // ADMIN / INSTRUCTOR PROBLEM MANAGEMENT
+    //
+    // SECURITY.md §7.6: these routes only said "authenticated", so any
+    // student could create, edit or delete problems in the bank. Coding
+    // problems are not course-scoped, so the rule is simply "teaching staff".
     // =========================================================
+
+    private User requireProblemManager(Authentication authentication) {
+
+        User user = getCurrentUser(authentication);
+
+        if (user == null) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
+        if (user.getRole() == Role.STUDENT) {
+            throw new AccessDeniedException("Instructor access required");
+        }
+
+        return user;
+    }
 
     public static class ProblemCreateRequest {
         public CodingProblem problem;
@@ -162,10 +183,7 @@ public class CodingPracticeController {
     public ResponseEntity<?> createProblem(
             Authentication authentication,
             @RequestBody ProblemCreateRequest request) {
-        User user = getCurrentUser(authentication);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Authentication required");
-        }
+        requireProblemManager(authentication);
 
         CodingProblem created = codingPracticeService.createProblem(request.problem, request.testCases);
         return ResponseEntity.ok(created);
@@ -176,10 +194,7 @@ public class CodingPracticeController {
             @PathVariable Long id,
             Authentication authentication,
             @RequestBody ProblemCreateRequest request) {
-        User user = getCurrentUser(authentication);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Authentication required");
-        }
+        requireProblemManager(authentication);
 
         CodingProblem updated = codingPracticeService.updateProblem(id, request.problem, request.testCases);
         return ResponseEntity.ok(updated);
@@ -189,10 +204,7 @@ public class CodingPracticeController {
     public ResponseEntity<?> deleteProblem(
             @PathVariable Long id,
             Authentication authentication) {
-        User user = getCurrentUser(authentication);
-        if (user == null) {
-            return ResponseEntity.status(401).body("Authentication required");
-        }
+        requireProblemManager(authentication);
 
         codingPracticeService.deleteProblem(id);
         return ResponseEntity.ok(Map.of("message", "Problem deleted successfully"));
