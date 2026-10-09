@@ -291,6 +291,207 @@ function ExamAttempt({ exam, onClose }) {
 }
 
 // =====================================================
+// EXAM HISTORY (persisted results - FEATURE-MATRIX 7)
+// =====================================================
+
+/**
+ * Every paper the student has sat, newest first, read from the
+ * `exam_attempts` table. Clicking a row loads the full record - including
+ * the answers they submitted - from GET /exam-attempts/{id}.
+ */
+function ExamHistory() {
+
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [detail, setDetail] = useState(null);      // summary row (opens modal)
+  const [detailData, setDetailData] = useState(null); // full record + answers
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function load() {
+    try {
+      setLoading(true);
+      setError("");
+      const list = await api.myExamAttempts();
+      setRows(Array.isArray(list) ? list : []);
+    } catch (e) {
+      setError(e.message || "Unable to load your exam history.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Open one result: show the row at once, fetch answers in the background. */
+  async function open(row) {
+    setDetail(row);
+    setDetailData(null);
+    setDetailError("");
+    setDetailLoading(true);
+    try {
+      const full = await api.examAttempt(row.id);
+      setDetailData(full);
+    } catch (e) {
+      setDetailError(e.message || "Unable to load this result.");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleString();
+  }
+
+  const answers = detailData?.answers
+    ? Object.entries(detailData.answers).sort(
+        (a, b) => Number(a[0]) - Number(b[0])
+      )
+    : [];
+
+  return (
+    <>
+      {loading ? (
+        <Loading />
+      ) : error ? (
+        <div>
+          <div className="error">{error}</div>
+          <button className="secondary" onClick={load}>Retry</button>
+        </div>
+      ) : rows.length === 0 ? (
+        <Empty text="No exam results yet - graded papers will show up here." />
+      ) : (
+        <div className="history-list">
+          {rows.map((row) => (
+            <div
+              key={row.id}
+              className={`history-item ${row.passed ? "passed" : "failed"}`}
+              style={{ cursor: "pointer" }}
+              onClick={() => open(row)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") open(row);
+              }}
+            >
+              <div>
+                <strong>{row.examTitle || `Exam #${row.examId}`}</strong>
+                <span>
+                  {row.courseTitle ? `${row.courseTitle} · ` : ""}
+                  {formatDate(row.submittedAt)}
+                  {row.status === "AWAITING_MANUAL"
+                    ? " · ⏳ awaiting manual marking"
+                    : ""}
+                </span>
+              </div>
+
+              <div className="history-score">
+                <strong>{row.awardedMarks} / {row.gradedMarks}</strong>
+                <span>
+                  {Number(row.percentage || 0).toFixed(1)}% ·{" "}
+                  {row.passed ? "✅ Passed" : "❌ Failed"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {detail && (
+        <div className="modal-overlay" onClick={() => setDetail(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>📊 {detail.examTitle || `Exam #${detail.examId}`}</h3>
+              <button className="modal-close" onClick={() => setDetail(null)}>✕</button>
+            </div>
+
+            <div style={{ textAlign: "center", padding: "18px 0 6px" }}>
+              <div style={{ fontSize: 44, fontWeight: 800 }}>
+                {Number(detail.percentage || 0).toFixed(1)}%
+              </div>
+              <div style={{ color: "var(--text-secondary)" }}>
+                {detail.awardedMarks} / {detail.gradedMarks} marks
+                {detail.passed ? " · Passed ✅" : " · Not passed ❌"}
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                {formatDate(detail.submittedAt)}
+                {detail.status === "AWAITING_MANUAL"
+                  ? " · ⏳ awaiting manual marking"
+                  : ""}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "14px 0" }}>
+              <div>
+                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Correct</b>
+                <p style={{ margin: 0 }}>{detail.correct}</p>
+              </div>
+              <div>
+                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Wrong</b>
+                <p style={{ margin: 0 }}>{detail.wrong}</p>
+              </div>
+              <div>
+                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Skipped</b>
+                <p style={{ margin: 0 }}>{detail.skipped}</p>
+              </div>
+              <div>
+                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Awaiting manual marking</b>
+                <p style={{ margin: 0 }}>{detail.pendingManual}</p>
+              </div>
+            </div>
+
+            <b style={{ fontSize: 13 }}>Your answers</b>
+            {detailError && <div className="error">{detailError}</div>}
+            {detailLoading ? (
+              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading answers...</p>
+            ) : answers.length > 0 ? (
+              <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                {answers.map(([qIndex, value]) => (
+                  <div
+                    key={qIndex}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      padding: "7px 10px",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      fontSize: 13,
+                    }}
+                  >
+                    <b style={{ whiteSpace: "nowrap" }}>Q{Number(qIndex) + 1}</b>
+                    <span style={{ color: value ? "var(--text)" : "var(--text-muted)", whiteSpace: "pre-wrap" }}>
+                      {value || "Not answered"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                No stored answers for this attempt.
+              </p>
+            )}
+
+            <button
+              className="primary"
+              style={{ width: "100%", marginTop: 16 }}
+              onClick={() => setDetail(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// =====================================================
 // EXAMS LIST (student view)
 // =====================================================
 
