@@ -123,10 +123,13 @@ import HODAnnouncements from "./pages/hod/HODAnnouncements";
 import HODSettings from "./pages/hod/HODSettings";
 
 // Route element variables to avoid esbuild parser issues with self-closing JSX tags
+// Role-scoped layouts: each panel is only reachable by its own role. The
+// student shell stays open to every signed-in role (notifications, profile,
+// catalogue and discussions are shared by staff too).
 const studentLayoutElement = React.createElement(Protected, null, React.createElement(StudentLayout, null));
-const hodLayoutElement = React.createElement(Protected, null, React.createElement(HODLayout, null));
-const adminLayoutElement = React.createElement(Protected, null, React.createElement(AdminLayout, null));
-const instructorLayoutElement = React.createElement(Protected, null, React.createElement(InstructorLayout, null));
+const hodLayoutElement = React.createElement(Protected, { roles: ["HOD"] }, React.createElement(HODLayout, null));
+const adminLayoutElement = React.createElement(Protected, { roles: ["ADMIN"] }, React.createElement(AdminLayout, null));
+const instructorLayoutElement = React.createElement(Protected, { roles: ["INSTRUCTOR", "ADMIN"] }, React.createElement(InstructorLayout, null));
 
 // =====================================================
 // LAYOUT
