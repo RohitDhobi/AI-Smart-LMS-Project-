@@ -153,8 +153,15 @@ public class SecurityConfig {
                     ).permitAll()
 
                     // Public course catalog (needed on the
-                    // registration page before login)
+                    // registration page before login).
+                    //
+                    // Restricted to GET: antMatchers matches the path and
+                    // ignores the method, so the bare pattern "/api/courses"
+                    // used to also cover an anonymous POST / PUT / DELETE.
+                    // Catalog reads must stay public; course mutations never
+                    // are (see CourseController).
                     .antMatchers(
+                            org.springframework.http.HttpMethod.GET,
                             "/api/courses",
                             "/api/courses/*/semesters",
                             "/api/courses/*/subjects",
