@@ -49,23 +49,17 @@ public class ExamAttemptController {
         return ResponseEntity.ok(attempts.myAttempts(user.getId()));
     }
 
-    /** One attempt with the answers this user submitted. */
+    /** One of the caller's own attempts, with the answers they submitted. */
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> attempt(
             @PathVariable Long id) {
 
         User user = access.requireCurrentUser();
 
-        List<Map<String, Object>> mine = attempts.myAttempts(user.getId());
-        // The projection carries the row id, so match on it without
-        // handing back somebody else's paper.
-        for (Map<String, Object> row : mine) {
-            if (id.equals(row.get("id"))) {
-                return ResponseEntity.ok(row);
-            }
-        }
-
-        throw new AccessDeniedException("That result is not yours.");
+        return attempts.myAttempt(user.getId(), id)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() ->
+                        new AccessDeniedException("That result is not yours."));
     }
 
     /**
@@ -76,9 +70,10 @@ public class ExamAttemptController {
     public ResponseEntity<List<Map<String, Object>>> examAttempts(
             @PathVariable Long examId) {
 
-        if (exams.getExamById(examId).getCourse() != null) {
-            access.requireCourseManage(
-                    exams.getExamById(examId).getCourse().getId());
+        com.aismartlms.backend.entity.Exam exam = exams.getExamById(examId);
+
+        if (exam.getCourse() != null && exam.getCourse().getId() != null) {
+            access.requireCourseManage(exam.getCourse().getId());
         } else {
             access.requireCurrentUser();
         }

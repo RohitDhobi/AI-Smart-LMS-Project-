@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Persists graded exam submissions and reads them back as history.
@@ -114,6 +115,19 @@ public class ExamAttemptService {
     }
 
     /**
+     * One of the caller's own attempts, answers included.
+     *
+     * @return the view, or empty when the row does not exist or belongs to
+     *         somebody else (the caller turns that into a 403)
+     */
+    public Optional<Map<String, Object>> myAttempt(Long userId, Long attemptId) {
+
+        return attempts.findById(attemptId)
+                .filter(row -> userId != null && userId.equals(row.getUserId()))
+                .map(this::viewWithAnswers);
+    }
+
+    /**
      * Serialised view. The submitted answers are only ever handed back to
      * their own author - staff get the score, not the paper.
      */
@@ -148,16 +162,11 @@ public class ExamAttemptService {
     }
 
     /** The author's own view, answers included. */
-    public Map<String, Object> viewWithAnswers(ExamAttempt row) {
+    private Map<String, Object> viewWithAnswers(ExamAttempt row) {
 
         Map<String, Object> item = new LinkedHashMap<>();
 
-        List<Map<String, Object>> asList = new ArrayList<>(1);
-        // reuse the shared projection, then attach the answers
-        asList.add(null);
-        Map<String, Object> base = view(List.of(row)).get(0);
-
-        item.putAll(base);
+        item.putAll(view(List.of(row)).get(0));
 
         Map<String, Object> parsed = new LinkedHashMap<>();
         try {
