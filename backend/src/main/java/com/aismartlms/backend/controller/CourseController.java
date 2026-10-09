@@ -1,7 +1,11 @@
 package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.Role;
+import com.aismartlms.backend.entity.User;
+import com.aismartlms.backend.exception.AccessDeniedException;
 import com.aismartlms.backend.service.CourseService;
+import com.aismartlms.backend.service.InstructorAccessService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +18,32 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+    private final InstructorAccessService access;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(
+            CourseService courseService,
+            InstructorAccessService access) {
         this.courseService = courseService;
+        this.access = access;
+    }
+
+    // =========================
+    // AUTHORISATION
+    //
+    // The read side of this controller is public (catalog before login),
+    // but the write side never was meant to be. The dedicated
+    // /api/admin/courses routes are ADMIN-guarded and the UI only calls
+    // those, so restricting these raw mutations to ADMIN closes
+    // SECURITY.md §7.1 and §7.2 without breaking any page.
+    // =========================
+
+    private void requireAdmin() {
+
+        User user = access.requireCurrentUser(); // anonymous -> 403
+
+        if (user.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Admin access required");
+        }
     }
 
     // =========================
@@ -26,6 +53,8 @@ public class CourseController {
     @PostMapping
     public ResponseEntity<Course> createCourse(
             @RequestBody Course course) {
+
+        requireAdmin();
 
         Course savedCourse =
                 courseService.createCourse(course);
@@ -61,6 +90,7 @@ public class CourseController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course course) {
+        requireAdmin();
         Course existing = courseService.getCourseById(id);
         if (course.getTitle() != null) existing.setTitle(course.getTitle());
         if (course.getDescription() != null) existing.setDescription(course.getDescription());
@@ -79,6 +109,8 @@ public class CourseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCourse(
             @PathVariable Long id) {
+
+        requireAdmin();
 
         courseService.deleteCourse(id);
 
