@@ -1,8 +1,11 @@
 package com.aismartlms.backend.controller;
 
 import com.aismartlms.backend.entity.Course;
+import com.aismartlms.backend.entity.Role;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.entity.Certificate;
+import com.aismartlms.backend.exception.AccessDeniedException;
+import com.aismartlms.backend.service.InstructorAccessService;
 import com.aismartlms.backend.service.InstructorCertificateService;
 import com.aismartlms.backend.repository.CourseRepository;
 import com.aismartlms.backend.repository.UserRepository;
@@ -21,15 +24,43 @@ public class InstructorCertificateController {
     private final InstructorCertificateService certificateService;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final InstructorAccessService access;
 
     public InstructorCertificateController(
             InstructorCertificateService certificateService,
             CourseRepository courseRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            InstructorAccessService access) {
 
         this.certificateService = certificateService;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
+        this.access = access;
+    }
+
+    // =========================================================
+    // AUTHORISATION (SECURITY.md §7.6)
+    //
+    // Every route under /api/instructor/** previously accepted any signed-in
+    // user, so a student could mint or revoke certificates for anyone.
+    //   1. never a STUDENT (teaching staff only), and
+    //   2. course-scoped actions also need the HOD assignment for that course.
+    // =========================================================
+
+    private User requireStaff() {
+
+        User user = access.requireCurrentUser(); // anonymous -> 403
+
+        if (user.getRole() == Role.STUDENT) {
+            throw new AccessDeniedException("Instructor access required");
+        }
+
+        return user;
+    }
+
+    private void requireCourseStaff(Long courseId) {
+        requireStaff();
+        access.requireCourseManage(courseId);
     }
 
     // =========================
@@ -38,6 +69,7 @@ public class InstructorCertificateController {
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats(Authentication auth) {
+        requireStaff();
         String instructorName = getInstructorName(auth);
         return ResponseEntity.ok(certificateService.getStats(instructorName));
     }
@@ -48,6 +80,7 @@ public class InstructorCertificateController {
 
     @GetMapping("/courses")
     public ResponseEntity<List<Course>> getCourses(Authentication auth) {
+        requireStaff();
         String instructorName = getInstructorName(auth);
         return ResponseEntity.ok(certificateService.getInstructorCourses(instructorName));
     }
@@ -60,6 +93,8 @@ public class InstructorCertificateController {
     public ResponseEntity<List<Map<String, Object>>> getCourseStudents(
             @PathVariable Long courseId,
             Authentication auth) {
+
+        requireCourseStaff(courseId);
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -77,6 +112,8 @@ public class InstructorCertificateController {
             @PathVariable Long courseId,
             @PathVariable Long studentId,
             Authentication auth) {
+
+        requireCourseStaff(courseId);
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -104,6 +141,8 @@ public class InstructorCertificateController {
             return ResponseEntity.badRequest().body("courseId and studentId are required");
         }
 
+        requireCourseStaff(courseId);
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
@@ -130,6 +169,8 @@ public class InstructorCertificateController {
             @RequestBody Map<String, String> body,
             Authentication auth) {
 
+        requireStaff();
+
         String reason = body.getOrDefault("reason", "No reason provided");
 
         try {
@@ -146,6 +187,7 @@ public class InstructorCertificateController {
 
     @GetMapping("/verify/{certId}")
     public ResponseEntity<?> verifyCertificate(@PathVariable String certId) {
+        requireStaff();
         try {
             Map<String, Object> result = certificateService.verifyCertificate(certId);
             return ResponseEntity.ok(result);
@@ -163,6 +205,8 @@ public class InstructorCertificateController {
             @RequestParam(required = false) String status,
             Authentication auth) {
 
+        requireStaff();
+
         String instructorName = getInstructorName(auth);
 
         if (status != null && !status.isEmpty()) {
@@ -177,6 +221,11 @@ public class InstructorCertificateController {
     // =========================
 
     private String getInstructorName(Authentication auth) {
+
+        if (auth == null || auth.getName() == null) {
+            throw new AccessDeniedException("Authentication required");
+        }
+
         return userRepository.findByEmail(auth.getName())
                 .map(User::getName)
                 .orElseThrow(() -> new RuntimeException("User not found"));
