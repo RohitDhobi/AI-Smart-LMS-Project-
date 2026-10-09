@@ -4,6 +4,7 @@ import com.aismartlms.backend.dto.ExamSubmissionRequest;
 import com.aismartlms.backend.entity.Exam;
 import com.aismartlms.backend.entity.User;
 import com.aismartlms.backend.service.ExamApprovalService;
+import com.aismartlms.backend.service.ExamAttemptService;
 import com.aismartlms.backend.service.ExamService;
 import com.aismartlms.backend.service.InstructorAccessService;
 import com.aismartlms.backend.exception.AccessDeniedException;
@@ -23,14 +24,17 @@ public class ExamController {
     private final ExamService examService;
     private final ExamApprovalService approvals;
     private final InstructorAccessService access;
+    private final ExamAttemptService attempts;
 
     public ExamController(
             ExamService examService,
             ExamApprovalService approvals,
-            InstructorAccessService access) {
+            InstructorAccessService access,
+            ExamAttemptService attempts) {
         this.examService = examService;
         this.approvals = approvals;
         this.access = access;
+        this.attempts = attempts;
     }
 
     // =========================
@@ -170,18 +174,28 @@ public class ExamController {
             @RequestBody ExamSubmissionRequest request) {
 
         Exam exam = examService.getExamById(id);
+        User student = access.requireCurrentUser();
 
         // Unpublished papers can never be sat - even with a direct POST.
-        if (!visibleToStudent(access.currentUser(), exam)) {
+        if (!visibleToStudent(student, exam)) {
             throw new AccessDeniedException(
                     "This exam has not been published yet.");
         }
 
-        return ResponseEntity.ok(
-                examService.gradeSubmission(
-                        exam,
-                        request == null ? null : request.getAnswers(),
-                        LocalDateTime.now()));
+        Map<String, String> answers = request == null ? null : request.getAnswers();
+
+        Map<String, Object> result = examService.gradeSubmission(
+                exam,
+                answers,
+                LocalDateTime.now());
+
+        // FEATURE-MATRIX §7: the grade used to live only in this response.
+        // Persist it so the student keeps an exam history after the modal
+        // closes. A storage failure must not cost them the result, so the
+        // service swallows its own errors and this call cannot throw.
+        attempts.saveAttempt(exam, student, answers, result);
+
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping
