@@ -92,6 +92,11 @@ public class AssignmentService {
         return submissionRepository.save(submission);
     }
 
+    public AssignmentSubmission getSubmissionById(Long id) {
+        return submissionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Submission not found"));
+    }
+
     public List<AssignmentSubmission> getSubmissionsByAssignment(Long assignmentId) {
         return submissionRepository.findByAssignmentId(assignmentId);
     }
