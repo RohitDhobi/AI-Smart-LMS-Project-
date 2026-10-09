@@ -82,7 +82,22 @@ export function Page({
 // =====================================================
 
 
-export function Protected({ children }) {
+// Where each role lands when it opens a route it may not use.
+const ROLE_HOME = {
+  ADMIN: "/admin",
+  HOD: "/hod",
+  INSTRUCTOR: "/instructor",
+  STUDENT: "/dashboard",
+};
+
+/**
+ * Route guard.
+ *
+ * Always requires a JWT. When `roles` is given it additionally checks the
+ * stored user's role, so e.g. a STUDENT cannot open /admin or /hod in the
+ * browser. This is UI-level only — the server still enforces every endpoint.
+ */
+export function Protected({ children, roles = null }) {
 
   const token =
     localStorage.getItem("token");
@@ -94,6 +109,31 @@ export function Protected({ children }) {
         replace
       />
     );
+  }
+
+  if (Array.isArray(roles) && roles.length > 0) {
+    const role = getStoredUser()?.role;
+
+    // Stored user without a usable role -> stale session, re-authenticate.
+    if (!role) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return (
+        <Navigate
+          to="/login"
+          replace
+        />
+      );
+    }
+
+    if (!roles.includes(role)) {
+      return (
+        <Navigate
+          to={ROLE_HOME[role] || "/dashboard"}
+          replace
+        />
+      );
+    }
   }
 
   return children;
