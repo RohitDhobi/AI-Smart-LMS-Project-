@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ShieldCheck, Presentation, Landmark, Eye, EyeOff } from "lucide-react";
 import { api } from "../../services/api";
 
 function StaffLogin() {
@@ -17,25 +18,19 @@ function StaffLogin() {
 
   const roleConfig = {
     ADMIN: {
-      icon: "🛡️",
       label: "Admin",
       description: "Manage the platform, users, and courses",
-      redirect: "/admin",
-      color: "#ef4444"
+      redirect: "/admin"
     },
     INSTRUCTOR: {
-      icon: "🧑‍🏫",
       label: "Teacher",
       description: "Manage your courses and track student progress",
-      redirect: "/instructor",
-      color: "#f59e0b"
+      redirect: "/instructor"
     },
     HOD: {
-      icon: "🏛️",
       label: "HOD",
       description: "Oversee courses, subjects and instructor assignments",
-      redirect: "/hod",
-      color: "#8b5cf6"
+      redirect: "/hod"
     }
   };
 
@@ -95,114 +90,148 @@ function StaffLogin() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-split">
 
-      <div className="auth-card">
-
-        {/* Logo */}
-        <div className="auth-logo">
-          🤖
+      {/* Brand panel: same identity block as the student login page. */}
+      <aside className="auth-brand">
+        <div className="auth-brand-inner">
+          <div className="auth-brand-mark">
+            <ShieldCheck size={30} strokeWidth={1.75} aria-hidden="true" />
+          </div>
+          <p className="auth-brand-name">AI Smart LMS</p>
+          <p className="auth-brand-tagline">Staff access for admins, teachers and HODs</p>
         </div>
+      </aside>
 
-        <h1>AI Smart LMS</h1>
-        <p>{config.description}</p>
+      {/* Form panel */}
+      <main className="auth-main">
 
-        {/* Role Tabs */}
-        <div className="staff-role-tabs">
-          <button
-            className={
-              `staff-tab ${role === "ADMIN" ? "active" : ""}`
-            }
-            onClick={() => {
-              setRole("ADMIN");
-              setError("");
-            }}
-          >
-            <span className="staff-tab-icon">🛡️</span>
-            Admin
-          </button>
-          <button
-            className={
-              `staff-tab ${role === "INSTRUCTOR" ? "active" : ""}`
-            }
-            onClick={() => {
-              setRole("INSTRUCTOR");
-              setError("");
-            }}
-          >
-            <span className="staff-tab-icon">🧑‍🏫</span>
-            Teacher
-          </button>
-          <button
-            className={
-              `staff-tab ${role === "HOD" ? "active" : ""}`
-            }
-            onClick={() => {
-              setRole("HOD");
-              setError("");
-            }}
-          >
-            <span className="staff-tab-icon">🏛️</span>
-            HOD
-          </button>
-        </div>
+        <div className="auth-panel">
 
-        {/* Error */}
-        {error && (
-          <div className="error">{error}</div>
-        )}
+          <div className="auth-brand-mobile">
+            <span className="auth-brand-mark auth-brand-mark-sm">
+              <ShieldCheck size={20} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span className="auth-brand-mobile-name">AI Smart LMS</span>
+          </div>
 
-        {/* Form */}
-        <form onSubmit={handleLogin}>
+          <h1>Staff Login</h1>
 
-          <label>Email Address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required
-          />
+          <p className="auth-subtitle">{config.description}</p>
 
-          <label>Password</label>
-          <div className="password-field">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
+          {/* Role tabs */}
+          <div className="auth-account-toggle" role="tablist" aria-label="Staff role">
             <button
               type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              tabIndex={-1}
+              role="tab"
+              aria-selected={role === "ADMIN"}
+              className={role === "ADMIN" ? "active" : ""}
+              onClick={() => {
+                setRole("ADMIN");
+                setError("");
+              }}
             >
-              {showPassword ? "🙈" : "👁️"}
+              <ShieldCheck size={16} strokeWidth={1.75} aria-hidden="true" />
+              Admin
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={role === "INSTRUCTOR"}
+              className={role === "INSTRUCTOR" ? "active" : ""}
+              onClick={() => {
+                setRole("INSTRUCTOR");
+                setError("");
+              }}
+            >
+              <Presentation size={16} strokeWidth={1.75} aria-hidden="true" />
+              Teacher
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={role === "HOD"}
+              className={role === "HOD" ? "active" : ""}
+              onClick={() => {
+                setRole("HOD");
+                setError("");
+              }}
+            >
+              <Landmark size={16} strokeWidth={1.75} aria-hidden="true" />
+              HOD
             </button>
           </div>
 
-          <button
-            className="primary full-width"
-            disabled={loading}
-          >
-            {loading
-              ? "Logging in..."
-              : `Login as ${config.label}`}
-          </button>
+          {/* Error */}
+          {error && (
+            <div className="error" role="alert">
+              {error}
+            </div>
+          )}
 
-        </form>
+          {/* Form */}
+          <form onSubmit={handleLogin}>
 
-        {/* Back to student login */}
-        <p className="auth-switch">
-          Are you a student?{" "}
-          <Link to="/login">
-            Student Login
-          </Link>
-        </p>
+            <div className="form-field">
+              <label htmlFor="staff-email">Email</label>
+              <input
+                id="staff-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
 
-      </div>
+            <div className="form-field">
+              <label htmlFor="staff-password">Password</label>
+              <div className="password-field">
+                <input
+                  id="staff-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword
+                    ? <EyeOff size={18} strokeWidth={1.75} aria-hidden="true" />
+                    : <Eye size={18} strokeWidth={1.75} aria-hidden="true" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              className="primary full-width"
+              disabled={loading}
+            >
+              {loading
+                ? "Logging in..."
+                : `Login as ${config.label}`}
+            </button>
+
+          </form>
+
+          {/* Back to student login */}
+          <p className="auth-switch">
+            Are you a student?{" "}
+            <Link to="/login">
+              Student Login
+            </Link>
+          </p>
+
+        </div>
+
+      </main>
 
     </div>
   );
