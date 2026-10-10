@@ -785,7 +785,7 @@ function Exams() {
                     onClick={() => setHistoryExam(exam)}
                   >
                     <History size={13} strokeWidth={2} aria-hidden="true" />
-                    {`${historyRows.length} attempt${historyRows.length === 1 ? "" : "s"} \u00b7 best ${bestPercentage(historyRows)}%`}
+                    {`${historyRows.length} attempt${historyRows.length === 1 ? "" : "s"} · best ${bestPercentage(historyRows)}%`}
                   </button>
                 )}
 
