@@ -437,7 +437,7 @@ function AttemptDetail({ row, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <h3>📊 {row.examTitle || `Exam #${row.examId}`}</h3>
+          <h3>{row.examTitle || `Exam #${row.examId}`}</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
@@ -447,12 +447,12 @@ function AttemptDetail({ row, onClose }) {
           </div>
           <div style={{ color: "var(--text-secondary)" }}>
             {row.awardedMarks} / {row.gradedMarks} marks
-            {row.passed ? " · Passed ✅" : " · Not passed ❌"}
+            {row.passed ? " · Passed" : " · Not passed"}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
             {formatAttemptDate(row.submittedAt)}
             {row.status === "AWAITING_MANUAL"
-              ? " · ⏳ awaiting manual marking"
+              ? " · awaiting manual marking"
               : ""}
           </div>
         </div>
