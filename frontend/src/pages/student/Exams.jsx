@@ -594,6 +594,9 @@ function Exams() {
   const [search, setSearch] = useState("");
   const [selectedExam, setSelectedExam] = useState(null);
   const [attempt, setAttempt] = useState(null);
+  // This student's own attempt rows (exam_attempts), newest first.
+  const [myAttempts, setMyAttempts] = useState([]);
+  const [historyExam, setHistoryExam] = useState(null);
   const [now, setNow] = useState(() => new Date());
   // "papers" = exams that can be sat; "history" = past results (exam_attempts).
   const [tab, setTab] = useState("papers");
@@ -613,13 +616,15 @@ function Exams() {
       setLoading(true);
       setError("");
 
-      const [examList, courseList] = await Promise.all([
+      const [examList, courseList, attemptList] = await Promise.all([
         api.exams(),
-        api.courses().catch(() => [])
+        api.courses().catch(() => []),
+        api.myExamAttempts().catch(() => [])
       ]);
 
       setExams(Array.isArray(examList) ? examList : []);
       setCourses(Array.isArray(courseList) ? courseList : []);
+      setMyAttempts(Array.isArray(attemptList) ? attemptList : []);
 
     } catch (e) {
       setError(e.message || "Unable to load exams.");
@@ -646,6 +651,17 @@ function Exams() {
       setError(e.message || "Unable to open this exam.");
     }
   }
+
+  // Attempt rows grouped per exam, so each card can show its own history.
+  const attemptsByExam = useMemo(() => {
+    const map = new Map();
+    (Array.isArray(myAttempts) ? myAttempts : []).forEach(row => {
+      const key = Number(row.examId);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(row);
+    });
+    return map;
+  }, [myAttempts]);
 
   const filtered = exams.filter(exam =>
     !search.trim() ||
@@ -701,6 +717,7 @@ function Exams() {
             const start = exam.startTime ? new Date(exam.startTime) : null;
             const end = slotEnd(exam);
             const isPast = end && now > end;
+            const historyRows = attemptsByExam.get(Number(exam.id)) || [];
 
             return (
               <div className="card quiz-card" key={exam.id}>
@@ -761,6 +778,17 @@ function Exams() {
                   </div>
                 )}
 
+                {historyRows.length > 0 && (
+                  <button
+                    type="button"
+                    className="exam-history-link"
+                    onClick={() => setHistoryExam(exam)}
+                  >
+                    <History size={13} strokeWidth={2} aria-hidden="true" />
+                    {`${historyRows.length} attempt${historyRows.length === 1 ? "" : "s"} \u00b7 best ${bestPercentage(historyRows)}%`}
+                  </button>
+                )}
+
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
                   {state === "open" ? (
                     <button
@@ -788,6 +816,14 @@ function Exams() {
       )}
 
         </>
+      )}
+
+      {historyExam && (
+        <ExamAttemptHistory
+          exam={historyExam}
+          rows={attemptsByExam.get(Number(historyExam.id)) || []}
+          onClose={() => setHistoryExam(null)}
+        />
       )}
 
       {attempt && (
