@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Presentation, Landmark, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, ShieldCheck, Presentation, Landmark, Eye, EyeOff } from "lucide-react";
 import { api } from "../../services/api";
 
 function StaffLogin() {
@@ -96,7 +96,7 @@ function StaffLogin() {
       <aside className="auth-brand">
         <div className="auth-brand-inner">
           <div className="auth-brand-mark">
-            <ShieldCheck size={30} strokeWidth={1.75} aria-hidden="true" />
+            <GraduationCap size={30} strokeWidth={1.75} aria-hidden="true" />
           </div>
           <p className="auth-brand-name">AI Smart LMS</p>
           <p className="auth-brand-tagline">Staff access for admins, teachers and HODs</p>
@@ -110,7 +110,7 @@ function StaffLogin() {
 
           <div className="auth-brand-mobile">
             <span className="auth-brand-mark auth-brand-mark-sm">
-              <ShieldCheck size={20} strokeWidth={1.75} aria-hidden="true" />
+              <GraduationCap size={20} strokeWidth={1.75} aria-hidden="true" />
             </span>
             <span className="auth-brand-mobile-name">AI Smart LMS</span>
           </div>
