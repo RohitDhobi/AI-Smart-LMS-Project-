@@ -454,7 +454,7 @@ function Register() {
                   <ul className="preview-list">
                     {previewSubjects.map(subject => (
                       <li key={subject.id}>
-                        <Check size={14} strokeWidth={2.25} aria-hidden="true" />
+                        <Check size={14} strokeWidth={2.25} className="preview-check" aria-hidden="true" />
                         {subject.subjectName}
                       </li>
                     ))}
