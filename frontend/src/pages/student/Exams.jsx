@@ -343,11 +343,14 @@ function ExamHistory() {
               key={row.id}
               className={`history-item ${row.passed ? "passed" : "failed"}`}
               style={{ cursor: "pointer" }}
-              onClick={() => open(row)}
+              onClick={() => setDetail(row)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") open(row);
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setDetail(row);
+                }
               }}
             >
               <div>
