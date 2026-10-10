@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { History } from "lucide-react";
 import { api } from "../../services/api";
 import { Loading, Empty, Page } from "../../components/ui";
 
@@ -306,9 +307,6 @@ function ExamHistory() {
   const [error, setError] = useState("");
 
   const [detail, setDetail] = useState(null);      // summary row (opens modal)
-  const [detailData, setDetailData] = useState(null); // full record + answers
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState("");
 
   useEffect(() => {
     load();
@@ -326,34 +324,6 @@ function ExamHistory() {
       setLoading(false);
     }
   }
-
-  /** Open one result: show the row at once, fetch answers in the background. */
-  async function open(row) {
-    setDetail(row);
-    setDetailData(null);
-    setDetailError("");
-    setDetailLoading(true);
-    try {
-      const full = await api.examAttempt(row.id);
-      setDetailData(full);
-    } catch (e) {
-      setDetailError(e.message || "Unable to load this result.");
-    } finally {
-      setDetailLoading(false);
-    }
-  }
-
-  function formatDate(iso) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "" : d.toLocaleString();
-  }
-
-  const answers = detailData?.answers
-    ? Object.entries(detailData.answers).sort(
-        (a, b) => Number(a[0]) - Number(b[0])
-      )
-    : [];
 
   return (
     <>
@@ -384,7 +354,7 @@ function ExamHistory() {
                 <strong>{row.examTitle || `Exam #${row.examId}`}</strong>
                 <span>
                   {row.courseTitle ? `${row.courseTitle} · ` : ""}
-                  {formatDate(row.submittedAt)}
+                  {formatAttemptDate(row.submittedAt)}
                   {row.status === "AWAITING_MANUAL"
                     ? " · ⏳ awaiting manual marking"
                     : ""}
