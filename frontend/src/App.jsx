@@ -23,7 +23,8 @@ import {
 import {
   getStoredUser,
   Page,
-  Protected
+  Protected,
+  SignedOutOnly
 } from "./components/ui";
 
 import Login from "./pages/auth/Login";
@@ -348,25 +349,25 @@ function App() {
       <Route
         path="/login"
         element={
-          localStorage.getItem("token")
-            ? <Navigate to="/dashboard" replace />
-            : <Login />
+          <SignedOutOnly>
+            <Login />
+          </SignedOutOnly>
         }
       />
       <Route
         path="/register"
         element={
-          localStorage.getItem("token")
-            ? <Navigate to="/dashboard" replace />
-            : <Register />
+          <SignedOutOnly>
+            <Register />
+          </SignedOutOnly>
         }
       />
       <Route
         path="/staff-login"
         element={
-          localStorage.getItem("token")
-            ? <Navigate to="/dashboard" replace />
-            : <StaffLogin />
+          <SignedOutOnly>
+            <StaffLogin />
+          </SignedOutOnly>
         }
       />
 
