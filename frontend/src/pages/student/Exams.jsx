@@ -374,88 +374,208 @@ function ExamHistory() {
       )}
 
       {detail && (
-        <div className="modal-overlay" onClick={() => setDetail(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h3>📊 {detail.examTitle || `Exam #${detail.examId}`}</h3>
-              <button className="modal-close" onClick={() => setDetail(null)}>✕</button>
-            </div>
+        <AttemptDetail row={detail} onClose={() => setDetail(null)} />
+      )}
+    </>
+  );
+}
 
-            <div style={{ textAlign: "center", padding: "18px 0 6px" }}>
-              <div style={{ fontSize: 44, fontWeight: 800 }}>
-                {Number(detail.percentage || 0).toFixed(1)}%
-              </div>
-              <div style={{ color: "var(--text-secondary)" }}>
-                {detail.awardedMarks} / {detail.gradedMarks} marks
-                {detail.passed ? " · Passed ✅" : " · Not passed ❌"}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
-                {formatDate(detail.submittedAt)}
-                {detail.status === "AWAITING_MANUAL"
-                  ? " · ⏳ awaiting manual marking"
-                  : ""}
-              </div>
-            </div>
+// =====================================================
+// SHARED ATTEMPT PIECES (used by the results tab and the exam cards)
+// =====================================================
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "14px 0" }}>
-              <div>
-                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Correct</b>
-                <p style={{ margin: 0 }}>{detail.correct}</p>
-              </div>
-              <div>
-                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Wrong</b>
-                <p style={{ margin: 0 }}>{detail.wrong}</p>
-              </div>
-              <div>
-                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Skipped</b>
-                <p style={{ margin: 0 }}>{detail.skipped}</p>
-              </div>
-              <div>
-                <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Awaiting manual marking</b>
-                <p style={{ margin: 0 }}>{detail.pendingManual}</p>
-              </div>
-            </div>
+function formatAttemptDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleString();
+}
 
-            <b style={{ fontSize: 13 }}>Your answers</b>
-            {detailError && <div className="error">{detailError}</div>}
-            {detailLoading ? (
-              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading answers...</p>
-            ) : answers.length > 0 ? (
-              <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
-                {answers.map(([qIndex, value]) => (
-                  <div
-                    key={qIndex}
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      padding: "7px 10px",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      fontSize: 13,
-                    }}
-                  >
-                    <b style={{ whiteSpace: "nowrap" }}>Q{Number(qIndex) + 1}</b>
-                    <span style={{ color: value ? "var(--text)" : "var(--text-muted)", whiteSpace: "pre-wrap" }}>
-                      {value || "Not answered"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                No stored answers for this attempt.
-              </p>
-            )}
+/** Highest score in a row set, as a display percentage. */
+function bestPercentage(rows) {
+  if (!rows || rows.length === 0) return "0.0";
+  return Math.max(...rows.map(r => Number(r.percentage) || 0)).toFixed(1);
+}
 
-            <button
-              className="primary"
-              style={{ width: "100%", marginTop: 16 }}
-              onClick={() => setDetail(null)}
-            >
-              Close
-            </button>
+/**
+ * One graded attempt, answers included: the summary row shows at once
+ * while GET /exam-attempts/{id} fills in the submitted answers.
+ * Shared by the "My Results" tab and the per-exam history modal.
+ */
+function AttemptDetail({ row, onClose }) {
+
+  const [full, setFull] = useState(null);   // full record + answers
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    api.examAttempt(row.id)
+      .then(data => {
+        if (!cancelled) setFull(data);
+      })
+      .catch(e => {
+        if (!cancelled) setError(e.message || "Unable to load this result.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [row.id]);
+
+  const answers = full?.answers
+    ? Object.entries(full.answers).sort(
+        (a, b) => Number(a[0]) - Number(b[0])
+      )
+    : [];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>📊 {row.examTitle || `Exam #${row.examId}`}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div style={{ textAlign: "center", padding: "18px 0 6px" }}>
+          <div style={{ fontSize: 44, fontWeight: 800 }}>
+            {Number(row.percentage || 0).toFixed(1)}%
+          </div>
+          <div style={{ color: "var(--text-secondary)" }}>
+            {row.awardedMarks} / {row.gradedMarks} marks
+            {row.passed ? " · Passed ✅" : " · Not passed ❌"}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+            {formatAttemptDate(row.submittedAt)}
+            {row.status === "AWAITING_MANUAL"
+              ? " · ⏳ awaiting manual marking"
+              : ""}
           </div>
         </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "14px 0" }}>
+          <div>
+            <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Correct</b>
+            <p style={{ margin: 0 }}>{row.correct}</p>
+          </div>
+          <div>
+            <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Wrong</b>
+            <p style={{ margin: 0 }}>{row.wrong}</p>
+          </div>
+          <div>
+            <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Skipped</b>
+            <p style={{ margin: 0 }}>{row.skipped}</p>
+          </div>
+          <div>
+            <b style={{ fontSize: 12, color: "var(--text-muted)" }}>Awaiting manual marking</b>
+            <p style={{ margin: 0 }}>{row.pendingManual}</p>
+          </div>
+        </div>
+
+        <b style={{ fontSize: 13 }}>Your answers</b>
+        {error && <div className="error">{error}</div>}
+        {loading ? (
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading answers...</p>
+        ) : answers.length > 0 ? (
+          <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+            {answers.map(([qIndex, value]) => (
+              <div
+                key={qIndex}
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  padding: "7px 10px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  fontSize: 13,
+                }}
+              >
+                <b style={{ whiteSpace: "nowrap" }}>Q{Number(qIndex) + 1}</b>
+                <span style={{ color: value ? "var(--text)" : "var(--text-muted)", whiteSpace: "pre-wrap" }}>
+                  {value || "Not answered"}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
+            No stored answers for this attempt.
+          </p>
+        )}
+
+        <button
+          className="primary"
+          style={{ width: "100%", marginTop: 16 }}
+          onClick={onClose}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One paper's attempts by the current student, newest first, from the
+ * row set the exam card already loaded. Each row drills into the shared
+ * AttemptDetail modal.
+ */
+function ExamAttemptHistory({ exam, rows, onClose }) {
+
+  const [detail, setDetail] = useState(null);
+
+  return (
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-head">
+            <h3>Attempt history: {exam.title}</h3>
+            <button className="modal-close" onClick={onClose}>✕</button>
+          </div>
+
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--text-secondary)" }}>
+            {rows.length} attempt{rows.length === 1 ? "" : "s"}
+            {" · best "}{bestPercentage(rows)}%
+          </p>
+
+          <div className="history-list">
+            {rows.map((row) => (
+              <div
+                key={row.id}
+                className={`history-item ${row.passed ? "passed" : "failed"}`}
+                style={{ cursor: "pointer" }}
+                role="button"
+                tabIndex={0}
+                onClick={() => setDetail(row)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setDetail(row);
+                  }
+                }}
+              >
+                <div>
+                  <strong>{formatAttemptDate(row.submittedAt)}</strong>
+                  <span>
+                    {row.status === "AWAITING_MANUAL"
+                      ? "Awaiting manual marking"
+                      : row.passed ? "Passed" : "Not passed"}
+                  </span>
+                </div>
+
+                <div className="history-score">
+                  <strong>{row.awardedMarks} / {row.gradedMarks}</strong>
+                  <span>{(Number(row.percentage) || 0).toFixed(1)}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {detail && (
+        <AttemptDetail row={detail} onClose={() => setDetail(null)} />
       )}
     </>
   );
