@@ -15903,3 +15903,213 @@ a.analytics-stat:hover {
   flex: 1;
   min-width: 220px;
 }
+
+/* =====================================================
+   AUTH SPLIT SHELL (login / register)
+   Redesign-preserve of the sign-in surfaces.
+   - Keeps the existing brand system: navy #0f172a + blue #2563eb,
+     the app radius scale (9px controls, 14px tiles), Inter, tokens.
+   - The brand panel stays navy in both themes, exactly like the app's
+     own sidebar, so the page never feels like two themes at once.
+   - MOTION_INTENSITY 3: no animations, hover/focus/active only.
+   - New class names only: .auth-page/.auth-card (used by StaffLogin)
+     are intentionally left untouched.
+   ===================================================== */
+
+.auth-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100dvh;
+  background: var(--bg)
+}
+
+/* Register gets the wider form column: its field grid needs the room. */
+.auth-split-wide {
+  grid-template-columns: .78fr 1.22fr
+}
+
+.auth-brand {
+  display: flex;
+  align-items: flex-end;
+  padding: 56px;
+  background:
+    radial-gradient(760px 480px at 10% 4%, rgba(37, 99, 235, .2), transparent 62%),
+    linear-gradient(165deg, #0f172a, #111c33)
+}
+
+.auth-brand-inner {
+  max-width: 430px
+}
+
+.auth-brand-mark {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), #60a5fa);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, .35);
+  margin-bottom: 22px
+}
+
+.auth-brand-name {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  color: #f8fafc
+}
+
+.auth-brand-tagline {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: #b6c6de
+}
+
+.auth-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 420px
+}
+
+.auth-split-wide .auth-panel {
+  max-width: 620px
+}
+
+.auth-panel h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -.02em
+}
+
+.auth-panel .auth-subtitle {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--text-secondary)
+}
+
+.auth-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px
+}
+
+.auth-panel .primary {
+  margin-top: 4px;
+  padding: 13px;
+  font-size: 15px
+}
+
+.auth-panel button.primary:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+  box-shadow: none
+}
+
+.auth-panel button.primary:disabled:hover {
+  background: var(--primary)
+}
+
+.auth-panel .auth-switch {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 13.5px
+}
+
+.auth-panel .auth-switch + .auth-switch {
+  margin-top: 10px
+}
+
+.auth-staff-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600
+}
+
+/* Keyboard focus for links and secondary buttons on these pages */
+.auth-panel a:focus-visible,
+.auth-panel button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px
+}
+
+.auth-panel .password-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary)
+}
+
+/* Compact brand row used under 900px, where the navy panel is hidden */
+.auth-brand-mobile {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px
+}
+
+.auth-brand-mark-sm {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  box-shadow: none
+}
+
+.auth-brand-mobile-name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--text)
+}
+
+/* Account-type toggle: icon and label share one line */
+.auth-account-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px
+}
+
+/* Dark theme: the form side follows the token set, the brand panel is the
+   same navy. Link blue is lightened so it clears WCAG AA on dark. */
+[data-theme=dark] .auth-panel a {
+  color: #8ab4ff
+}
+
+[data-theme=dark] .auth-panel a:hover {
+  color: #a6c5ff
+}
+
+/* Explicit collapse: below 900px the navy panel is dropped for the compact
+   brand row and the form takes the full width. */
+@media (max-width: 900px) {
+  .auth-split,
+  .auth-split-wide {
+    grid-template-columns: 1fr
+  }
+
+  .auth-brand {
+    display: none
+  }
+
+  .auth-brand-mobile {
+    display: flex
+  }
+
+  .auth-main {
+    align-items: flex-start;
+    padding: 40px 20px
+  }
+}
