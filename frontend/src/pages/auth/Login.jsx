@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GraduationCap, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { api } from "../../services/api";
 
 function Login() {
@@ -11,6 +12,9 @@ function Login() {
 
   const [password, setPassword] =
     useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [loading, setLoading] =
     useState(false);
@@ -91,91 +95,117 @@ function Login() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-split">
 
-      <div className="auth-card">
+      {/* Brand panel: carries the product identity so the form side can stay
+          calm and focused. Hidden on small screens (see .auth-brand-mobile). */}
+      <aside className="auth-brand">
+        <div className="auth-brand-inner">
+          <div className="auth-brand-mark">
+            <GraduationCap size={30} strokeWidth={1.75} aria-hidden="true" />
+          </div>
+          <p className="auth-brand-name">AI Smart LMS</p>
+          <p className="auth-brand-tagline">Learn Smarter, Grow Faster</p>
+        </div>
+      </aside>
 
-        <div className="auth-logo">
-          🤖
+      {/* Form panel */}
+      <main className="auth-main">
+
+        <div className="auth-panel">
+
+          <div className="auth-brand-mobile">
+            <span className="auth-brand-mark auth-brand-mark-sm">
+              <GraduationCap size={20} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span className="auth-brand-mobile-name">AI Smart LMS</span>
+          </div>
+
+          <h1>Login to continue learning</h1>
+
+          {error && (
+            <div className="error" role="alert">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin}>
+
+            <div className="form-field">
+              <label htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e =>
+                  setEmail(e.target.value)
+                }
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="login-password">Password</label>
+              <div className="password-field">
+                <input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={e =>
+                    setPassword(e.target.value)
+                  }
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword
+                    ? <EyeOff size={18} strokeWidth={1.75} aria-hidden="true" />
+                    : <Eye size={18} strokeWidth={1.75} aria-hidden="true" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              className="primary full-width"
+              disabled={loading}
+            >
+              {loading
+                ? "Logging in..."
+                : "Login"}
+            </button>
+
+          </form>
+
+          <p className="auth-switch">
+
+            Don't have an account?{" "}
+
+            <Link to="/register">
+              Register
+            </Link>
+
+          </p>
+
+          <p className="auth-switch auth-switch-staff">
+
+            <Link to="/staff-login" className="auth-staff-link">
+              <ShieldCheck size={15} strokeWidth={1.75} aria-hidden="true" />
+              Admin / Teacher Login
+            </Link>
+
+          </p>
+
         </div>
 
-        <h1>AI Smart LMS</h1>
-
-        <p>
-          Login to continue learning
-        </p>
-
-
-        {error && (
-          <div className="error">
-            {error}
-          </div>
-        )}
-
-
-        <form onSubmit={handleLogin}>
-
-          <label>
-            Email
-          </label>
-
-          <input
-            type="email"
-            value={email}
-            onChange={e =>
-              setEmail(e.target.value)
-            }
-            placeholder="Enter your email"
-            required
-          />
-
-
-          <label>
-            Password
-          </label>
-
-          <input
-            type="password"
-            value={password}
-            onChange={e =>
-              setPassword(e.target.value)
-            }
-            placeholder="Enter your password"
-            required
-          />
-
-
-          <button
-            className="primary full-width"
-            disabled={loading}
-          >
-            {loading
-              ? "Logging in..."
-              : "Login"}
-          </button>
-
-        </form>
-
-
-        <p className="auth-switch">
-
-          Don't have an account?{" "}
-
-          <Link to="/register">
-            Register
-          </Link>
-
-        </p>
-
-        <p className="auth-switch">
-
-          <Link to="/staff-login">
-            🛡️ Admin / Teacher Login
-          </Link>
-
-        </p>
-
-      </div>
+      </main>
 
     </div>
   );
@@ -183,7 +213,7 @@ function Login() {
 
 
 // =====================================================
-// REGISTER
+// LOGIN
 // =====================================================
 
 
