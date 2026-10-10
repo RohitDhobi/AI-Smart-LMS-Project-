@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GraduationCap, Presentation, Check } from "lucide-react";
 import { api } from "../../services/api";
 import { sanitizePhone, phoneError } from "../../utils/phone";
 
@@ -155,7 +156,7 @@ function Register() {
         await api.registerInstructor(payload);
 
         setSuccess(
-          "Instructor account created — pending admin approval. " +
+          "Instructor account created. Your account is pending admin approval. " +
           "You can log in at Staff Login once an admin activates it."
         );
 
@@ -222,245 +223,275 @@ function Register() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-split auth-split-wide">
 
-      <div className="auth-card auth-card-wide">
-
-        <div className="auth-logo">
-          🤖
+      {/* Brand panel: same identity block as the login page. */}
+      <aside className="auth-brand">
+        <div className="auth-brand-inner">
+          <div className="auth-brand-mark">
+            <GraduationCap size={30} strokeWidth={1.75} aria-hidden="true" />
+          </div>
+          <p className="auth-brand-name">AI Smart LMS</p>
+          <p className="auth-brand-tagline">Learn Smarter, Grow Faster</p>
         </div>
+      </aside>
 
-        <h1>Create Account</h1>
+      {/* Form panel */}
+      <main className="auth-main">
 
-        <p>
-          Join AI Smart LMS
-        </p>
+        <div className="auth-panel">
 
-
-        {error && (
-          <div className="error">
-            {error}
-          </div>
-        )}
-
-
-        {success && (
-          <div className="notice">
-            {success}
-          </div>
-        )}
-
-
-        <div className="auth-account-toggle" role="tablist" aria-label="Account type">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={accountType === "student"}
-            className={accountType === "student" ? "active" : ""}
-            onClick={() => setAccountType("student")}
-          >
-            👨‍🎓 Student
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={accountType === "instructor"}
-            className={accountType === "instructor" ? "active" : ""}
-            onClick={() => setAccountType("instructor")}
-          >
-            🧑‍🏫 Instructor
-          </button>
-        </div>
-
-        {accountType === "instructor" && (
-          <p className="auth-hint">
-            Instructor accounts are reviewed by an admin — you can log in at
-            Staff Login once your account is activated.
-          </p>
-        )}
-
-
-        <form onSubmit={handleRegister}>
-
-          <div className="form-grid">
-
-            <div className="form-field">
-              <label>Full Name</label>
-              <input
-                value={name}
-                onChange={e =>
-                  setName(e.target.value)
-                }
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e =>
-                  setEmail(e.target.value)
-                }
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e =>
-                  setPassword(e.target.value)
-                }
-                placeholder="Create password"
-                minLength="6"
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Confirm Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={e =>
-                  setConfirmPassword(e.target.value)
-                }
-                placeholder="Confirm your password"
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Phone Number</label>
-              <input
-                value={phone}
-                onChange={e =>
-                  setPhone(sanitizePhone(e.target.value))
-                }
-                maxLength={18}
-                inputMode="tel"
-                placeholder="Enter your phone number"
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Date of Birth</label>
-              <input
-                type="date"
-                value={dateOfBirth}
-                onChange={e =>
-                  setDateOfBirth(e.target.value)
-                }
-              />
-            </div>
-
-            <div className="form-field">
-              <label>Gender</label>
-              <select
-                value={gender}
-                onChange={e =>
-                  setGender(e.target.value)
-                }
-              >
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="form-field">
-              <label>Course</label>
-              <select
-                value={courseId}
-                onChange={e => {
-                  setCourseId(e.target.value);
-                  setPreviewSubjects([]);
-                }}
-                required={accountType === "student"}
-              >
-                <option value="">
-                  Select Course
-                </option>
-
-                {courses.map(course => (
-                  <option
-                    key={course.id}
-                    value={course.id}
-                  >
-                    {course.courseCode || course.title}
-                    {" – "}
-                    {course.courseName || course.title}
-                  </option>
-                ))}
-
-              </select>
-            </div>
-
+          <div className="auth-brand-mobile">
+            <span className="auth-brand-mark auth-brand-mark-sm">
+              <GraduationCap size={20} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+            <span className="auth-brand-mobile-name">AI Smart LMS</span>
           </div>
 
+          <h1>Create Account</h1>
 
-          {courseId && (
-            <div className="register-preview">
+          <p className="auth-subtitle">Join AI Smart LMS</p>
 
-              <h3>Your Subjects</h3>
-
-              {previewLoading ? (
-                <p className="preview-hint">
-                  Loading subjects...
-                </p>
-              ) : previewSubjects.length === 0 ? (
-                <p className="preview-hint">
-                  No subjects added for{" "}
-                  {selectedCourse?.courseCode || "this course"}
-                  {" "}yet.
-                </p>
-              ) : (
-                <ul className="preview-list">
-                  {previewSubjects.map(subject => (
-                    <li key={subject.id}>
-                      <span className="preview-check">✓</span>
-                      {subject.subjectName}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
+          {error && (
+            <div className="error" role="alert">
+              {error}
             </div>
           )}
 
+          {success && (
+            <div className="notice">
+              {success}
+            </div>
+          )}
 
-          <button
-            className="primary full-width"
-            disabled={loading}
-          >
-            {loading
-              ? "Creating account..."
-              : accountType === "instructor"
-                ? "Request Instructor Account"
-                : "Register"}
-          </button>
+          <div className="auth-account-toggle" role="tablist" aria-label="Account type">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={accountType === "student"}
+              className={accountType === "student" ? "active" : ""}
+              onClick={() => setAccountType("student")}
+            >
+              <GraduationCap size={16} strokeWidth={1.75} aria-hidden="true" />
+              Student
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={accountType === "instructor"}
+              className={accountType === "instructor" ? "active" : ""}
+              onClick={() => setAccountType("instructor")}
+            >
+              <Presentation size={16} strokeWidth={1.75} aria-hidden="true" />
+              Instructor
+            </button>
+          </div>
 
-        </form>
+          {accountType === "instructor" && (
+            <p className="auth-hint">
+              Instructor accounts are reviewed by an admin. You can log in at
+              Staff Login once your account is activated.
+            </p>
+          )}
 
 
-        <p className="auth-switch">
+          <form onSubmit={handleRegister}>
 
-          Already have an account?{" "}
+            <div className="form-grid">
 
-          <Link to="/login">
-            Login
-          </Link>
+              <div className="form-field">
+                <label htmlFor="reg-name">Full Name</label>
+                <input
+                  id="reg-name"
+                  autoComplete="name"
+                  value={name}
+                  onChange={e =>
+                    setName(e.target.value)
+                  }
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
 
-        </p>
+              <div className="form-field">
+                <label htmlFor="reg-email">Email</label>
+                <input
+                  id="reg-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={e =>
+                    setEmail(e.target.value)
+                  }
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
 
-      </div>
+              <div className="form-field">
+                <label htmlFor="reg-password">Password</label>
+                <input
+                  id="reg-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={e =>
+                    setPassword(e.target.value)
+                  }
+                  placeholder="Create password"
+                  minLength="6"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="reg-confirm">Confirm Password</label>
+                <input
+                  id="reg-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={e =>
+                    setConfirmPassword(e.target.value)
+                  }
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="reg-phone">Phone Number</label>
+                <input
+                  id="reg-phone"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={e =>
+                    setPhone(sanitizePhone(e.target.value))
+                  }
+                  maxLength={18}
+                  inputMode="tel"
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="reg-dob">Date of Birth</label>
+                <input
+                  id="reg-dob"
+                  type="date"
+                  autoComplete="bday"
+                  value={dateOfBirth}
+                  onChange={e =>
+                    setDateOfBirth(e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="reg-gender">Gender</label>
+                <select
+                  id="reg-gender"
+                  value={gender}
+                  onChange={e =>
+                    setGender(e.target.value)
+                  }
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label htmlFor="reg-course">Course</label>
+                <select
+                  id="reg-course"
+                  value={courseId}
+                  onChange={e => {
+                    setCourseId(e.target.value);
+                    setPreviewSubjects([]);
+                  }}
+                  required={accountType === "student"}
+                >
+                  <option value="">
+                    Select Course
+                  </option>
+
+                  {courses.map(course => (
+                    <option
+                      key={course.id}
+                      value={course.id}
+                    >
+                      {course.courseCode || course.title}
+                      {" - "}
+                      {course.courseName || course.title}
+                    </option>
+                  ))}
+
+                </select>
+              </div>
+
+            </div>
+
+
+            {courseId && (
+              <div className="register-preview">
+
+                <h3>Your Subjects</h3>
+
+                {previewLoading ? (
+                  <p className="preview-hint">
+                    Loading subjects...
+                  </p>
+                ) : previewSubjects.length === 0 ? (
+                  <p className="preview-hint">
+                    No subjects added for{" "}
+                    {selectedCourse?.courseCode || "this course"}
+                    {" "}yet.
+                  </p>
+                ) : (
+                  <ul className="preview-list">
+                    {previewSubjects.map(subject => (
+                      <li key={subject.id}>
+                        <Check size={14} strokeWidth={2.25} aria-hidden="true" />
+                        {subject.subjectName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+              </div>
+            )}
+
+
+            <button
+              className="primary full-width"
+              disabled={loading}
+            >
+              {loading
+                ? "Creating account..."
+                : accountType === "instructor"
+                  ? "Request Instructor Account"
+                  : "Register"}
+            </button>
+
+          </form>
+
+
+          <p className="auth-switch">
+
+            Already have an account?{" "}
+
+            <Link to="/login">
+              Login
+            </Link>
+
+          </p>
+
+        </div>
+
+      </main>
 
     </div>
   );
@@ -468,7 +499,7 @@ function Register() {
 
 
 // =====================================================
-// DASHBOARD
+// REGISTER
 // =====================================================
 
 
