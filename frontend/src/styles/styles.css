@@ -16091,6 +16091,14 @@ a.analytics-stat:hover {
   gap: 7px
 }
 
+/* Dark theme: the blue label on the dark primary tint only reaches ~3:1,
+   so lift it to the same light blue the panel links use (WCAG AA).
+   Shared by the Register account toggle and the Staff Login role tabs. */
+[data-theme=dark] .auth-account-toggle button:hover,
+[data-theme=dark] .auth-account-toggle button.active {
+  color: #8ab4ff
+}
+
 /* Dark theme: the form side follows the token set, the brand panel is the
    same navy. Link blue is lightened so it clears WCAG AA on dark. */
 [data-theme=dark] .auth-panel a {
