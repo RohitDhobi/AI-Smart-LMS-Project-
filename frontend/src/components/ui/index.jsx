@@ -91,6 +91,27 @@ const ROLE_HOME = {
 };
 
 /**
+ * Guard for the auth pages (login/register/staff-login): signed-in users are
+ * bounced to their dashboard.
+ *
+ * IMPORTANT: this must be a component, not an inline
+ * `localStorage.getItem("token") ? <Navigate/> : <Login/>` expression in the
+ * route config. Inline expressions are evaluated when <App> renders, which
+ * almost never happens, so the element kept a STALE snapshot of the token
+ * state. After logout, that stale <Navigate to="/dashboard"/> fought
+ * Protected's fresh <Navigate to="/login"/> in an endless redirect loop:
+ * React hit "Maximum update depth exceeded", unmounted the tree and left the
+ * page blank and stuck. Evaluating storage here — at the moment the route
+ * actually renders — always sees the current session state.
+ */
+export function SignedOutOnly({ children }) {
+  return localStorage.getItem("token")
+    ? <Navigate to="/dashboard" replace />
+    : children;
+}
+
+
+/**
  * Route guard.
  *
  * Always requires a JWT. When `roles` is given it additionally checks the
