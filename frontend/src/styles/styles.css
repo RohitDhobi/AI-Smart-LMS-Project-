@@ -16148,14 +16148,25 @@ a.analytics-stat:hover {
   border: 0;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--primary);
+  color: #2563eb;
   cursor: pointer;
   transition: color .15s ease
 }
 
-.exam-history-link:hover {
+.exam-history-link:hover,
+.card .exam-history-link:hover {
   color: var(--primary-dark);
   text-decoration: underline
+}
+
+[data-theme=dark] .exam-history-link,
+[data-theme=dark] .card .exam-history-link {
+  color: #8ab4ff
+}
+
+[data-theme=dark] .exam-history-link:hover,
+[data-theme=dark] .card .exam-history-link:hover {
+  color: #60a5fa
 }
 
 .exam-history-link:focus-visible {
