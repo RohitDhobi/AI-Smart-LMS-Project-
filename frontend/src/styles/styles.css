@@ -16137,7 +16137,8 @@ a.analytics-stat:hover {
    score, and opens that paper's attempt history modal.
    ===================================================== */
 
-.exam-history-link {
+.exam-history-link,
+.card .exam-history-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
