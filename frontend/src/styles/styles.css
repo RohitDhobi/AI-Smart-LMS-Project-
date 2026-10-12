@@ -15919,6 +15919,10 @@ a.analytics-stat:hover {
 .auth-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  /* Viewport-filling shell. Keep the 100vh fallback: browsers without
+     dvh support (older Edge) would otherwise drop the whole declaration
+     and collapse the shell to content height, leaving gaps + scrolling. */
+  min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg)
 }
